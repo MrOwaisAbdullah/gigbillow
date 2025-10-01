@@ -166,7 +166,7 @@ export default function NewInvoicePage() {
     if (projectId) {
       async function fetchProjectDetails() {
         const project = allProjects.find(p => p.id === projectId);
-        if (!project) return;
+        if (!project || !project.rate) return;
         
         const projectTimeEntries = await getTimeEntriesByProject(projectId);
         const totalHours = projectTimeEntries.reduce((acc, entry) => acc + entry.hours, 0);

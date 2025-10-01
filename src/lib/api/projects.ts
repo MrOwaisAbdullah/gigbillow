@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, getDoc } from 'firebase/firestore';
 import type { Project } from '@/lib/types';
 
 function getCollectionPath() {
@@ -39,9 +39,13 @@ export async function deleteProject(id: string): Promise<void> {
 }
 
 export async function getProjectById(id: string): Promise<Project | null> {
-    const q = query(collection(db, getCollectionPath()), where('id', '==', id));
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) return null;
-    const projectDoc = querySnapshot.docs[0];
-    return { id: projectDoc.id, ...projectDoc.data() } as Project;
+    const collectionPath = `users/${getAuth().currentUser?.uid}/projects`;
+    const docRef = doc(db, collectionPath, id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as Project;
+    } else {
+        return null;
+    }
 }
