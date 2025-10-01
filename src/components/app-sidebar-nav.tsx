@@ -6,7 +6,7 @@ import {
   FolderKanban,
   Users,
   FileText,
-  Clock,
+  Timer,
   LineChart,
   Package2,
 } from 'lucide-react'
@@ -26,7 +26,7 @@ export function AppSidebarNav({ isCollapsed = false }: AppSidebarNavProps) {
     { href: '/projects', icon: FolderKanban, label: 'Projects' },
     { href: '/clients', icon: Users, label: 'Clients' },
     { href: '/invoices', icon: FileText, label: 'Invoices' },
-    { href: '/track', icon: Clock, label: 'Time Tracker' },
+    { href: '/track', icon: Timer, label: 'Time Tracker' },
     { href: '/reports', icon: LineChart, label: 'Reports' },
   ]
 
