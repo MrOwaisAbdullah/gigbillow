@@ -1,11 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-  signInWithGoogle,
-  signInWithEmailAndPasswordHandler,
-} from '@/lib/auth';
-import { Chrome, Loader2 } from 'lucide-react';
+import { registerWithEmailAndPassword } from '@/lib/auth';
+import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/auth/auth-provider';
 import { useEffect, useState } from 'react';
@@ -23,14 +20,14 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters.'),
   email: z.string().email('Invalid email address.'),
   password: z.string().min(6, 'Password must be at least 6 characters.'),
 });
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const { toast } = useToast();
@@ -39,6 +36,7 @@ export default function LoginPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: '',
       email: '',
       password: '',
     },
@@ -51,42 +49,22 @@ export default function LoginPage() {
   }, [user, router]);
 
   if (loading || user) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        Loading...
-      </div>
-    );
+    return <div className="flex h-screen w-screen items-center justify-center">Loading...</div>;
   }
-
-  const handleGoogleSignIn = async () => {
-    try {
-      const user = await signInWithGoogle();
-      if (user) {
-        router.push('/dashboard');
-      }
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Sign In Failed',
-        description:
-          'Could not sign in with Google. Please try again.',
-      });
-    }
-  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     try {
-      await signInWithEmailAndPasswordHandler(values.email, values.password);
+      await registerWithEmailAndPassword(values.name, values.email, values.password);
       router.push('/dashboard');
     } catch (error: any) {
       let description = 'An unexpected error occurred. Please try again.';
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        description = 'Invalid email or password. Please try again.';
+      if (error.code === 'auth/email-already-in-use') {
+        description = 'This email address is already in use. Please try signing in.';
       }
       toast({
         variant: 'destructive',
-        title: 'Sign In Failed',
+        title: 'Registration Failed',
         description,
       });
     } finally {
@@ -98,19 +76,30 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-6 text-center">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-primary">
-            ProManFlow
-          </h1>
+          <h1 className="text-4xl font-bold tracking-tight text-primary">ProManFlow</h1>
           <p className="mt-2 text-lg text-muted-foreground">
-            Your professional workspace, simplified.
+            Create your account to get started.
           </p>
         </div>
         <div className="rounded-lg border bg-card p-8 shadow-sm">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <h2 className="text-2xl font-semibold">Sign In</h2>
+              <h2 className="text-2xl font-semibold">Sign Up</h2>
               <div className="space-y-4 text-left">
                 <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Jane Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
@@ -142,40 +131,38 @@ export default function LoginPage() {
                 />
               </div>
               <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
-                {isSubmitting && (
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                )}
-                Sign In
+                {isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                Create Account
               </Button>
             </form>
           </Form>
-
-          <div className="relative my-6">
-            <Separator />
-            <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-card px-2 text-sm text-muted-foreground">OR</span>
-          </div>
-
-
-          <Button
-            onClick={handleGoogleSignIn}
-            variant="outline"
-            className="w-full"
-            size="lg"
-          >
-            <Chrome className="mr-2 h-5 w-5" />
-            Sign in with Google
-          </Button>
-
-           <p className="text-sm text-muted-foreground">
-             Don't have an account?{' '}
+           <p className="pt-4 text-sm text-muted-foreground">
+             Already have an account?{' '}
             <Link
-              href="/register"
+              href="/login"
               className="font-semibold text-primary underline-offset-4 hover:underline"
             >
-              Sign up
+              Sign in
             </Link>
           </p>
         </div>
+         <p className="px-8 text-center text-sm text-muted-foreground">
+            By clicking continue, you agree to our{' '}
+            <a
+                href="#"
+                className="underline underline-offset-4 hover:text-primary"
+            >
+                Terms of Service
+            </a>{' '}
+            and{' '}
+            <a
+                href="#"
+                className="underline underline-offset-4 hover:text-primary"
+            >
+                Privacy Policy
+            </a>
+            .
+        </p>
       </div>
     </div>
   );
