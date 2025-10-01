@@ -42,12 +42,13 @@ import { clients, projects } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const lineItemSchema = z.object({
   description: z.string().min(1, 'Description is required.'),
-  quantity: z.coerce.number().min(0.1, 'Quantity must be at least 0.1.'),
-  unitPrice: z.coerce.number().min(0, 'Unit price must be positive.'),
+  quantity: z.coerce.number().optional(),
+  unitPrice: z.coerce.number().optional(),
+  total: z.coerce.number().min(0, 'Total must be a positive number.'),
 });
 
 const formSchema = z.object({
@@ -71,6 +72,7 @@ type InvoiceFormValues = z.infer<typeof formSchema>;
 export default function NewInvoicePage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
+  const [isInvoiceCreated, setIsInvoiceCreated] = useState(false);
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
@@ -79,7 +81,7 @@ export default function NewInvoicePage() {
       clientId: '',
       projectId: '',
       issuedDate: new Date(),
-      lineItems: [{ description: '', quantity: 1, unitPrice: 0 }],
+      lineItems: [{ description: '', quantity: 1, unitPrice: 0, total: 0 }],
       notes: '',
     },
   });
@@ -88,6 +90,21 @@ export default function NewInvoicePage() {
     control: form.control,
     name: 'lineItems',
   });
+  
+  const lineItemsWatch = form.watch('lineItems');
+
+  useEffect(() => {
+    lineItemsWatch.forEach((item, index) => {
+      const quantity = item.quantity || 0;
+      const unitPrice = item.unitPrice || 0;
+      if (quantity > 0 && unitPrice > 0) {
+        const newTotal = quantity * unitPrice;
+        if (item.total !== newTotal) {
+          form.setValue(`lineItems.${index}.total`, newTotal, { shouldValidate: true });
+        }
+      }
+    });
+  }, [lineItemsWatch, form]);
 
   useEffect(() => {
     const projectName = searchParams.get('projectName');
@@ -101,10 +118,13 @@ export default function NewInvoicePage() {
         form.setValue('projectId', matchedProject.id);
         form.setValue('clientId', matchedProject.clientId);
       }
+      const quantity = parseFloat(hoursWorked);
+      const unitPrice = parseFloat(rate);
       form.setValue('lineItems', [{
         description: description,
-        quantity: parseFloat(hoursWorked),
-        unitPrice: parseFloat(rate)
+        quantity: quantity,
+        unitPrice: unitPrice,
+        total: quantity * unitPrice
       }]);
     }
   }, [searchParams, form]);
@@ -113,7 +133,7 @@ export default function NewInvoicePage() {
   function onSubmit(values: InvoiceFormValues) {
     console.log(values);
     const total = values.lineItems.reduce(
-      (acc, item) => acc + item.quantity * item.unitPrice,
+      (acc, item) => acc + item.total,
       0
     );
     toast({
@@ -122,13 +142,14 @@ export default function NewInvoicePage() {
         2
       )} has been created.`,
     });
+    setIsInvoiceCreated(true);
     // Here you would typically handle form submission, e.g., API call
   }
 
   const handleSaveAsPdf = () => {
     toast({
-      title: 'Coming Soon!',
-      description: 'PDF generation functionality will be implemented here.',
+      title: 'Generating PDF...',
+      description: 'Your invoice will be saved as a PDF.',
     });
     window.print();
   };
@@ -311,7 +332,7 @@ export default function NewInvoicePage() {
                       control={form.control}
                       name={`lineItems.${index}.description`}
                       render={({ field }) => (
-                        <FormItem className="col-span-6">
+                        <FormItem className="col-span-12 md:col-span-5">
                           <FormLabel className={cn(index !== 0 && "sr-only")}>Description</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Item description" />
@@ -324,8 +345,8 @@ export default function NewInvoicePage() {
                       control={form.control}
                       name={`lineItems.${index}.quantity`}
                       render={({ field }) => (
-                        <FormItem className="col-span-2">
-                           <FormLabel className={cn(index !== 0 && "sr-only")}>Quantity</FormLabel>
+                        <FormItem className="col-span-6 md:col-span-2">
+                           <FormLabel className={cn(index !== 0 && "sr-only")}>Hours/Qty</FormLabel>
                           <FormControl>
                             <Input type="number" {...field} placeholder="1" />
                           </FormControl>
@@ -337,8 +358,8 @@ export default function NewInvoicePage() {
                       control={form.control}
                       name={`lineItems.${index}.unitPrice`}
                       render={({ field }) => (
-                        <FormItem className="col-span-2">
-                           <FormLabel className={cn(index !== 0 && "sr-only")}>Unit Price</FormLabel>
+                        <FormItem className="col-span-6 md:col-span-2">
+                           <FormLabel className={cn(index !== 0 && "sr-only")}>Rate/Price</FormLabel>
                           <FormControl>
                             <Input type="number" {...field} placeholder="100.00" />
                           </FormControl>
@@ -346,10 +367,20 @@ export default function NewInvoicePage() {
                         </FormItem>
                       )}
                     />
-                    <div className="col-span-2 flex items-center gap-2 pt-8">
-                       <p className="font-medium text-sm">
-                        ${(form.watch(`lineItems.${index}.quantity`) * form.watch(`lineItems.${index}.unitPrice`)).toFixed(2)}
-                      </p>
+                     <FormField
+                      control={form.control}
+                      name={`lineItems.${index}.total`}
+                      render={({ field }) => (
+                        <FormItem className="col-span-10 md:col-span-2">
+                           <FormLabel className={cn(index !== 0 && "sr-only")}>Total</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} placeholder="100.00" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="col-span-2 md:col-span-1 flex items-center pt-8">
                       {fields.length > 1 && (
                         <Button
                           type="button"
@@ -367,7 +398,7 @@ export default function NewInvoicePage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ description: '', quantity: 1, unitPrice: 0 })}
+                  onClick={() => append({ description: '', quantity: 1, unitPrice: 0, total: 0 })}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Line Item
@@ -404,9 +435,11 @@ export default function NewInvoicePage() {
             <Button type="button" variant="outline" asChild>
               <Link href="/invoices">Cancel</Link>
             </Button>
+            {isInvoiceCreated && (
              <Button type="button" variant="secondary" onClick={handleSaveAsPdf}>
               Save as PDF
             </Button>
+            )}
             <Button type="submit">Create Invoice</Button>
           </div>
         </form>
@@ -414,5 +447,3 @@ export default function NewInvoicePage() {
     </div>
   );
 }
-
-    
