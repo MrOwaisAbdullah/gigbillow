@@ -23,7 +23,7 @@ import { startOfDay } from 'date-fns';
 function getCollectionPath() {
     const auth = getAuth();
     const userId = auth.currentUser?.uid;
-    if (!userId) throw new Error('User not authenticated');
+    if (!userId) return null;
     return `users/${userId}/timeEntries`;
 }
 
@@ -43,7 +43,10 @@ export async function getTimeEntries(
     lastVisible: DocumentSnapshot | null = null,
     pageSize: number = 10
 ): Promise<{ entries: TimeEntry[], next: DocumentSnapshot | null }> {
-    const coll = collection(db, getCollectionPath());
+    const collectionPath = getCollectionPath();
+    if (!collectionPath) return { entries: [], next: null };
+    
+    const coll = collection(db, collectionPath);
     let q;
     if (lastVisible) {
         q = query(coll, orderBy('startTime', 'desc'), startAfter(lastVisible), limit(pageSize));
@@ -60,10 +63,13 @@ export async function getTimeEntries(
 }
 
 export async function getTodaysTimeEntries(): Promise<TimeEntry[]> {
+    const collectionPath = getCollectionPath();
+    if (!collectionPath) return [];
+
     const todayStart = startOfDay(new Date());
 
     const q = query(
-        collection(db, getCollectionPath()),
+        collection(db, collectionPath),
         where('startTime', '>=', todayStart),
         orderBy('startTime', 'desc')
     );
@@ -74,23 +80,32 @@ export async function getTodaysTimeEntries(): Promise<TimeEntry[]> {
 
 
 export async function getTimeEntriesByProject(projectId: string): Promise<TimeEntry[]> {
-    const q = query(collection(db, getCollectionPath()), where('projectId', '==', projectId));
+    const collectionPath = getCollectionPath();
+    if (!collectionPath) return [];
+
+    const q = query(collection(db, collectionPath), where('projectId', '==', projectId));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(docToTimeEntry);
 }
 
 
 export async function createTimeEntry(entry: Omit<TimeEntry, 'id'>): Promise<TimeEntry> {
-  const docRef = await addDoc(collection(db, getCollectionPath()), entry);
+  const collectionPath = getCollectionPath();
+  if (!collectionPath) throw new Error('User not authenticated');
+  const docRef = await addDoc(collection(db, collectionPath), entry);
   return { id: docRef.id, ...entry };
 }
 
 export async function updateTimeEntry(id: string, entry: Partial<Omit<TimeEntry, 'id'>>): Promise<void> {
-  const docRef = doc(db, getCollectionPath(), id);
+  const collectionPath = getCollectionPath();
+  if (!collectionPath) throw new Error('User not authenticated');
+  const docRef = doc(db, collectionPath, id);
   await updateDoc(docRef, entry);
 }
 
 export async function deleteTimeEntry(id: string): Promise<void> {
-  const docRef = doc(db, getCollectionPath(), id);
+  const collectionPath = getCollectionPath();
+  if (!collectionPath) throw new Error('User not authenticated');
+  const docRef = doc(db, collectionPath, id);
   await deleteDoc(docRef);
 }

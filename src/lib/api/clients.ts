@@ -6,36 +6,41 @@ import type { Client } from '@/lib/types';
 function getCollectionPath() {
     const auth = getAuth();
     const userId = auth.currentUser?.uid;
-    if (!userId) throw new Error('User not authenticated');
+    if (!userId) return null;
     return `users/${userId}/clients`;
 }
 
 export async function getClients(): Promise<Client[]> {
   const collectionPath = getCollectionPath();
+  if (!collectionPath) return [];
   const querySnapshot = await getDocs(collection(db, collectionPath));
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
 }
 
 export async function createClient(client: Omit<Client, 'id'>): Promise<Client> {
   const collectionPath = getCollectionPath();
+  if (!collectionPath) throw new Error('User not authenticated');
   const docRef = await addDoc(collection(db, collectionPath), client);
   return { id: docRef.id, ...client };
 }
 
 export async function updateClient(id: string, client: Partial<Omit<Client, 'id'>>): Promise<void> {
   const collectionPath = getCollectionPath();
+  if (!collectionPath) throw new Error('User not authenticated');
   const docRef = doc(db, collectionPath, id);
   await updateDoc(docRef, client);
 }
 
 export async function deleteClient(id: string): Promise<void> {
   const collectionPath = getCollectionPath();
+  if (!collectionPath) throw new Error('User not authenticated');
   const docRef = doc(db, collectionPath, id);
   await deleteDoc(docRef);
 }
 
 export async function getClientById(id: string): Promise<Client | null> {
-    const collectionPath = `users/${getAuth().currentUser?.uid}/clients`;
+    const collectionPath = getCollectionPath();
+    if (!collectionPath) return null;
     const docRef = doc(db, collectionPath, id);
     const docSnap = await getDoc(docRef);
 

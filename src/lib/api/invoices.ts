@@ -8,13 +8,16 @@ import type { Invoice } from '@/lib/types';
 function getCollectionPath() {
     const auth = getAuth();
     const userId = auth.currentUser?.uid;
-    if (!userId) throw new Error('User not authenticated');
+    if (!userId) return null;
     return `users/${userId}/invoices`;
 }
 
 
 export async function getInvoices(): Promise<Invoice[]> {
-  const querySnapshot = await getDocs(collection(db, getCollectionPath()));
+  const collectionPath = getCollectionPath();
+  if (!collectionPath) return [];
+
+  const querySnapshot = await getDocs(collection(db, collectionPath));
   const invoices = querySnapshot.docs.map(doc => {
     const data = doc.data();
     return {
@@ -28,16 +31,22 @@ export async function getInvoices(): Promise<Invoice[]> {
 }
 
 export async function createInvoice(invoice: Omit<Invoice, 'id'>): Promise<Invoice> {
-  const docRef = await addDoc(collection(db, getCollectionPath()), invoice);
+  const collectionPath = getCollectionPath();
+  if (!collectionPath) throw new Error('User not authenticated');
+  const docRef = await addDoc(collection(db, collectionPath), invoice);
   return { id: docRef.id, ...invoice };
 }
 
 export async function updateInvoice(id: string, invoice: Partial<Omit<Invoice, 'id'>>): Promise<void> {
-  const docRef = doc(db, getCollectionPath(), id);
+  const collectionPath = getCollectionPath();
+  if (!collectionPath) throw new Error('User not authenticated');
+  const docRef = doc(db, collectionPath, id);
   await updateDoc(docRef, invoice);
 }
 
 export async function deleteInvoice(id: string): Promise<void> {
-  const docRef = doc(db, getCollectionPath(), id);
+  const collectionPath = getCollectionPath();
+  if (!collectionPath) throw new Error('User not authenticated');
+  const docRef = doc(db, collectionPath, id);
   await deleteDoc(docRef);
 }
