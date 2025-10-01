@@ -14,11 +14,15 @@ const AuthContext = createContext<{ user: User | null; loading: boolean }>({
 
 async function checkAndSeedData(userId: string, email: string) {
   if (email === 'sample@freelancer.com') {
-    const clients = await getClients();
-    if (clients.length === 0) {
-      console.log('No data found for sample user, seeding now...');
-      await seedSampleData(userId);
-      console.log('Sample data seeded successfully.');
+    try {
+      const clients = await getClients();
+      if (clients.length === 0) {
+        console.log('No data found for sample user, seeding now...');
+        await seedSampleData(userId);
+        console.log('Sample data seeded successfully.');
+      }
+    } catch (error) {
+      console.error('Error during data check/seed:', error);
     }
   }
 }
@@ -31,19 +35,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const auth = getAuth(app);
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
-      setLoading(false);
 
       const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
 
       if (user) {
-        checkAndSeedData(user.uid, user.email || '').catch(console.error);
+        // Await the seeding process to complete before we stop loading
+        await checkAndSeedData(user.uid, user.email || '');
+        setLoading(false); // Set loading to false after user is resolved and seeding is checked
         if (isAuthPage) {
           router.push('/dashboard');
         }
-      } else if (!isAuthPage) {
-        router.push('/login');
+      } else {
+        setLoading(false);
+        if (!isAuthPage) {
+          router.push('/login');
+        }
       }
     });
 
