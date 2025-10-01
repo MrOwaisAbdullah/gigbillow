@@ -29,8 +29,12 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { clients } from '@/lib/data';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { getClients } from '@/lib/api/clients';
+import { createProject } from '@/lib/api/projects';
+import type { Client } from '@/lib/types';
+import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Project name must be at least 2 characters.'),
@@ -41,6 +45,18 @@ const formSchema = z.object({
 
 export default function NewProjectPage() {
   const { toast } = useToast();
+  const router = useRouter();
+  const [clients, setClients] = useState<Client[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    async function fetchClients() {
+      const clientsData = await getClients();
+      setClients(clientsData);
+    }
+    fetchClients();
+  }, []);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,13 +67,24 @@ export default function NewProjectPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    toast({
-      title: 'Project Created',
-      description: `Project "${values.name}" has been successfully created.`,
-    });
-    // Here you would typically handle form submission, e.g., API call
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
+    try {
+      await createProject(values);
+      toast({
+        title: 'Project Created',
+        description: `Project "${values.name}" has been successfully created.`,
+      });
+      router.push('/projects');
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to create project',
+        description: 'An unexpected error occurred. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -148,7 +175,7 @@ export default function NewProjectPage() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a status" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="active">Active</SelectItem>
@@ -164,7 +191,10 @@ export default function NewProjectPage() {
                 <Button type="button" variant="outline" asChild>
                   <Link href="/projects">Cancel</Link>
                 </Button>
-                <Button type="submit">Create Project</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Create Project
+                </Button>
               </div>
             </form>
           </Form>

@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Table,
   TableBody,
@@ -16,7 +18,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
-import { projects, getClientById } from "@/lib/data"
+import { getProjects, deleteProject } from "@/lib/api/projects"
+import { getClientById } from "@/lib/api/clients"
+import { useToast } from "@/hooks/use-toast"
+import { useEffect, useState } from "react"
+import type { Project, Client } from "@/lib/types"
+import { Skeleton } from "../ui/skeleton"
 
 const statusVariantMap: { [key in 'active' | 'completed' | 'on_hold']: 'default' | 'secondary' | 'outline' } = {
   active: 'default',
@@ -25,6 +32,92 @@ const statusVariantMap: { [key in 'active' | 'completed' | 'on_hold']: 'default'
 }
 
 export function ProjectsTable() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [clients, setClients] = useState<{[key: string]: Client}>({});
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const projectsData = await getProjects();
+        setProjects(projectsData);
+
+        const clientIds = [...new Set(projectsData.map(p => p.clientId))];
+        const clientsData: {[key: string]: Client} = {};
+        for (const id of clientIds) {
+            const client = await getClientById(id);
+            if(client) clientsData[id] = client;
+        }
+        setClients(clientsData);
+
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Failed to fetch data',
+          description: 'Please try again later.',
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [toast]);
+
+  const handleDelete = async (id: string) => {
+    const projectToDelete = projects.find(p => p.id === id);
+    if (!projectToDelete) return;
+
+    try {
+      await deleteProject(id);
+      setProjects(projects.filter(project => project.id !== id));
+      toast({
+        title: 'Project Deleted',
+        description: `Project "${projectToDelete.name}" has been deleted.`,
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to delete project',
+        description: 'Please try again later.',
+      });
+    }
+  };
+  
+  if (loading) {
+    return (
+        <div className="rounded-lg border">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Project Name</TableHead>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>
+                        <span className="sr-only">Actions</span>
+                        </TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {[...Array(3)].map((_, i) => (
+                        <TableRow key={i}>
+                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                            <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                            <TableCell>
+                                <div className="flex justify-end">
+                                  <Skeleton className="h-8 w-8" />
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
+    )
+  }
+
+
   return (
     <div className="rounded-lg border">
       <Table>
@@ -40,7 +133,7 @@ export function ProjectsTable() {
         </TableHeader>
         <TableBody>
           {projects.map((project) => {
-            const client = getClientById(project.clientId);
+            const client = clients[project.clientId];
             return (
               <TableRow key={project.id}>
                 <TableCell className="font-medium">{project.name}</TableCell>
@@ -50,7 +143,7 @@ export function ProjectsTable() {
                     {project.status.replace('_', ' ')}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -61,7 +154,7 @@ export function ProjectsTable() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem>Delete</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDelete(project.id)}>Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

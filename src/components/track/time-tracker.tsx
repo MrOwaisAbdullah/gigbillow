@@ -11,7 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Play, Square, Pause, Trash2, BookOpen } from "lucide-react"
-import { projects, timeEntries, getProjectById } from "@/lib/data"
+import { getProjects } from "@/lib/api/projects"
+import { getTimeEntriesByProject, createTimeEntry } from "@/lib/api/time-entries"
+import { useToast } from "@/hooks/use-toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,22 +25,54 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { TodaysEntriesSheet } from "./todays-entries-sheet"
-import type { Project } from "@/lib/types"
+import type { Project, TimeEntry } from "@/lib/types"
 
 type TimerState = 'running' | 'paused' | 'stopped';
 
 export function TimeTracker() {
+  const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [timerState, setTimerState] = useState<TimerState>('stopped');
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [startTime, setStartTime] = useState<number | null>(null);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [todaysProjectTime, setTodaysProjectTime] = useState(0);
   const [isDiscardAlertOpen, setIsDiscardAlertOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [lastSavedEntry, setLastSavedEntry] = useState<{ duration: number, projectName: string } | null>(null);
 
-  const selectedProject = selectedProjectId ? getProjectById(selectedProjectId) : null;
-  const todaysProjectTime = timeEntries
-    .filter(e => e.projectId === selectedProjectId && new Date(e.startTime).toDateString() === new Date().toDateString())
-    .reduce((acc, e) => acc + e.hours * 3600, 0);
+  const { toast } = useToast();
+  const selectedProject = selectedProjectId ? projects.find(p => p.id === selectedProjectId) : null;
+  
+  useEffect(() => {
+    async function fetchInitialData() {
+        try {
+            const projectsData = await getProjects();
+            setProjects(projectsData.filter(p => p.status === 'active'));
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Failed to fetch projects' });
+        }
+    }
+    fetchInitialData();
+  }, [toast]);
+  
+  useEffect(() => {
+    async function fetchTodaysTime() {
+        if(selectedProjectId) {
+            try {
+                const entries = await getTimeEntriesByProject(selectedProjectId);
+                const todaysTime = entries
+                    .filter(e => new Date(e.startTime).toDateString() === new Date().toDateString())
+                    .reduce((acc, e) => acc + e.hours * 3600, 0);
+                setTodaysProjectTime(todaysTime);
+            } catch (error) {
+                 toast({ variant: 'destructive', title: 'Failed to fetch time entries' });
+            }
+        } else {
+            setTodaysProjectTime(0);
+        }
+    }
+    fetchTodaysTime();
+  }, [selectedProjectId, toast]);
 
   // Load from localStorage
   useEffect(() => {
@@ -46,15 +80,14 @@ export function TimeTracker() {
       const storedState = localStorage.getItem('timerState');
       if (storedState) {
         const { projectId, startTime: storedStartTime, state, elapsedTime: storedElapsedTime } = JSON.parse(storedState);
-        if (state === 'running' && projectId && storedStartTime) {
+        if ((state === 'running' || state === 'paused') && projectId && storedElapsedTime !== undefined) {
           setSelectedProjectId(projectId);
-          setTimerState('running');
-          setStartTime(storedStartTime);
-          setElapsedTime(Math.floor((Date.now() - storedStartTime) / 1000) + storedElapsedTime);
-        } else if (state === 'paused' && projectId && storedElapsedTime) {
-            setSelectedProjectId(projectId);
-            setTimerState('paused');
-            setElapsedTime(storedElapsedTime);
+          setTimerState(state);
+          setElapsedTime(storedElapsedTime);
+          if (state === 'running' && storedStartTime) {
+             setElapsedTime(Math.floor((Date.now() - new Date(storedStartTime).getTime()) / 1000) + storedElapsedTime);
+             setStartTime(new Date(storedStartTime));
+          }
         }
       }
     } catch (error) {
@@ -97,31 +130,60 @@ export function TimeTracker() {
   
   const handleStart = () => {
       if (!selectedProjectId) return;
-      if(timerState !== 'stopped') {
-          // Auto-stop previous entry logic would go here
-          console.log("Stopping previous timer...");
+      
+      if(isRunningOrPaused) {
+          handleStop(true); // Auto-save previous entry
       }
       setTimerState('running');
-      setStartTime(Date.now());
+      setStartTime(new Date());
       setElapsedTime(0);
+      setLastSavedEntry(null);
   };
 
-  const handleStop = () => {
-    // API call to save entry would go here
-    console.log(`Saved ${formatTime(elapsedTime)} to project ${selectedProject?.name}`);
-    setTimerState('stopped');
-    setElapsedTime(0);
-    setStartTime(null);
+  const handleStop = async (isAutoSaving = false) => {
+    if (!startTime || !selectedProject) return;
+
+    const endTime = new Date();
+    const hours = elapsedTime / 3600;
+
+    const newEntry: Omit<TimeEntry, 'id'> = {
+        projectId: selectedProject.id,
+        startTime,
+        endTime,
+        description: `Time tracked for ${selectedProject.name}`,
+        hours,
+    };
+
+    try {
+        await createTimeEntry(newEntry);
+        if(!isAutoSaving) {
+            toast({ title: "Time Saved", description: `Saved ${formatShortTime(elapsedTime)} to project ${selectedProject?.name}` });
+            setLastSavedEntry({ duration: elapsedTime, projectName: selectedProject.name });
+            setTodaysProjectTime(prev => prev + elapsedTime);
+        }
+    } catch (error) {
+        if(!isAutoSaving) toast({ variant: 'destructive', title: "Failed to save time" });
+    } finally {
+        if(!isAutoSaving) {
+            setTimerState('stopped');
+            setElapsedTime(0);
+            setStartTime(null);
+        }
+    }
   };
 
   const handlePause = () => {
-    setTimerState('paused');
-    // Save partial entry logic would go here
+    if(timerState === 'running') {
+      setTimerState('paused');
+      // The elapsedTime is preserved
+    }
   };
   
   const handleResume = () => {
-    setTimerState('running');
-    setStartTime(Date.now()); // This would be more complex if we need to keep history clean
+    if(timerState === 'paused') {
+        setTimerState('running');
+        setStartTime(new Date(Date.now() - elapsedTime * 1000)); // Adjust start time to correctly calculate total elapsed
+    }
   };
 
   const handleDiscard = () => {
@@ -129,15 +191,18 @@ export function TimeTracker() {
     setTimerState('stopped');
     setElapsedTime(0);
     setStartTime(null);
-    // API call to delete entry would go here
+    setLastSavedEntry(null);
   };
   
   const handleProjectChange = (projectId: string) => {
-      if(timerState !== 'stopped') {
-          // auto-stop current timer
-          handleStop();
+      if(isRunningOrPaused) {
+          handleStop(true);
       }
       setSelectedProjectId(projectId);
+      setTimerState('stopped');
+      setElapsedTime(0);
+      setStartTime(null);
+      setLastSavedEntry(null);
   }
 
   const formatTime = (timeInSeconds: number) => {
@@ -178,22 +243,22 @@ export function TimeTracker() {
             </div>
             {timerState !== 'running' ? (
                 <Button 
-                    onClick={handleStart} 
-                    disabled={!isActionable || timerState === 'running'}
+                    onClick={timerState === 'paused' ? handleResume : handleStart} 
+                    disabled={!isActionable}
                     className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white h-10 px-6 text-base"
                 >
-                    <Play className="mr-2" /> Start
+                    <Play className="mr-2" /> {timerState === 'paused' ? 'Resume' : 'Start'}
                 </Button>
             ) : (
-                <Button onClick={handleStop} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white h-10 px-6 text-base">
+                <Button onClick={() => handleStop()} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white h-10 px-6 text-base">
                     <Square className="mr-2" /> Stop
                 </Button>
             )}
           </div>
           
-          {timerState !== 'stopped' && (
-             <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 text-sm">
-                Keep this tab open – timer may stop if the tab is closed.
+          {isRunningOrPaused && (
+             <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 text-sm text-center">
+                Keep this page open – timer might stop if you close this tab.
              </div>
           )}
          
@@ -205,7 +270,7 @@ export function TimeTracker() {
 
           <div className="text-center text-muted-foreground space-y-1">
              <p>{selectedProject?.name || "No project selected"}</p>
-             <p>Today's total: <span className="font-semibold">{formatShortTime(todaysProjectTime + (timerState !== 'stopped' ? elapsedTime : 0))}</span></p>
+             <p>Today's total for this project: <span className="font-semibold">{formatShortTime(todaysProjectTime + elapsedTime)}</span></p>
           </div>
 
           <div className="flex items-center justify-center gap-4 mt-6">
@@ -214,11 +279,7 @@ export function TimeTracker() {
                     <Pause />
                 </Button>
             )}
-             {timerState === 'paused' && (
-                <Button variant="ghost" size="icon" onClick={handleResume} title="Resume">
-                    <Play />
-                </Button>
-            )}
+             
             <Button variant="ghost" size="icon" onClick={() => setIsDiscardAlertOpen(true)} disabled={!isRunningOrPaused} title="Discard">
                 <Trash2 className="text-destructive"/>
             </Button>
@@ -228,9 +289,9 @@ export function TimeTracker() {
             </Button>
           </div>
 
-           {timerState === 'stopped' && elapsedTime > 0 && (
+           {timerState === 'stopped' && lastSavedEntry && (
              <div className="text-sm text-muted-foreground text-center">
-                 Last entry: {formatShortTime(elapsedTime)} saved to {selectedProject?.name}.
+                 Last entry: {formatShortTime(lastSavedEntry.duration)} saved to {lastSavedEntry.projectName}.
              </div>
             )}
         </CardContent>
@@ -253,7 +314,7 @@ export function TimeTracker() {
           </AlertDialogContent>
       </AlertDialog>
       
-      <TodaysEntriesSheet open={isSheetOpen} onOpenChange={setIsSheetOpen} />
+      <TodaysEntriesSheet open={isSheetOpen} onOpenChange={setIsSheetOpen} key={isSheetOpen ? 'open' : 'closed'} />
     </>
   )
 }

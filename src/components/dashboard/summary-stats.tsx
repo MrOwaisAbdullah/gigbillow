@@ -1,53 +1,103 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { invoices, timeEntries } from '@/lib/data';
-import { differenceInDays, isThisWeek, subDays } from 'date-fns';
-import { TrendingUp, FileText, Clock, AlertCircle } from 'lucide-react';
+import { getInvoices } from '@/lib/api/invoices';
+import { getTimeEntries } from '@/lib/api/time-entries';
+import { useToast } from '@/hooks/use-toast';
+import { useEffect, useState } from "react";
+import { subDays, isThisWeek } from 'date-fns';
+import { TrendingUp, AlertCircle, Clock } from 'lucide-react';
+import { Skeleton } from '../ui/skeleton';
 
 export function SummaryStats() {
-  const thirtyDaysAgo = subDays(new Date(), 30);
+  const [stats, setStats] = useState({
+    outstandingRevenue: 0,
+    incomeLast30d: 0,
+    hoursThisWeek: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const outstandingRevenue = invoices
-    .filter((inv) => inv.status === 'unpaid' || inv.status === 'overdue')
-    .reduce((acc, inv) => acc + inv.amount, 0);
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const [invoicesData, timeEntriesData] = await Promise.all([getInvoices(), getTimeEntries()]);
+        
+        const thirtyDaysAgo = subDays(new Date(), 30);
 
-  const incomeLast30d = invoices
-    .filter(
-      (inv) =>
-        inv.status === 'paid' &&
-        inv.issuedDate >= thirtyDaysAgo 
-    )
-    .reduce((acc, inv) => acc + inv.amount, 0);
+        const outstandingRevenue = invoicesData
+          .filter((inv) => inv.status === 'unpaid' || inv.status === 'overdue')
+          .reduce((acc, inv) => acc + inv.amount, 0);
 
-  const hoursThisWeek = timeEntries
-    .filter((entry) => isThisWeek(entry.startTime, { weekStartsOn: 1 }))
-    .reduce((acc, entry) => acc + entry.hours, 0);
-    
-  const stats = [
+        const incomeLast30d = invoicesData
+          .filter(
+            (inv) =>
+              inv.status === 'paid' &&
+              new Date(inv.issuedDate) >= thirtyDaysAgo
+          )
+          .reduce((acc, inv) => acc + inv.amount, 0);
+
+        const hoursThisWeek = timeEntriesData
+          .filter((entry) => isThisWeek(new Date(entry.startTime), { weekStartsOn: 1 }))
+          .reduce((acc, entry) => acc + entry.hours, 0);
+
+        setStats({ outstandingRevenue, incomeLast30d, hoursThisWeek });
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Failed to fetch summary stats',
+          description: 'Please try again later.',
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStats();
+  }, [toast]);
+  
+  const statCards = [
     {
       title: 'Outstanding Revenue',
-      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(outstandingRevenue),
+      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(stats.outstandingRevenue),
       icon: AlertCircle,
       description: 'Total from unpaid invoices',
     },
     {
       title: 'Income (Last 30 d)',
-      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(incomeLast30d),
+      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(stats.incomeLast30d),
       icon: TrendingUp,
       description: 'Based on paid invoices',
     },
     {
       title: 'Hours This Week',
-      value: `${hoursThisWeek.toFixed(1)}h`,
+      value: `${stats.hoursThisWeek.toFixed(1)}h`,
       icon: Clock,
       description: 'Total billable hours tracked',
     }
   ];
 
+  if (loading) {
+    return (
+        <div className="grid gap-4 md:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+                <Card key={i}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-4 w-4" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-8 w-24 mb-1" />
+                        <Skeleton className="h-3 w-40" />
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+    );
+  }
+
   return (
     <div className="grid gap-4 md:grid-cols-3">
-      {stats.map((stat) => (
+      {statCards.map((stat) => (
         <Card key={stat.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>

@@ -38,15 +38,22 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { ArrowLeft, CalendarIcon, PlusCircle, Trash2 } from 'lucide-react';
-import { clients, projects, timeEntries } from '@/lib/data';
+import { ArrowLeft, CalendarIcon, Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { getClients } from '@/lib/api/clients';
+import { getProjects, getProjectsByClientId } from '@/lib/api/projects';
+import { getTimeEntriesByProject } from '@/lib/api/time-entries';
+import { createInvoice } from '@/lib/api/invoices';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import type { Client, Project } from '@/lib/types';
+
 
 const lineItemSchema = z.object({
   description: z.string().min(1, 'Description is required.'),
+  // quantity: z.coerce.number().min(0.1, 'Quantity must be greater than 0.'),
+  // unitPrice: z.coerce.number().min(0, 'Unit price must be non-negative.'),
 });
 
 const formSchema = z.object({
@@ -73,7 +80,12 @@ type InvoiceFormValues = z.infer<typeof formSchema>;
 export default function NewInvoicePage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInvoiceCreated, setIsInvoiceCreated] = useState(false);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [allProjects, setAllProjects] = useState<Project[]>([]);
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
@@ -104,15 +116,36 @@ export default function NewInvoicePage() {
   const taxAmount = (subTotal * taxRate) / 100;
   const totalAmount = subTotal + taxAmount;
 
+  useEffect(() => {
+    async function fetchData() {
+        const [clientsData, projectsData] = await Promise.all([getClients(), getProjects()]);
+        setClients(clientsData);
+        setAllProjects(projectsData);
+    }
+    fetchData();
+  }, []);
   
+  useEffect(() => {
+    async function filterProjects() {
+        if (clientId) {
+            const clientProjects = await getProjectsByClientId(clientId);
+            setProjects(clientProjects);
+            form.setValue('projectId', ''); // Reset project when client changes
+        } else {
+            setProjects([]);
+        }
+    }
+    filterProjects();
+  }, [clientId, form]);
+
   useEffect(() => {
     const projectName = searchParams.get('projectName');
     const hoursWorked = searchParams.get('hoursWorked');
     const rate = searchParams.get('rate');
     const description = searchParams.get('description');
 
-    if (projectName && hoursWorked && rate && description) {
-      const matchedProject = projects.find(p => p.name.toLowerCase() === projectName.toLowerCase());
+    if (projectName && hoursWorked && rate && description && allProjects.length > 0) {
+      const matchedProject = allProjects.find(p => p.name.toLowerCase() === projectName.toLowerCase());
       if (matchedProject) {
         form.setValue('projectId', matchedProject.id);
         const client = clients.find(c => c.id === matchedProject.clientId);
@@ -127,34 +160,52 @@ export default function NewInvoicePage() {
       }]);
       form.setValue('subTotal', quantity * unitPrice);
     }
-  }, [searchParams, form]);
+  }, [searchParams, form, allProjects, clients]);
   
-    useEffect(() => {
+  useEffect(() => {
     if (projectId) {
-      const project = projects.find(p => p.id === projectId);
-      if (!project) return;
-      
-      const projectTimeEntries = timeEntries.filter(entry => entry.projectId === projectId);
-      const totalHours = projectTimeEntries.reduce((acc, entry) => acc + entry.hours, 0);
+      async function fetchProjectDetails() {
+        const project = allProjects.find(p => p.id === projectId);
+        if (!project) return;
+        
+        const projectTimeEntries = await getTimeEntriesByProject(projectId);
+        const totalHours = projectTimeEntries.reduce((acc, entry) => acc + entry.hours, 0);
 
-      if (totalHours > 0) {
-        form.setValue('lineItems', [{
-          description: `Work performed on project: ${project.name}`,
-        }]);
-        form.setValue('subTotal', parseFloat((totalHours * project.rate).toFixed(2)));
+        if (totalHours > 0) {
+          form.setValue('lineItems', [{
+            description: `Work performed on project: ${project.name}`,
+          }]);
+          form.setValue('subTotal', parseFloat((totalHours * project.rate).toFixed(2)));
+        }
       }
+      fetchProjectDetails();
     }
-  }, [projectId, form]);
+  }, [projectId, form, allProjects]);
 
 
-  function onSubmit(values: InvoiceFormValues) {
-    console.log(values);
-    toast({
-      title: 'Invoice Created',
-      description: `Invoice ${values.invoiceNumber} for $${totalAmount.toFixed(2)} has been created.`,
-    });
-    setIsInvoiceCreated(true);
-    // Here you would typically handle form submission, e.g., API call
+  async function onSubmit(values: InvoiceFormValues) {
+    setIsSubmitting(true);
+    try {
+        const finalValues = {
+            ...values,
+            amount: totalAmount,
+            status: 'unpaid' as const,
+        }
+        await createInvoice(finalValues);
+        toast({
+            title: 'Invoice Created',
+            description: `Invoice ${values.invoiceNumber} for $${totalAmount.toFixed(2)} has been created.`,
+        });
+        setIsInvoiceCreated(true);
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Failed to create invoice',
+            description: 'An unexpected error occurred. Please try again.',
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   const handleSaveAsPdf = () => {
@@ -317,7 +368,7 @@ export default function NewInvoicePage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {projects.filter(p => p.clientId === clientId).map(project => (
+                          {projects.map(project => (
                             <SelectItem key={project.id} value={project.id}>
                               {project.name}
                             </SelectItem>
@@ -477,7 +528,10 @@ export default function NewInvoicePage() {
               Save as PDF
             </Button>
             ) : (
-               <Button type="submit">Create Invoice</Button>
+               <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Invoice
+               </Button>
             )}
           </div>
         </form>
