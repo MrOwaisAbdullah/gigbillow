@@ -32,6 +32,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { importWorkLogs, type ImportWorkLogsOutput } from '@/ai/flows/import-work-logs'
 import { Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 const formSchema = z.object({
   platformName: z.enum(['Fiverr', 'Upwork', 'Other']),
@@ -45,8 +46,8 @@ type ImportWorkLogDialogProps = {
 
 export function ImportWorkLogDialog({ open, onOpenChange }: ImportWorkLogDialogProps) {
   const { toast } = useToast()
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [extractedData, setExtractedData] = useState<ImportWorkLogsOutput | null>(null)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,17 +59,21 @@ export function ImportWorkLogDialog({ open, onOpenChange }: ImportWorkLogDialogP
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
-    setExtractedData(null)
     try {
       const result = await importWorkLogs(values)
-      setExtractedData(result)
       toast({
         title: 'Work Log Imported',
         description: 'Data successfully extracted. You can now create an invoice.',
       })
-      // Here you would typically navigate to a new invoice form pre-filled with `result`
-      // For this example, we'll just log it.
-      console.log('Extracted Data:', result)
+      
+      const queryParams = new URLSearchParams({
+        projectName: result.projectName,
+        hoursWorked: String(result.hoursWorked),
+        rate: String(result.rate),
+        description: result.description,
+      }).toString();
+
+      router.push(`/invoices/new?${queryParams}`);
       onOpenChange(false) // Close dialog on success
     } catch (error) {
       console.error(error)
@@ -136,7 +141,7 @@ export function ImportWorkLogDialog({ open, onOpenChange }: ImportWorkLogDialogP
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Import
+                Import & Create Invoice
               </Button>
             </DialogFooter>
           </form>
@@ -145,3 +150,5 @@ export function ImportWorkLogDialog({ open, onOpenChange }: ImportWorkLogDialogP
     </Dialog>
   )
 }
+
+    

@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,10 +37,18 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { ArrowLeft, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, PlusCircle, Trash2 } from 'lucide-react';
 import { clients, projects } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+
+const lineItemSchema = z.object({
+  description: z.string().min(1, 'Description is required.'),
+  quantity: z.coerce.number().min(0.1, 'Quantity must be at least 0.1.'),
+  unitPrice: z.coerce.number().min(0, 'Unit price must be positive.'),
+});
 
 const formSchema = z.object({
   invoiceNumber: z
@@ -54,30 +62,55 @@ const formSchema = z.object({
   dueDate: z.date({
     required_error: 'A due date is required.',
   }),
-  lineItems: z.array(
-    z.object({
-      description: z.string().min(1, 'Description is required.'),
-      quantity: z.coerce.number().min(1, 'Quantity must be at least 1.'),
-      unitPrice: z.coerce.number().min(0, 'Unit price must be positive.'),
-    })
-  ).min(1, 'At least one line item is required.'),
+  lineItems: z.array(lineItemSchema).min(1, 'At least one line item is required.'),
   notes: z.string().optional(),
 });
 
+type InvoiceFormValues = z.infer<typeof formSchema>;
+
 export default function NewInvoicePage() {
   const { toast } = useToast();
-  const form = useForm<z.infer<typeof formSchema>>({
+  const searchParams = useSearchParams();
+
+  const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      invoiceNumber: `INV-${new Date().getFullYear()}-001`,
+      invoiceNumber: `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`,
       clientId: '',
       projectId: '',
+      issuedDate: new Date(),
       lineItems: [{ description: '', quantity: 1, unitPrice: 0 }],
       notes: '',
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'lineItems',
+  });
+
+  useEffect(() => {
+    const projectName = searchParams.get('projectName');
+    const hoursWorked = searchParams.get('hoursWorked');
+    const rate = searchParams.get('rate');
+    const description = searchParams.get('description');
+
+    if (projectName && hoursWorked && rate && description) {
+      const matchedProject = projects.find(p => p.name.toLowerCase() === projectName.toLowerCase());
+      if (matchedProject) {
+        form.setValue('projectId', matchedProject.id);
+        form.setValue('clientId', matchedProject.clientId);
+      }
+      form.setValue('lineItems', [{
+        description: description,
+        quantity: parseFloat(hoursWorked),
+        unitPrice: parseFloat(rate)
+      }]);
+    }
+  }, [searchParams, form]);
+
+
+  function onSubmit(values: InvoiceFormValues) {
     console.log(values);
     const total = values.lineItems.reduce(
       (acc, item) => acc + item.quantity * item.unitPrice,
@@ -91,6 +124,15 @@ export default function NewInvoicePage() {
     });
     // Here you would typically handle form submission, e.g., API call
   }
+
+  const handleSaveAsPdf = () => {
+    toast({
+      title: 'Coming Soon!',
+      description: 'PDF generation functionality will be implemented here.',
+    });
+    window.print();
+  };
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -156,9 +198,6 @@ export default function NewInvoicePage() {
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date('1900-01-01')
-                            }
                             initialFocus
                           />
                         </PopoverContent>
@@ -213,7 +252,7 @@ export default function NewInvoicePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Client</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a client" />
@@ -237,14 +276,14 @@ export default function NewInvoicePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Project</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a project" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {projects.map(project => (
+                          {projects.filter(p => !form.watch('clientId') || p.clientId === form.watch('clientId')).map(project => (
                             <SelectItem key={project.id} value={project.id}>
                               {project.name}
                             </SelectItem>
@@ -265,10 +304,75 @@ export default function NewInvoicePage() {
               <CardDescription>Add items to the invoice.</CardDescription>
             </CardHeader>
             <CardContent>
-               {/* Not implemented yet */}
-               <div className='text-center text-muted-foreground py-8'>
-                Line item functionality will be added here.
-               </div>
+               <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="grid grid-cols-12 gap-4 items-start">
+                    <FormField
+                      control={form.control}
+                      name={`lineItems.${index}.description`}
+                      render={({ field }) => (
+                        <FormItem className="col-span-6">
+                          <FormLabel className={cn(index !== 0 && "sr-only")}>Description</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Item description" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name={`lineItems.${index}.quantity`}
+                      render={({ field }) => (
+                        <FormItem className="col-span-2">
+                           <FormLabel className={cn(index !== 0 && "sr-only")}>Quantity</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} placeholder="1" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name={`lineItems.${index}.unitPrice`}
+                      render={({ field }) => (
+                        <FormItem className="col-span-2">
+                           <FormLabel className={cn(index !== 0 && "sr-only")}>Unit Price</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} placeholder="100.00" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="col-span-2 flex items-center gap-2 pt-8">
+                       <p className="font-medium text-sm">
+                        ${(form.watch(`lineItems.${index}.quantity`) * form.watch(`lineItems.${index}.unitPrice`)).toFixed(2)}
+                      </p>
+                      {fields.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => remove(index)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => append({ description: '', quantity: 1, unitPrice: 0 })}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Line Item
+                </Button>
+              </div>
             </CardContent>
           </Card>
            <Card>
@@ -300,6 +404,9 @@ export default function NewInvoicePage() {
             <Button type="button" variant="outline" asChild>
               <Link href="/invoices">Cancel</Link>
             </Button>
+             <Button type="button" variant="secondary" onClick={handleSaveAsPdf}>
+              Save as PDF
+            </Button>
             <Button type="submit">Create Invoice</Button>
           </div>
         </form>
@@ -307,3 +414,5 @@ export default function NewInvoicePage() {
     </div>
   );
 }
+
+    
