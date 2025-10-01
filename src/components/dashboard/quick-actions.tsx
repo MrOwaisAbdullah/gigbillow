@@ -23,7 +23,7 @@ export function QuickActions() {
         },
         {
             title: 'Track Expense',
-            description: 'Coming in Phase-2',
+            description: 'Coming soon',
             icon: Receipt,
             href: '#',
             disabled: true,
