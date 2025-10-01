@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Play, Square, Pause, Trash2, BookOpen } from "lucide-react"
+import { Play, Square, Pause, Trash2, BookOpen, Loader2 } from "lucide-react"
 import { getProjects } from "@/lib/api/projects"
 import { getTimeEntriesByProject, createTimeEntry } from "@/lib/api/time-entries"
 import { useToast } from "@/hooks/use-toast"
@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { TodaysEntriesSheet } from "./todays-entries-sheet"
+import { TimeLogSheet } from "./time-log-sheet"
 import type { Project, TimeEntry } from "@/lib/types"
 
 type TimerState = 'running' | 'paused' | 'stopped';
@@ -35,10 +35,11 @@ export function TimeTracker() {
   const [timerState, setTimerState] = useState<TimerState>('stopped');
   const [elapsedTime, setElapsedTime] = useState(0);
   const [startTime, setStartTime] = useState<Date | null>(null);
-  const [todaysProjectTime, setTodaysProjectTime] = useState(0);
+  const [totalProjectTime, setTotalProjectTime] = useState(0);
   const [isDiscardAlertOpen, setIsDiscardAlertOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [lastSavedEntry, setLastSavedEntry] = useState<{ duration: number, projectName: string } | null>(null);
+  const [isStopping, setIsStopping] = useState(false);
 
   const { toast } = useToast();
   const selectedProject = selectedProjectId ? projects.find(p => p.id === selectedProjectId) : null;
@@ -56,22 +57,20 @@ export function TimeTracker() {
   }, [toast]);
   
   useEffect(() => {
-    async function fetchTodaysTime() {
+    async function fetchTotalTime() {
         if(selectedProjectId) {
             try {
                 const entries = await getTimeEntriesByProject(selectedProjectId);
-                const todaysTime = entries
-                    .filter(e => new Date(e.startTime).toDateString() === new Date().toDateString())
-                    .reduce((acc, e) => acc + e.hours * 3600, 0);
-                setTodaysProjectTime(todaysTime);
+                const totalTime = entries.reduce((acc, e) => acc + e.hours * 3600, 0);
+                setTotalProjectTime(totalTime);
             } catch (error) {
                  toast({ variant: 'destructive', title: 'Failed to fetch time entries' });
             }
         } else {
-            setTodaysProjectTime(0);
+            setTotalProjectTime(0);
         }
     }
-    fetchTodaysTime();
+    fetchTotalTime();
   }, [selectedProjectId, toast]);
 
   // Load from localStorage
@@ -142,9 +141,21 @@ export function TimeTracker() {
 
   const handleStop = async (isAutoSaving = false) => {
     if (!startTime || !selectedProject) return;
+    setIsStopping(true);
 
     const endTime = new Date();
     const hours = elapsedTime / 3600;
+
+    // Don't save entries that are less than a second
+    if (hours <= 0) {
+        if(!isAutoSaving) {
+            setTimerState('stopped');
+            setElapsedTime(0);
+            setStartTime(null);
+        }
+        setIsStopping(false);
+        return;
+    }
 
     const newEntry: Omit<TimeEntry, 'id'> = {
         projectId: selectedProject.id,
@@ -159,7 +170,7 @@ export function TimeTracker() {
         if(!isAutoSaving) {
             toast({ title: "Time Saved", description: `Saved ${formatShortTime(elapsedTime)} to project ${selectedProject?.name}` });
             setLastSavedEntry({ duration: elapsedTime, projectName: selectedProject.name });
-            setTodaysProjectTime(prev => prev + elapsedTime);
+            setTotalProjectTime(prev => prev + elapsedTime);
         }
     } catch (error) {
         if(!isAutoSaving) toast({ variant: 'destructive', title: "Failed to save time" });
@@ -169,6 +180,7 @@ export function TimeTracker() {
             setElapsedTime(0);
             setStartTime(null);
         }
+        setIsStopping(false);
     }
   };
 
@@ -213,6 +225,7 @@ export function TimeTracker() {
   };
 
   const formatShortTime = (timeInSeconds: number) => {
+      if (timeInSeconds < 60) return `${timeInSeconds}s`;
       const hours = Math.floor(timeInSeconds / 3600);
       const minutes = Math.floor((timeInSeconds % 3600) / 60);
       if (hours > 0) return `${hours}h ${minutes}m`;
@@ -250,8 +263,9 @@ export function TimeTracker() {
                     <Play className="mr-2" /> {timerState === 'paused' ? 'Resume' : 'Start'}
                 </Button>
             ) : (
-                <Button onClick={() => handleStop()} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white h-10 px-6 text-base">
-                    <Square className="mr-2" /> Stop
+                <Button onClick={() => handleStop()} disabled={isStopping} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white h-10 px-6 text-base">
+                    {isStopping ? <Loader2 className="mr-2 animate-spin" /> : <Square className="mr-2" />}
+                    Stop
                 </Button>
             )}
           </div>
@@ -270,7 +284,7 @@ export function TimeTracker() {
 
           <div className="text-center text-muted-foreground space-y-1">
              <p>{selectedProject?.name || "No project selected"}</p>
-             <p>Today's total for this project: <span className="font-semibold">{formatShortTime(todaysProjectTime + elapsedTime)}</span></p>
+             <p>Total time for this project: <span className="font-semibold">{formatShortTime(totalProjectTime + elapsedTime)}</span></p>
           </div>
 
           <div className="flex items-center justify-center gap-4 mt-6">
@@ -285,7 +299,7 @@ export function TimeTracker() {
             </Button>
             <Button variant="ghost" onClick={() => setIsSheetOpen(true)}>
                 <BookOpen className="mr-2 h-4 w-4" />
-                Log
+                History
             </Button>
           </div>
 
@@ -314,7 +328,7 @@ export function TimeTracker() {
           </AlertDialogContent>
       </AlertDialog>
       
-      <TodaysEntriesSheet open={isSheetOpen} onOpenChange={setIsSheetOpen} key={isSheetOpen ? 'open' : 'closed'} />
+      <TimeLogSheet open={isSheetOpen} onOpenChange={setIsSheetOpen} />
     </>
   )
 }
