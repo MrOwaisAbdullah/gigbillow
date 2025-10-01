@@ -22,17 +22,24 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import {
   CircleUser,
   PanelLeft,
-  Package2,
 } from "lucide-react"
 import { usePathname } from 'next/navigation'
 import React from "react"
 import { AppSidebarNav } from "./app-sidebar-nav"
+import { useAuth } from "./auth/auth-provider"
+import { signOut } from "@/lib/auth"
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+
 
 export function AppHeader() {
   const pathname = usePathname()
   const segments = pathname.split('/').filter(Boolean)
+  const { user } = useAuth();
 
   const breadcrumbItems = segments.map((segment, index) => {
+    // Exclude 'app' from breadcrumbs
+    if (segment === 'app') return null;
+
     const href = '/' + segments.slice(0, index + 1).join('/')
     const isLast = index === segments.length - 1
     return (
@@ -68,7 +75,7 @@ export function AppHeader() {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/">Home</Link>
+              <Link href="/dashboard">Home</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           {breadcrumbItems}
@@ -84,16 +91,23 @@ export function AppHeader() {
             size="icon"
             className="overflow-hidden rounded-full"
           >
-            <CircleUser className="h-5 w-5" />
+             {user?.photoURL ? (
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
+                    <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                </Avatar>
+             ) : (
+                <CircleUser className="h-5 w-5" />
+             )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel>{user?.displayName || 'My Account'}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Settings</DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Logout</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => signOut()}>Logout</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
