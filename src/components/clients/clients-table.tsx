@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Table,
   TableBody,
@@ -16,9 +18,88 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
-import { clients } from "@/lib/data"
+import { getClients, deleteClient } from "@/lib/api/clients"
+import { useToast } from "@/hooks/use-toast"
+import { useEffect, useState } from "react"
+import type { Client } from "@/lib/types"
+import { Skeleton } from "../ui/skeleton"
 
 export function ClientsTable() {
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    async function fetchClients() {
+      try {
+        const clientsData = await getClients();
+        setClients(clientsData);
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Failed to fetch clients',
+          description: 'Please try again later.',
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchClients();
+  }, [toast]);
+
+  const handleDelete = async (id: string, name: string) => {
+    try {
+      await deleteClient(id);
+      setClients(clients.filter(client => client.id !== id));
+      toast({
+        title: 'Client Deleted',
+        description: `Client "${name}" has been deleted.`,
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to delete client',
+        description: 'Please try again later.',
+      });
+    }
+  };
+  
+  if (loading) {
+    return (
+        <div className="rounded-lg border">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>
+                        <span className="sr-only">Actions</span>
+                        </TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {[...Array(5)].map((_, i) => (
+                        <TableRow key={i}>
+                            <TableCell>
+                                <div className="flex items-center gap-3">
+                                    <Skeleton className="h-9 w-9 rounded-full" />
+                                    <Skeleton className="h-4 w-32" />
+                                </div>
+                            </TableCell>
+                            <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                            <TableCell>
+                                <div className="flex justify-end">
+                                  <Skeleton className="h-8 w-8" />
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
+    )
+  }
+
   return (
     <div className="rounded-lg border">
       <Table>
@@ -44,7 +125,7 @@ export function ClientsTable() {
                 </div>
               </TableCell>
               <TableCell>{client.email}</TableCell>
-              <TableCell>
+              <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -55,7 +136,7 @@ export function ClientsTable() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem>Edit</DropdownMenuItem>
-                    <DropdownMenuItem>Delete</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDelete(client.id, client.name)}>Delete</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>

@@ -22,7 +22,10 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { createClient } from '@/lib/api/clients';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -32,6 +35,9 @@ const formSchema = z.object({
 
 export default function NewClientPage() {
   const { toast } = useToast();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -41,13 +47,24 @@ export default function NewClientPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    toast({
-      title: 'Client Created',
-      description: `Client "${values.name}" has been successfully created.`,
-    });
-    // Here you would typically handle form submission, e.g., API call
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
+    try {
+      await createClient(values);
+      toast({
+        title: 'Client Created',
+        description: `Client "${values.name}" has been successfully created.`,
+      });
+      router.push('/clients');
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to create client',
+        description: 'An unexpected error occurred. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -122,7 +139,10 @@ export default function NewClientPage() {
                 <Button type="button" variant="outline" asChild>
                   <Link href="/clients">Cancel</Link>
                 </Button>
-                <Button type="submit">Create Client</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Create Client
+                </Button>
               </div>
             </form>
           </Form>
