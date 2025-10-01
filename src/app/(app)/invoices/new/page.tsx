@@ -54,7 +54,7 @@ const formSchema = z.object({
     .string()
     .min(1, 'Invoice number is required.'),
   clientId: z.string().min(1, "Client is required."),
-  projectId: z.string().optional(),
+  projectId: z.string().min(1, "Project is required."),
   issuedDate: z.date({
     required_error: 'An issue date is required.',
   }),
@@ -304,21 +304,20 @@ export default function NewInvoicePage() {
                     </FormItem>
                   )}
                 />
-              </div>
                  <FormField
                   control={form.control}
                   name="projectId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Project (Optional)</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <FormLabel>Project</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={!clientId}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a project" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {projects.filter(p => !form.watch('clientId') || p.clientId === form.watch('clientId')).map(project => (
+                          {projects.filter(p => p.clientId === clientId).map(project => (
                             <SelectItem key={project.id} value={project.id}>
                               {project.name}
                             </SelectItem>
@@ -330,6 +329,7 @@ export default function NewInvoicePage() {
                     </FormItem>
                   )}
                 />
+              </div>
             </CardContent>
           </Card>
 
