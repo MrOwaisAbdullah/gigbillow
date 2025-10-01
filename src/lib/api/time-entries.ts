@@ -85,11 +85,13 @@ export async function getTimeEntriesByProject(projectId: string): Promise<TimeEn
     const querySnapshot = await getDocs(q);
      const entries = querySnapshot.docs.map(doc => {
         const data = doc.data();
+        const startTime = data.startTime;
+        const endTime = data.endTime;
         return {
             id: doc.id,
             ...data,
-            startTime: data.startTime instanceof Timestamp ? data.startTime.toDate() : new Date(data.startTime),
-            endTime: data.endTime ? (data.endTime instanceof Timestamp ? data.endTime.toDate() : new Date(data.endTime)) : null,
+            startTime: startTime?.toDate ? startTime.toDate() : new Date(startTime),
+            endTime: endTime ? (endTime?.toDate ? endTime.toDate() : new Date(endTime)) : null,
         } as TimeEntry;
     });
     return entries;
