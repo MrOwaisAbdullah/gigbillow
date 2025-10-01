@@ -19,9 +19,9 @@ export function ProjectPulse() {
     useEffect(() => {
         async function fetchProjectData() {
             try {
-                const [projectsData, timeEntriesData] = await Promise.all([getProjects(), getTimeEntries()]);
+                const [projectsData, timeEntriesResult] = await Promise.all([getProjects(), getTimeEntries()]);
                 setProjects(projectsData.filter(p => p.status === 'active').slice(0, 3));
-                setTimeEntries(timeEntriesData);
+                setTimeEntries(timeEntriesResult.entries);
             } catch (error) {
                  toast({
                     variant: 'destructive',
