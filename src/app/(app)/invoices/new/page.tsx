@@ -39,7 +39,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { ArrowLeft, CalendarIcon, PlusCircle, Trash2 } from 'lucide-react';
-import { clients, projects } from '@/lib/data';
+import { clients, projects, timeEntries } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
 import { useSearchParams } from 'next/navigation';
@@ -100,6 +100,7 @@ export default function NewInvoicePage() {
   
   const lineItems = form.watch('lineItems');
   const taxRate = form.watch('taxRate');
+  const projectId = form.watch('projectId');
   
   const subTotal = lineItems.reduce((acc, item) => {
     return acc + ((item.quantity || 0) * (item.unitPrice || 0));
@@ -133,6 +134,24 @@ export default function NewInvoicePage() {
       }]);
     }
   }, [searchParams, form]);
+  
+    useEffect(() => {
+    if (projectId) {
+      const project = projects.find(p => p.id === projectId);
+      if (!project) return;
+      
+      const projectTimeEntries = timeEntries.filter(entry => entry.projectId === projectId);
+      const totalHours = projectTimeEntries.reduce((acc, entry) => acc + entry.hours, 0);
+
+      if (totalHours > 0) {
+        form.setValue('lineItems', [{
+          description: `Work performed on project: ${project.name}`,
+          quantity: parseFloat(totalHours.toFixed(2)),
+          unitPrice: project.rate,
+        }]);
+      }
+    }
+  }, [projectId, form]);
 
 
   function onSubmit(values: InvoiceFormValues) {
