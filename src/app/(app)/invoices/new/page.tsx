@@ -48,7 +48,6 @@ const lineItemSchema = z.object({
   description: z.string().min(1, 'Description is required.'),
   quantity: z.coerce.number().optional(),
   unitPrice: z.coerce.number().optional(),
-  total: z.coerce.number().min(0, 'Total must be a positive number.'),
 });
 
 const formSchema = z.object({
@@ -81,7 +80,7 @@ export default function NewInvoicePage() {
       clientId: '',
       projectId: '',
       issuedDate: new Date(),
-      lineItems: [{ description: '', quantity: 1, unitPrice: 0, total: 0 }],
+      lineItems: [{ description: '', quantity: 1, unitPrice: 0 }],
       notes: '',
     },
   });
@@ -91,27 +90,6 @@ export default function NewInvoicePage() {
     name: 'lineItems',
   });
   
-  const lineItemsWatch = form.watch('lineItems');
-
-  useEffect(() => {
-    lineItemsWatch.forEach((item, index) => {
-      const quantity = item.quantity;
-      const unitPrice = item.unitPrice;
-      const currentTotal = item.total;
-      
-      let newTotal = 0;
-      if (typeof quantity === 'number' && typeof unitPrice === 'number') {
-        newTotal = quantity * unitPrice;
-      } else if (item.total) {
-        newTotal = item.total;
-      }
-      
-      if (currentTotal !== newTotal) {
-        form.setValue(`lineItems.${index}.total`, newTotal, { shouldValidate: true });
-      }
-    });
-  }, [lineItemsWatch, form]);
-
   useEffect(() => {
     const projectName = searchParams.get('projectName');
     const hoursWorked = searchParams.get('hoursWorked');
@@ -130,7 +108,6 @@ export default function NewInvoicePage() {
         description: description,
         quantity: quantity,
         unitPrice: unitPrice,
-        total: quantity * unitPrice
       }]);
     }
   }, [searchParams, form]);
@@ -139,7 +116,7 @@ export default function NewInvoicePage() {
   function onSubmit(values: InvoiceFormValues) {
     console.log(values);
     const total = values.lineItems.reduce(
-      (acc, item) => acc + item.total,
+      (acc, item) => acc + ((item.quantity || 0) * (item.unitPrice || 0)),
       0
     );
     toast({
@@ -390,7 +367,7 @@ export default function NewInvoicePage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ description: '', quantity: 1, unitPrice: 0, total: 0 })}
+                  onClick={() => append({ description: '', quantity: 1, unitPrice: 0 })}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Line Item
