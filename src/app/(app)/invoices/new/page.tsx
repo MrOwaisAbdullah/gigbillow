@@ -99,12 +99,15 @@ export default function NewInvoicePage() {
       const unitPrice = item.unitPrice;
       const currentTotal = item.total;
       
-      // If we have quantity and unit price, calculate the total.
+      let newTotal = 0;
       if (typeof quantity === 'number' && typeof unitPrice === 'number') {
-        const newTotal = quantity * unitPrice;
-        if (currentTotal !== newTotal) {
-          form.setValue(`lineItems.${index}.total`, newTotal, { shouldValidate: true });
-        }
+        newTotal = quantity * unitPrice;
+      } else if (item.total) {
+        newTotal = item.total;
+      }
+      
+      if (currentTotal !== newTotal) {
+        form.setValue(`lineItems.${index}.total`, newTotal, { shouldValidate: true });
       }
     });
   }, [lineItemsWatch, form]);
@@ -156,7 +159,6 @@ export default function NewInvoicePage() {
     });
     window.print();
   };
-
 
   return (
     <div className="flex flex-col gap-8">
@@ -304,7 +306,7 @@ export default function NewInvoicePage() {
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a project" />
-                          </SelectTrigger>
+                          </Trigger>
                         </FormControl>
                         <SelectContent>
                           {projects.filter(p => !form.watch('clientId') || p.clientId === form.watch('clientId')).map(project => (
@@ -329,17 +331,13 @@ export default function NewInvoicePage() {
             </CardHeader>
             <CardContent>
                <div className="space-y-4">
-                {fields.map((field, index) => {
-                  const item = lineItemsWatch[index];
-                  const isTotalReadOnly = typeof item?.quantity === 'number' && typeof item?.unitPrice === 'number';
-
-                  return (
+                {fields.map((field, index) => (
                   <div key={field.id} className="grid grid-cols-12 gap-4 items-start">
                     <FormField
                       control={form.control}
                       name={`lineItems.${index}.description`}
                       render={({ field }) => (
-                        <FormItem className="col-span-12 md:col-span-5">
+                        <FormItem className="col-span-12 md:col-span-7">
                           <FormLabel className={cn(index !== 0 && "sr-only")}>Description</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Item description" />
@@ -374,20 +372,7 @@ export default function NewInvoicePage() {
                         </FormItem>
                       )}
                     />
-                     <FormField
-                      control={form.control}
-                      name={`lineItems.${index}.total`}
-                      render={({ field }) => (
-                        <FormItem className="col-span-10 md:col-span-2">
-                           <FormLabel className={cn(index !== 0 && "sr-only")}>Total</FormLabel>
-                          <FormControl>
-                            <Input type="number" {...field} placeholder="100.00" readOnly={isTotalReadOnly} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="col-span-2 md:col-span-1 flex items-center pt-8">
+                    <div className="col-span-12 md:col-span-1 flex items-center pt-8">
                       {fields.length > 1 && (
                         <Button
                           type="button"
@@ -400,8 +385,7 @@ export default function NewInvoicePage() {
                       )}
                     </div>
                   </div>
-                  );
-                })}
+                ))}
                 <Button
                   type="button"
                   variant="outline"
@@ -417,7 +401,7 @@ export default function NewInvoicePage() {
            <Card>
             <CardHeader>
               <CardTitle>Notes</CardTitle>
-            </CardHeader>
+            </Header>
             <CardContent>
               <FormField
                 control={form.control}
