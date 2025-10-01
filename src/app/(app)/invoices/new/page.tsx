@@ -53,9 +53,8 @@ const formSchema = z.object({
   invoiceNumber: z
     .string()
     .min(1, 'Invoice number is required.'),
-  clientId: z.string().optional(),
+  clientId: z.string().min(1, "Client is required."),
   projectId: z.string().optional(),
-  billTo: z.string().min(1, 'Billing address is required.'),
   issuedDate: z.date({
     required_error: 'An issue date is required.',
   }),
@@ -75,6 +74,7 @@ export default function NewInvoicePage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const [isInvoiceCreated, setIsInvoiceCreated] = useState(false);
+  const [billToAddress, setBillToAddress] = useState('');
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
@@ -82,7 +82,6 @@ export default function NewInvoicePage() {
       invoiceNumber: `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`,
       clientId: '',
       projectId: '',
-      billTo: '',
       issuedDate: new Date(),
       dueDate: addDays(new Date(), 30),
       lineItems: [{ description: '' }],
@@ -100,10 +99,22 @@ export default function NewInvoicePage() {
   
   const taxRate = form.watch('taxRate');
   const projectId = form.watch('projectId');
+  const clientId = form.watch('clientId');
   const subTotal = form.watch('subTotal');
   
   const taxAmount = (subTotal * taxRate) / 100;
   const totalAmount = subTotal + taxAmount;
+
+  useEffect(() => {
+    if (clientId) {
+      const client = clients.find(c => c.id === clientId);
+      if (client) {
+        setBillToAddress(`${client.name}\n${client.email}`);
+      }
+    } else {
+        setBillToAddress('');
+    }
+  }, [clientId]);
   
   useEffect(() => {
     const projectName = searchParams.get('projectName');
@@ -118,7 +129,6 @@ export default function NewInvoicePage() {
         const client = clients.find(c => c.id === matchedProject.clientId);
         if (client) {
             form.setValue('clientId', client.id);
-            form.setValue('billTo', `${client.name}\n${client.email}`);
         }
       }
       const quantity = parseFloat(hoursWorked);
@@ -283,20 +293,14 @@ export default function NewInvoicePage() {
                   name="clientId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Client (Optional)</FormLabel>
+                      <FormLabel>Client</FormLabel>
                       <Select 
-                        onValueChange={(value) => {
-                           field.onChange(value);
-                           const client = clients.find(c => c.id === value);
-                           if (client) {
-                             form.setValue('billTo', `${client.name}\n${client.email}`);
-                           }
-                        }} 
+                        onValueChange={field.onChange} 
                         value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a client to auto-fill" />
+                            <SelectValue placeholder="Select a client" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -307,28 +311,16 @@ export default function NewInvoicePage() {
                           ))}
                         </SelectContent>
                       </Select>
-                       <FormDescription>Selecting a client will auto-fill the billing details.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                 <FormField
-                  control={form.control}
-                  name="billTo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bill To</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Client's Name and Address"
-                          className="min-h-[100px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                 <div>
+                    <FormLabel>Bill To</FormLabel>
+                    <div className="text-sm mt-2 whitespace-pre-wrap rounded-md border border-input p-3 min-h-[100px] bg-muted/50">
+                        {billToAddress || <span className="text-muted-foreground">Select a client to see details</span>}
+                    </div>
+                </div>
               </div>
                  <FormField
                   control={form.control}
@@ -350,6 +342,7 @@ export default function NewInvoicePage() {
                           ))}
                         </SelectContent>
                       </Select>
+                      <FormDescription>Selecting a project can auto-fill invoice details.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
