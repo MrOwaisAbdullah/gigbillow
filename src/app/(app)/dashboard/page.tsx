@@ -11,8 +11,6 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
       </div>
 
-      <QuickActions />
-
       <SummaryStats />
 
       <div className="grid gap-8 lg:grid-cols-3">
@@ -23,6 +21,8 @@ export default function DashboardPage() {
           <ProjectPulse />
         </div>
       </div>
+      
+      <QuickActions />
 
       <div>
         <h2 className="text-2xl font-semibold mb-4">Outstanding Invoices</h2>

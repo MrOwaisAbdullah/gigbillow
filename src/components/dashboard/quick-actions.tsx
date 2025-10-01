@@ -44,15 +44,15 @@ export function QuickActions() {
                     <Link 
                         href={action.disabled ? '#' : action.href}
                         className={cn(
-                            "block h-full p-6", 
+                            "block h-full p-4", 
                             action.disabled && "pointer-events-none"
                         )}
                     >
                         <div className="flex items-center gap-4 mb-2">
-                             <action.icon className={cn("h-8 w-8", action.disabled ? "text-muted-foreground" : "text-white" )} />
-                             <CardTitle className="text-xl">{action.title}</CardTitle>
+                             <action.icon className={cn("h-6 w-6", action.disabled ? "text-muted-foreground" : "text-white" )} />
+                             <CardTitle className="text-lg">{action.title}</CardTitle>
                         </div>
-                        <CardDescription className={cn(action.disabled ? 'text-muted-foreground' : 'text-primary-foreground/80')}>
+                        <CardDescription className={cn('text-sm', action.disabled ? 'text-muted-foreground' : 'text-primary-foreground/80')}>
                             {action.description}
                         </CardDescription>
                     </Link>
