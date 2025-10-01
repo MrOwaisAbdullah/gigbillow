@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Timer, FilePlus, Receipt } from 'lucide-react';
@@ -41,18 +40,22 @@ export function QuickActions() {
                         action.disabled && "bg-muted/50"
                     )}
                 >
-                    <Link href={action.disabled ? '#' : action.href} passHref>
-                        <a className={cn("block h-full", action.disabled && "pointer-events-none")}>
-                            <CardHeader>
-                                <div className="flex items-center gap-4">
-                                    <action.icon className="h-8 w-8 text-primary" />
-                                    <CardTitle className="text-xl">{action.title}</CardTitle>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <CardDescription>{action.description}</CardDescription>
-                            </CardContent>
-                        </a>
+                    <Link 
+                        href={action.disabled ? '#' : action.href}
+                        className={cn(
+                            "block h-full", 
+                            action.disabled && "pointer-events-none"
+                        )}
+                    >
+                        <CardHeader>
+                            <div className="flex items-center gap-4">
+                                <action.icon className="h-8 w-8 text-primary" />
+                                <CardTitle className="text-xl">{action.title}</CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <CardDescription>{action.description}</CardDescription>
+                        </CardContent>
                     </Link>
                 </Card>
             ))}
