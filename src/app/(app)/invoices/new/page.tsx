@@ -47,8 +47,6 @@ import { useEffect, useState } from 'react';
 
 const lineItemSchema = z.object({
   description: z.string().min(1, 'Description is required.'),
-  quantity: z.coerce.number().positive().optional(),
-  unitPrice: z.coerce.number().positive().optional(),
 });
 
 const formSchema = z.object({
@@ -68,6 +66,7 @@ const formSchema = z.object({
   taxRate: z.coerce.number().min(0).max(100).default(0),
   paymentUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   notes: z.string().optional(),
+  subTotal: z.coerce.number().min(0).default(0),
 });
 
 type InvoiceFormValues = z.infer<typeof formSchema>;
@@ -86,10 +85,11 @@ export default function NewInvoicePage() {
       billTo: '',
       issuedDate: new Date(),
       dueDate: addDays(new Date(), 30),
-      lineItems: [{ description: '', quantity: 1, unitPrice: 0 }],
+      lineItems: [{ description: '' }],
       taxRate: 0,
       paymentUrl: '',
       notes: '',
+      subTotal: 0,
     },
   });
 
@@ -98,14 +98,10 @@ export default function NewInvoicePage() {
     name: 'lineItems',
   });
   
-  const lineItems = form.watch('lineItems');
   const taxRate = form.watch('taxRate');
   const projectId = form.watch('projectId');
+  const subTotal = form.watch('subTotal');
   
-  const subTotal = lineItems.reduce((acc, item) => {
-    return acc + ((item.quantity || 0) * (item.unitPrice || 0));
-  }, 0);
-
   const taxAmount = (subTotal * taxRate) / 100;
   const totalAmount = subTotal + taxAmount;
   
@@ -129,9 +125,8 @@ export default function NewInvoicePage() {
       const unitPrice = parseFloat(rate);
       form.setValue('lineItems', [{
         description: description,
-        quantity: quantity,
-        unitPrice: unitPrice,
       }]);
+      form.setValue('subTotal', quantity * unitPrice);
     }
   }, [searchParams, form]);
   
@@ -146,9 +141,8 @@ export default function NewInvoicePage() {
       if (totalHours > 0) {
         form.setValue('lineItems', [{
           description: `Work performed on project: ${project.name}`,
-          quantity: parseFloat(totalHours.toFixed(2)),
-          unitPrice: project.rate,
         }]);
+        form.setValue('subTotal', parseFloat((totalHours * project.rate).toFixed(2)));
       }
     }
   }, [projectId, form]);
@@ -370,9 +364,7 @@ export default function NewInvoicePage() {
             <CardContent>
                <div className="space-y-4">
                 <div className="hidden md:grid md:grid-cols-12 gap-4 items-start">
-                  <div className="md:col-span-7"><FormLabel>Description</FormLabel></div>
-                  <div className="md:col-span-2"><FormLabel>Hours/Qty</FormLabel></div>
-                  <div className="md:col-span-2"><FormLabel>Rate/Price</FormLabel></div>
+                  <div className="md:col-span-11"><FormLabel>Description</FormLabel></div>
                   <div className="md:col-span-1"></div>
                 </div>
                 {fields.map((field, index) => (
@@ -381,7 +373,7 @@ export default function NewInvoicePage() {
                       control={form.control}
                       name={`lineItems.${index}.description`}
                       render={({ field }) => (
-                        <FormItem className="col-span-12 md:col-span-7">
+                        <FormItem className="col-span-11">
                            <FormLabel className="md:hidden">Description</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Item description" />
@@ -390,33 +382,7 @@ export default function NewInvoicePage() {
                         </FormItem>
                       )}
                     />
-                     <FormField
-                      control={form.control}
-                      name={`lineItems.${index}.quantity`}
-                      render={({ field }) => (
-                        <FormItem className="col-span-6 md:col-span-2">
-                           <FormLabel className="md:hidden">Hours/Qty</FormLabel>
-                          <FormControl>
-                            <Input type="number" {...field} placeholder="1" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                     <FormField
-                      control={form.control}
-                      name={`lineItems.${index}.unitPrice`}
-                      render={({ field }) => (
-                        <FormItem className="col-span-6 md:col-span-2">
-                           <FormLabel className="md:hidden">Rate/Price</FormLabel>
-                          <FormControl>
-                            <Input type="number" {...field} placeholder="100.00" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="col-span-12 md:col-span-1 flex items-end">
+                    <div className="col-span-1 flex items-end">
                       {fields.length > 1 && (
                         <Button
                           type="button"
@@ -434,7 +400,7 @@ export default function NewInvoicePage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ description: '', quantity: 1, unitPrice: 0 })}
+                  onClick={() => append({ description: '' })}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Line Item
@@ -443,10 +409,21 @@ export default function NewInvoicePage() {
             </CardContent>
              <CardFooter className="flex flex-col items-end gap-4 bg-muted/50 p-6">
                 <div className="grid gap-2 w-full max-w-sm">
-                    <div className="flex justify-between">
-                        <span>Sub-total</span>
-                        <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(subTotal)}</span>
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="subTotal"
+                      render={({ field }) => (
+                        <FormItem className="flex justify-between items-center">
+                            <FormLabel>Sub-total</FormLabel>
+                            <FormControl>
+                               <div className="flex items-center gap-2">
+                                 <span>$</span>
+                                 <Input type="number" {...field} className="w-32 h-8 text-right" />
+                               </div>
+                            </FormControl>
+                        </FormItem>
+                      )}
+                    />
                      <div className="flex justify-between items-center">
                         <span>Tax</span>
                         <div className="flex items-center gap-2">
