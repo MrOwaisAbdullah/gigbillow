@@ -95,11 +95,14 @@ export default function NewInvoicePage() {
 
   useEffect(() => {
     lineItemsWatch.forEach((item, index) => {
-      const quantity = item.quantity || 0;
-      const unitPrice = item.unitPrice || 0;
-      if (quantity > 0 && unitPrice > 0) {
+      const quantity = item.quantity;
+      const unitPrice = item.unitPrice;
+      const currentTotal = item.total;
+      
+      // If we have quantity and unit price, calculate the total.
+      if (typeof quantity === 'number' && typeof unitPrice === 'number') {
         const newTotal = quantity * unitPrice;
-        if (item.total !== newTotal) {
+        if (currentTotal !== newTotal) {
           form.setValue(`lineItems.${index}.total`, newTotal, { shouldValidate: true });
         }
       }
@@ -326,7 +329,11 @@ export default function NewInvoicePage() {
             </CardHeader>
             <CardContent>
                <div className="space-y-4">
-                {fields.map((field, index) => (
+                {fields.map((field, index) => {
+                  const item = lineItemsWatch[index];
+                  const isTotalReadOnly = typeof item?.quantity === 'number' && typeof item?.unitPrice === 'number';
+
+                  return (
                   <div key={field.id} className="grid grid-cols-12 gap-4 items-start">
                     <FormField
                       control={form.control}
@@ -374,7 +381,7 @@ export default function NewInvoicePage() {
                         <FormItem className="col-span-10 md:col-span-2">
                            <FormLabel className={cn(index !== 0 && "sr-only")}>Total</FormLabel>
                           <FormControl>
-                            <Input type="number" {...field} placeholder="100.00" />
+                            <Input type="number" {...field} placeholder="100.00" readOnly={isTotalReadOnly} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -393,7 +400,8 @@ export default function NewInvoicePage() {
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
                 <Button
                   type="button"
                   variant="outline"
