@@ -27,6 +27,18 @@ function getCollectionPath() {
     return `users/${userId}/timeEntries`;
 }
 
+function docToTimeEntry(doc: DocumentSnapshot): TimeEntry {
+    const data = doc.data()!;
+    const startTime = data.startTime;
+    const endTime = data.endTime;
+    return {
+        id: doc.id,
+        ...data,
+        startTime: startTime instanceof Timestamp ? startTime.toDate() : new Date(startTime),
+        endTime: endTime ? (endTime instanceof Timestamp ? endTime.toDate() : new Date(endTime)) : null,
+    } as TimeEntry;
+}
+
 export async function getTimeEntries(
     lastVisible: DocumentSnapshot | null = null,
     pageSize: number = 10
@@ -41,16 +53,7 @@ export async function getTimeEntries(
     
     const querySnapshot = await getDocs(q);
 
-    const entries = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            ...data,
-            startTime: data.startTime instanceof Timestamp ? data.startTime.toDate() : new Date(data.startTime),
-            endTime: data.endTime ? (data.endTime instanceof Timestamp ? data.endTime.toDate() : new Date(data.endTime)) : null,
-        } as TimeEntry;
-    });
-
+    const entries = querySnapshot.docs.map(docToTimeEntry);
     const next = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
 
     return { entries, next };
@@ -66,34 +69,14 @@ export async function getTodaysTimeEntries(): Promise<TimeEntry[]> {
     );
 
     const querySnapshot = await getDocs(q);
-    const entries = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            ...data,
-            startTime: data.startTime instanceof Timestamp ? data.startTime.toDate() : new Date(data.startTime),
-            endTime: data.endTime ? (data.endTime instanceof Timestamp ? data.endTime.toDate() : new Date(data.endTime)) : null,
-        } as TimeEntry;
-    });
-    return entries;
+    return querySnapshot.docs.map(docToTimeEntry);
 }
 
 
 export async function getTimeEntriesByProject(projectId: string): Promise<TimeEntry[]> {
     const q = query(collection(db, getCollectionPath()), where('projectId', '==', projectId));
     const querySnapshot = await getDocs(q);
-     const entries = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        const startTime = data.startTime;
-        const endTime = data.endTime;
-        return {
-            id: doc.id,
-            ...data,
-            startTime: startTime?.toDate ? startTime.toDate() : new Date(startTime),
-            endTime: endTime ? (endTime?.toDate ? endTime.toDate() : new Date(endTime)) : null,
-        } as TimeEntry;
-    });
-    return entries;
+    return querySnapshot.docs.map(docToTimeEntry);
 }
 
 
