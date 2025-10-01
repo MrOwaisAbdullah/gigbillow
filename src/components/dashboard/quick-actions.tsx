@@ -33,29 +33,28 @@ export function QuickActions() {
     return (
         <div className="grid gap-4 md:grid-cols-3">
             {actions.map((action) => (
-                <Card 
+                 <Card 
                     key={action.title}
                     className={cn(
-                        "hover:shadow-lg transition-shadow",
+                        "transition-shadow",
+                        !action.disabled && "text-white bg-gradient-to-br from-primary to-primary/80 hover:shadow-lg hover:from-primary/90 hover:to-primary/70",
                         action.disabled && "bg-muted/50"
                     )}
                 >
                     <Link 
                         href={action.disabled ? '#' : action.href}
                         className={cn(
-                            "block h-full", 
+                            "block h-full p-6", 
                             action.disabled && "pointer-events-none"
                         )}
                     >
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                                <action.icon className="h-8 w-8 text-primary" />
-                                <CardTitle className="text-xl">{action.title}</CardTitle>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <CardDescription>{action.description}</CardDescription>
-                        </CardContent>
+                        <div className="flex items-center gap-4 mb-2">
+                             <action.icon className={cn("h-8 w-8", action.disabled ? "text-muted-foreground" : "text-white" )} />
+                             <CardTitle className="text-xl">{action.title}</CardTitle>
+                        </div>
+                        <CardDescription className={cn(action.disabled ? 'text-muted-foreground' : 'text-primary-foreground/80')}>
+                            {action.description}
+                        </CardDescription>
                     </Link>
                 </Card>
             ))}
