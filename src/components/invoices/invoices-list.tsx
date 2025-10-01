@@ -163,41 +163,49 @@ export function InvoicesList() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {invoices.map((invoice) => {
-            const client = data[invoice.clientId] as Client;
-            const project = data[invoice.projectId] as Project;
-            return (
-              <TableRow key={invoice.id}>
-                <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                <TableCell>{client?.name}</TableCell>
-                <TableCell>{project?.name}</TableCell>
-                <TableCell>${invoice.amount.toFixed(2)}</TableCell>
-                <TableCell>{format(invoice.issuedDate, 'PPP')}</TableCell>
-                <TableCell>{format(invoice.dueDate, 'PPP')}</TableCell>
-                <TableCell>
-                  <Badge variant={statusVariantMap[invoice.status]} className="capitalize">
-                    {invoice.status}
-                  </Badge>
+          {invoices.length > 0 ? (
+            invoices.map((invoice) => {
+              const client = data[invoice.clientId] as Client;
+              const project = data[invoice.projectId] as Project;
+              return (
+                <TableRow key={invoice.id}>
+                  <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                  <TableCell>{client?.name}</TableCell>
+                  <TableCell>{project?.name}</TableCell>
+                  <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+                  <TableCell>{format(invoice.issuedDate, 'PPP')}</TableCell>
+                  <TableCell>{format(invoice.dueDate, 'PPP')}</TableCell>
+                  <TableCell>
+                    <Badge variant={statusVariantMap[invoice.status]} className="capitalize">
+                      {invoice.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem>View</DropdownMenuItem>
+                         {invoice.status !== 'paid' && <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice.id)}>Mark as Paid</DropdownMenuItem>}
+                        <DropdownMenuItem onClick={() => handleDelete(invoice.id)}>Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              )
+            })
+          ) : (
+            <TableRow>
+                <TableCell colSpan={8} className="h-24 text-center">
+                    No invoices found.
                 </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>View</DropdownMenuItem>
-                       {invoice.status !== 'paid' && <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice.id)}>Mark as Paid</DropdownMenuItem>}
-                      <DropdownMenuItem onClick={() => handleDelete(invoice.id)}>Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            )
-          })}
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

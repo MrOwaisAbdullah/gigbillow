@@ -104,24 +104,32 @@ export function InvoicesTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {invoices.map((invoice) => {
-            const client = data[invoice.clientId] as Client;
-            const project = data[invoice.projectId] as Project;
-            return (
-              <TableRow key={invoice.id}>
-                <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                <TableCell>{client?.name}</TableCell>
-                <TableCell>{project?.name}</TableCell>
-                <TableCell>${invoice.amount.toFixed(2)}</TableCell>
-                <TableCell>{format(new Date(invoice.dueDate), 'PPP')}</TableCell>
-                <TableCell>
-                   <Badge variant={invoice.status === 'overdue' ? 'destructive' : 'secondary'} className="capitalize">
-                    {invoice.status}
-                  </Badge>
+          {invoices.length > 0 ? (
+            invoices.map((invoice) => {
+              const client = data[invoice.clientId] as Client;
+              const project = data[invoice.projectId] as Project;
+              return (
+                <TableRow key={invoice.id}>
+                  <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                  <TableCell>{client?.name}</TableCell>
+                  <TableCell>{project?.name}</TableCell>
+                  <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+                  <TableCell>{format(new Date(invoice.dueDate), 'PPP')}</TableCell>
+                  <TableCell>
+                     <Badge variant={invoice.status === 'overdue' ? 'destructive' : 'secondary'} className="capitalize">
+                      {invoice.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              )
+            })
+          ) : (
+            <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                    No outstanding invoices.
                 </TableCell>
-              </TableRow>
-            )
-          })}
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

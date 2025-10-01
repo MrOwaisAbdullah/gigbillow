@@ -175,7 +175,7 @@ export default function NewProjectPage() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a status" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="active">Active</SelectItem>
