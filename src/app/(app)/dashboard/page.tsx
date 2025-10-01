@@ -2,6 +2,7 @@ import { ProjectPulse } from '@/components/dashboard/project-pulse';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { TodaysPulse } from '@/components/dashboard/todays-pulse';
 import { InvoicesTable } from '@/components/dashboard/invoices-table';
+import { SummaryStats } from '@/components/dashboard/summary-stats';
 
 export default function DashboardPage() {
   return (
@@ -11,6 +12,8 @@ export default function DashboardPage() {
       </div>
 
       <QuickActions />
+
+      <SummaryStats />
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-1">
