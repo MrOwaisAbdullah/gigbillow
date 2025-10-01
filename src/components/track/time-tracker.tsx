@@ -208,7 +208,8 @@ export function TimeTracker() {
   
   const handleProjectChange = (projectId: string) => {
       if(isRunningOrPaused) {
-          handleStop(true);
+        toast({ title: "Timer running", description: "Stop the current timer before changing projects." });
+        return;
       }
       setSelectedProjectId(projectId);
       setTimerState('stopped');
@@ -284,7 +285,7 @@ export function TimeTracker() {
 
           <div className="text-center text-muted-foreground space-y-1">
              <p>{selectedProject?.name || "No project selected"}</p>
-             <p>Total time for this project: <span className="font-semibold">{formatShortTime(totalProjectTime + elapsedTime)}</span></p>
+             <p>Total time for this project: <span className="font-semibold">{formatShortTime(totalProjectTime + (isRunningOrPaused ? elapsedTime : 0))}</span></p>
           </div>
 
           <div className="flex items-center justify-center gap-4 mt-6">

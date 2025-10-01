@@ -18,6 +18,7 @@ import {
   DocumentSnapshot,
 } from 'firebase/firestore';
 import type { TimeEntry } from '@/lib/types';
+import { startOfDay } from 'date-fns';
 
 function getCollectionPath() {
     const auth = getAuth();
@@ -56,13 +57,11 @@ export async function getTimeEntries(
 }
 
 export async function getTodaysTimeEntries(): Promise<TimeEntry[]> {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const startOfDayTimestamp = Timestamp.fromDate(startOfDay);
+    const todayStart = startOfDay(new Date());
 
     const q = query(
         collection(db, getCollectionPath()),
-        where('startTime', '>=', startOfDayTimestamp),
+        where('startTime', '>=', todayStart),
         orderBy('startTime', 'desc')
     );
 
