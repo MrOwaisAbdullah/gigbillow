@@ -13,16 +13,11 @@ export default function DashboardPage() {
 
       <SummaryStats />
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <TodaysPulse />
-        </div>
-        <div className="lg:col-span-2">
-          <ProjectPulse />
-        </div>
-      </div>
+      <TodaysPulse />
       
       <QuickActions />
+
+      <ProjectPulse />
 
       <div>
         <h2 className="text-2xl font-semibold mb-4">Outstanding Invoices</h2>
