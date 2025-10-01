@@ -5,7 +5,6 @@ import { getProjects } from "@/lib/api/projects";
 import type { TimeEntry, Project } from "@/lib/types";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "../ui/skeleton";
 import { Clock } from "lucide-react";
 
@@ -13,24 +12,18 @@ export function TodaysLog() {
     const [entries, setEntries] = useState<TimeEntry[]>([]);
     const [projects, setProjects] = useState<{ [key: string]: Project }>({});
     const [loading, setLoading] = useState(true);
-    const { toast } = useToast();
 
     useEffect(() => {
         async function fetchTodaysLog() {
-            try {
-                const [timeEntriesData, projectsData] = await Promise.all([getTodaysTimeEntries(), getProjects()]);
-                setEntries(timeEntriesData);
+            const [timeEntriesData, projectsData] = await Promise.all([getTodaysTimeEntries(), getProjects()]);
+            setEntries(timeEntriesData);
 
-                const projectsById = projectsData.reduce((acc, p) => ({ ...acc, [p.id]: p }), {} as { [key: string]: Project });
-                setProjects(projectsById);
-            } catch (error) {
-                toast({ variant: 'destructive', title: "Failed to load today's log" });
-            } finally {
-                setLoading(false);
-            }
+            const projectsById = projectsData.reduce((acc, p) => ({ ...acc, [p.id]: p }), {} as { [key: string]: Project });
+            setProjects(projectsById);
+            setLoading(false);
         }
         fetchTodaysLog();
-    }, [toast]);
+    }, []);
 
     if (loading) {
         return (

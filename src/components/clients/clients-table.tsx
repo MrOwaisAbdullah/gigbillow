@@ -31,21 +31,12 @@ export function ClientsTable() {
 
   useEffect(() => {
     async function fetchClients() {
-      try {
-        const clientsData = await getClients();
-        setClients(clientsData);
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Failed to fetch clients',
-          description: 'Please try again later.',
-        });
-      } finally {
-        setLoading(false);
-      }
+      const clientsData = await getClients();
+      setClients(clientsData);
+      setLoading(false);
     }
     fetchClients();
-  }, [toast]);
+  }, []);
 
   const handleDelete = async (id: string, name: string) => {
     try {

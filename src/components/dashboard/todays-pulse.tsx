@@ -1,52 +1,37 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getTimeEntries } from "@/lib/api/time-entries";
+import { getTodaysTimeEntries } from "@/lib/api/time-entries";
 import { getProjects } from "@/lib/api/projects";
-import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import type { TimeEntry, Project } from "@/lib/types";
-import { isToday } from "date-fns";
 import { Skeleton } from "../ui/skeleton";
 
 export function TodaysPulse() {
     const [billableHoursToday, setBillableHoursToday] = useState(0);
     const [earnedToday, setEarnedToday] = useState(0);
     const [loading, setLoading] = useState(true);
-    const { toast } = useToast();
 
     useEffect(() => {
         async function fetchTodaysPulse() {
-            try {
-                const [timeEntries, projects] = await Promise.all([getTimeEntries(), getProjects()]);
-                const projectsById = projects.reduce((acc, p) => ({ ...acc, [p.id]: p }), {} as { [key: string]: Project });
+            const [timeEntries, projects] = await Promise.all([getTodaysTimeEntries(), getProjects()]);
+            const projectsById = projects.reduce((acc, p) => ({ ...acc, [p.id]: p }), {} as { [key: string]: Project });
+            
+            const totalHours = timeEntries.reduce((acc, entry) => acc + entry.hours, 0);
+            setBillableHoursToday(totalHours);
 
-                const todaysEntries = timeEntries.filter(entry => isToday(new Date(entry.startTime)));
-                
-                const totalHours = todaysEntries.reduce((acc, entry) => acc + entry.hours, 0);
-                setBillableHoursToday(totalHours);
-
-                const totalEarned = todaysEntries.reduce((acc, entry) => {
-                    const project = projectsById[entry.projectId];
-                    if (project) {
-                        return acc + entry.hours * project.rate;
-                    }
-                    return acc;
-                }, 0);
-                setEarnedToday(totalEarned);
-
-            } catch (error) {
-                 toast({
-                    variant: 'destructive',
-                    title: "Failed to fetch today's pulse",
-                    description: 'Please try again later.',
-                });
-            } finally {
-                setLoading(false);
-            }
+            const totalEarned = timeEntries.reduce((acc, entry) => {
+                const project = projectsById[entry.projectId];
+                if (project && project.rate) {
+                    return acc + entry.hours * project.rate;
+                }
+                return acc;
+            }, 0);
+            setEarnedToday(totalEarned);
+            setLoading(false);
         }
         fetchTodaysPulse();
-    }, [toast]);
+    }, []);
 
     if(loading) {
         return (

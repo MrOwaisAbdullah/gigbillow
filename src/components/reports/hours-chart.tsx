@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/card"
 import { getProjects } from "@/lib/api/projects"
 import { getTimeEntries } from "@/lib/api/time-entries"
-import { useToast } from "@/hooks/use-toast"
 import { useState, useEffect } from "react"
 import type { Project, TimeEntry } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
@@ -22,35 +21,29 @@ const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3
 export function HoursChart() {
   const [chartData, setChartData] = useState<{name: string, value: number}[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchChartData() {
-      try {
-        const [projects, timeEntries] = await Promise.all([getProjects(), getTimeEntries()]);
-        const startOfCurrentMonth = startOfMonth(new Date());
+      const [projects, timeEntriesResult] = await Promise.all([getProjects(), getTimeEntries()]);
+      const timeEntries = timeEntriesResult.entries;
+      const startOfCurrentMonth = startOfMonth(new Date());
 
-        const monthlyEntries = timeEntries.filter(e => new Date(e.startTime) >= startOfCurrentMonth);
+      const monthlyEntries = timeEntries.filter(e => new Date(e.startTime) >= startOfCurrentMonth);
 
-        const hoursByProject = monthlyEntries.reduce((acc, entry) => {
-          const project = projects.find(p => p.id === entry.projectId);
-          if (project) {
-            acc[project.name] = (acc[project.name] || 0) + entry.hours;
-          }
-          return acc;
-        }, {} as { [key: string]: number });
+      const hoursByProject = monthlyEntries.reduce((acc, entry) => {
+        const project = projects.find(p => p.id === entry.projectId);
+        if (project) {
+          acc[project.name] = (acc[project.name] || 0) + entry.hours;
+        }
+        return acc;
+      }, {} as { [key: string]: number });
 
-        const data = Object.entries(hoursByProject).map(([name, value]) => ({ name, value }));
-        setChartData(data);
-
-      } catch (error) {
-        toast({ variant: 'destructive', title: 'Failed to load hours chart' });
-      } finally {
-        setLoading(false);
-      }
+      const data = Object.entries(hoursByProject).map(([name, value]) => ({ name, value }));
+      setChartData(data);
+      setLoading(false);
     }
     fetchChartData();
-  }, [toast]);
+  }, []);
 
   if (loading) {
     return (

@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge"
 import { getInvoices } from "@/lib/api/invoices"
 import { getClientById } from "@/lib/api/clients"
 import { getProjectById } from "@/lib/api/projects"
-import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState } from "react"
 import type { Invoice, Client, Project } from "@/lib/types"
 import { format } from "date-fns"
@@ -22,42 +21,36 @@ export function InvoicesTable() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [data, setData] = useState<{ [key: string]: Client | Project }>({});
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchData() {
-      try {
-        const invoicesData = await getInvoices();
-        const outstandingInvoices = invoicesData.filter(inv => inv.status === 'unpaid' || inv.status === 'overdue');
-        setInvoices(outstandingInvoices);
+      const invoicesData = await getInvoices();
+      const outstandingInvoices = invoicesData.filter(inv => inv.status === 'unpaid' || inv.status === 'overdue');
+      setInvoices(outstandingInvoices);
 
+      if (outstandingInvoices.length > 0) {
         const clientIds = [...new Set(outstandingInvoices.map(inv => inv.clientId))];
         const projectIds = [...new Set(outstandingInvoices.map(inv => inv.projectId))];
         
         const fetchedData: { [key: string]: Client | Project } = {};
 
-        for (const id of clientIds) {
-            const client = await getClientById(id);
-            if(client) fetchedData[id] = client;
-        }
-        for (const id of projectIds) {
-            const project = await getProjectById(id);
-            if(project) fetchedData[id] = project;
-        }
-        setData(fetchedData);
+        const clientPromises = clientIds.map(id => getClientById(id));
+        const projectPromises = projectIds.map(id => getProjectById(id));
 
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Failed to fetch invoices',
-          description: 'Please try again later.',
-        });
-      } finally {
-        setLoading(false);
+        const [clients, projects] = await Promise.all([
+          Promise.all(clientPromises),
+          Promise.all(projectPromises),
+        ]);
+        
+        clients.forEach(client => { if(client) fetchedData[client.id] = client; });
+        projects.forEach(project => { if(project) fetchedData[project.id] = project; });
+
+        setData(fetchedData);
       }
+      setLoading(false);
     }
     fetchData();
-  }, [toast]);
+  }, []);
 
   if (loading) {
      return (

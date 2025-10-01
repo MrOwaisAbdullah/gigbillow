@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -46,32 +46,24 @@ export function TimeTracker() {
   
   useEffect(() => {
     async function fetchInitialData() {
-        try {
-            const projectsData = await getProjects();
-            setProjects(projectsData.filter(p => p.status === 'active'));
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Failed to fetch projects' });
-        }
+      const projectsData = await getProjects();
+      setProjects(projectsData.filter(p => p.status === 'active'));
     }
     fetchInitialData();
-  }, [toast]);
+  }, []);
   
   useEffect(() => {
     async function fetchTotalTime() {
         if(selectedProjectId) {
-            try {
-                const entries = await getTimeEntriesByProject(selectedProjectId);
-                const totalTime = entries.reduce((acc, e) => acc + e.hours * 3600, 0);
-                setTotalProjectTime(totalTime);
-            } catch (error) {
-                 toast({ variant: 'destructive', title: 'Failed to fetch time entries' });
-            }
+            const entries = await getTimeEntriesByProject(selectedProjectId);
+            const totalTime = entries.reduce((acc, e) => acc + e.hours * 3600, 0);
+            setTotalProjectTime(totalTime);
         } else {
             setTotalProjectTime(0);
         }
     }
     fetchTotalTime();
-  }, [selectedProjectId, toast]);
+  }, [selectedProjectId]);
 
   // Load from localStorage
   useEffect(() => {

@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { getProjects } from "@/lib/api/projects";
 import { getTimeEntries } from "@/lib/api/time-entries";
-import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import type { Project, TimeEntry } from "@/lib/types";
 import { isThisWeek } from 'date-fns';
@@ -14,26 +13,16 @@ export function ProjectPulse() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
     const [loading, setLoading] = useState(true);
-    const { toast } = useToast();
 
     useEffect(() => {
         async function fetchProjectData() {
-            try {
-                const [projectsData, timeEntriesResult] = await Promise.all([getProjects(), getTimeEntries()]);
-                setProjects(projectsData.filter(p => p.status === 'active').slice(0, 3));
-                setTimeEntries(timeEntriesResult.entries);
-            } catch (error) {
-                 toast({
-                    variant: 'destructive',
-                    title: "Failed to fetch project pulse",
-                    description: 'Please try again later.',
-                });
-            } finally {
-                setLoading(false);
-            }
+            const [projectsData, timeEntriesResult] = await Promise.all([getProjects(), getTimeEntries()]);
+            setProjects(projectsData.filter(p => p.status === 'active').slice(0, 3));
+            setTimeEntries(timeEntriesResult.entries);
+            setLoading(false);
         }
         fetchProjectData();
-    }, [toast]);
+    }, []);
 
     const weeklyGoal = 40;
 

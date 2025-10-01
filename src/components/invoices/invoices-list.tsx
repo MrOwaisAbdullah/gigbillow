@@ -41,37 +41,31 @@ export function InvoicesList() {
 
   useEffect(() => {
     async function fetchData() {
-      try {
         const invoicesData = await getInvoices();
         setInvoices(invoicesData);
+        if (invoicesData.length > 0) {
+            const clientIds = [...new Set(invoicesData.map(inv => inv.clientId))];
+            const projectIds = [...new Set(invoicesData.map(inv => inv.projectId))];
+            
+            const fetchedData: { [key: string]: Client | Project } = {};
 
-        const clientIds = [...new Set(invoicesData.map(inv => inv.clientId))];
-        const projectIds = [...new Set(invoicesData.map(inv => inv.projectId))];
-        
-        const fetchedData: { [key: string]: Client | Project } = {};
+            const clientPromises = clientIds.map(id => getClientById(id));
+            const projectPromises = projectIds.map(id => getProjectById(id));
 
-        for (const id of clientIds) {
-            const client = await getClientById(id);
-            if(client) fetchedData[id] = client;
+            const [clients, projects] = await Promise.all([
+                Promise.all(clientPromises),
+                Promise.all(projectPromises),
+            ]);
+            
+            clients.forEach(client => { if(client) fetchedData[client.id] = client; });
+            projects.forEach(project => { if(project) fetchedData[project.id] = project; });
+
+            setData(fetchedData);
         }
-        for (const id of projectIds) {
-            const project = await getProjectById(id);
-            if(project) fetchedData[id] = project;
-        }
-        setData(fetchedData);
-
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Failed to fetch data',
-          description: 'Please try again later.',
-        });
-      } finally {
         setLoading(false);
-      }
     }
     fetchData();
-  }, [toast]);
+  }, []);
 
   const handleDelete = async (id: string) => {
     const invoiceToDelete = invoices.find(inv => inv.id === id);

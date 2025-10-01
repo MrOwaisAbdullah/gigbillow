@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getInvoices } from '@/lib/api/invoices';
 import { getTimeEntries } from '@/lib/api/time-entries';
-import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from "react";
 import { subDays, isThisWeek } from 'date-fns';
 import { TrendingUp, AlertCircle, Clock } from 'lucide-react';
@@ -16,44 +15,35 @@ export function SummaryStats() {
     hoursThisWeek: 0,
   });
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchStats() {
-      try {
-        const [invoicesData, timeEntriesData] = await Promise.all([getInvoices(), getTimeEntries()]);
-        
-        const thirtyDaysAgo = subDays(new Date(), 30);
+      const [invoicesData, timeEntriesResult] = await Promise.all([getInvoices(), getTimeEntries()]);
+      const timeEntriesData = timeEntriesResult.entries;
+      
+      const thirtyDaysAgo = subDays(new Date(), 30);
 
-        const outstandingRevenue = invoicesData
-          .filter((inv) => inv.status === 'unpaid' || inv.status === 'overdue')
-          .reduce((acc, inv) => acc + inv.amount, 0);
+      const outstandingRevenue = invoicesData
+        .filter((inv) => inv.status === 'unpaid' || inv.status === 'overdue')
+        .reduce((acc, inv) => acc + inv.amount, 0);
 
-        const incomeLast30d = invoicesData
-          .filter(
-            (inv) =>
-              inv.status === 'paid' &&
-              new Date(inv.issuedDate) >= thirtyDaysAgo
-          )
-          .reduce((acc, inv) => acc + inv.amount, 0);
+      const incomeLast30d = invoicesData
+        .filter(
+          (inv) =>
+            inv.status === 'paid' &&
+            new Date(inv.issuedDate) >= thirtyDaysAgo
+        )
+        .reduce((acc, inv) => acc + inv.amount, 0);
 
-        const hoursThisWeek = timeEntriesData
-          .filter((entry) => isThisWeek(new Date(entry.startTime), { weekStartsOn: 1 }))
-          .reduce((acc, entry) => acc + entry.hours, 0);
+      const hoursThisWeek = timeEntriesData
+        .filter((entry) => isThisWeek(new Date(entry.startTime), { weekStartsOn: 1 }))
+        .reduce((acc, entry) => acc + entry.hours, 0);
 
-        setStats({ outstandingRevenue, incomeLast30d, hoursThisWeek });
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Failed to fetch summary stats',
-          description: 'Please try again later.',
-        });
-      } finally {
-        setLoading(false);
-      }
+      setStats({ outstandingRevenue, incomeLast30d, hoursThisWeek });
+      setLoading(false);
     }
     fetchStats();
-  }, [toast]);
+  }, []);
   
   const statCards = [
     {

@@ -39,30 +39,22 @@ export function ProjectsTable() {
 
   useEffect(() => {
     async function fetchData() {
-      try {
         const projectsData = await getProjects();
         setProjects(projectsData);
-
-        const clientIds = [...new Set(projectsData.map(p => p.clientId))];
-        const clientsData: {[key: string]: Client} = {};
-        for (const id of clientIds) {
-            const client = await getClientById(id);
-            if(client) clientsData[id] = client;
+        if(projectsData.length > 0) {
+            const clientIds = [...new Set(projectsData.map(p => p.clientId))];
+            const clientsData: {[key: string]: Client} = {};
+            const clientPromises = clientIds.map(id => getClientById(id));
+            const clientResults = await Promise.all(clientPromises);
+            clientResults.forEach(client => {
+                if(client) clientsData[client.id] = client;
+            });
+            setClients(clientsData);
         }
-        setClients(clientsData);
-
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Failed to fetch data',
-          description: 'Please try again later.',
-        });
-      } finally {
         setLoading(false);
-      }
     }
     fetchData();
-  }, [toast]);
+  }, []);
 
   const handleDelete = async (id: string) => {
     const projectToDelete = projects.find(p => p.id === id);

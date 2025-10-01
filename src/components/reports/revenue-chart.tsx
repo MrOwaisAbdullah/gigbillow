@@ -9,19 +9,16 @@ import {
   CardDescription
 } from "@/components/ui/card"
 import { getInvoices } from "@/lib/api/invoices"
-import { useToast } from "@/hooks/use-toast"
 import { useState, useEffect } from "react"
-import { subMonths, format, getYear, getMonth } from "date-fns"
+import { subMonths, format } from "date-fns"
 import { Skeleton } from "../ui/skeleton"
 
 export function RevenueChart() {
   const [chartData, setChartData] = useState<{name: string, total: number}[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchChartData() {
-      try {
         const invoices = await getInvoices();
         const paidInvoices = invoices.filter(inv => inv.status === 'paid');
         const now = new Date();
@@ -31,7 +28,6 @@ export function RevenueChart() {
           return {
             name: format(monthDate, 'MMM'),
             total: 0,
-            // Add a year/month key for accurate aggregation
             key: format(monthDate, 'yyyy-MM'),
           };
         });
@@ -44,7 +40,6 @@ export function RevenueChart() {
 
         paidInvoices.forEach(invoice => {
           const invoiceDate = new Date(invoice.issuedDate);
-          // Check if invoice falls within the last 12 months
           if (invoiceDate > subMonths(now, 12)) {
             const invoiceKey = format(invoiceDate, 'yyyy-MM');
             if (revenueMap[invoiceKey]) {
@@ -54,15 +49,10 @@ export function RevenueChart() {
         });
         
         setChartData(Object.values(revenueMap));
-
-      } catch (error) {
-        toast({ variant: 'destructive', title: 'Failed to load revenue chart' });
-      } finally {
         setLoading(false);
-      }
     }
     fetchChartData();
-  }, [toast]);
+  }, []);
   
   if (loading) {
     return (

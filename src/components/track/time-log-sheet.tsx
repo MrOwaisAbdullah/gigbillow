@@ -14,7 +14,6 @@ import { getProjects } from "@/lib/api/projects"
 import type { TimeEntry, Project } from "@/lib/types"
 import { format } from "date-fns"
 import { useState, useEffect } from "react"
-import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "../ui/skeleton"
 import { Loader2 } from "lucide-react"
 import type { DocumentSnapshot } from "firebase/firestore"
@@ -31,7 +30,6 @@ export function TimeLogSheet({ open, onOpenChange }: TimeLogSheetProps) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [lastVisible, setLastVisible] = useState<DocumentSnapshot | null>(null);
   const [hasNextPage, setHasNextPage] = useState(true);
-  const { toast } = useToast();
 
   const fetchLogs = async (loadMore = false) => {
     if (loadMore) {
@@ -40,25 +38,20 @@ export function TimeLogSheet({ open, onOpenChange }: TimeLogSheetProps) {
         setLoading(true);
     }
 
-    try {
-        if (!loadMore && Object.keys(projects).length === 0) {
-            const projectsData = await getProjects();
-            const projectsById = projectsData.reduce((acc, p) => ({ ...acc, [p.id]: p }), {} as { [key: string]: Project });
-            setProjects(projectsById);
-        }
-
-        const result = await getTimeEntries(loadMore ? lastVisible : null, 15);
-        
-        setEntries(prev => loadMore ? [...prev, ...result.entries] : result.entries);
-        setLastVisible(result.next);
-        setHasNextPage(!!result.next);
-
-    } catch (error) {
-      toast({ variant: 'destructive', title: "Failed to load time log history" });
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
+    if (!loadMore && Object.keys(projects).length === 0) {
+        const projectsData = await getProjects();
+        const projectsById = projectsData.reduce((acc, p) => ({ ...acc, [p.id]: p }), {} as { [key: string]: Project });
+        setProjects(projectsById);
     }
+
+    const result = await getTimeEntries(loadMore ? lastVisible : null, 15);
+    
+    setEntries(prev => loadMore ? [...prev, ...result.entries] : result.entries);
+    setLastVisible(result.next);
+    setHasNextPage(!!result.next);
+
+    setLoading(false);
+    setLoadingMore(false);
   };
 
   useEffect(() => {
