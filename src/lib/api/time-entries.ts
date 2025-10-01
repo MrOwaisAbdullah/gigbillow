@@ -45,8 +45,8 @@ export async function getTimeEntries(
         return {
             id: doc.id,
             ...data,
-            startTime: data.startTime.toDate(),
-            endTime: data.endTime ? data.endTime.toDate() : null,
+            startTime: data.startTime instanceof Timestamp ? data.startTime.toDate() : new Date(data.startTime),
+            endTime: data.endTime ? (data.endTime instanceof Timestamp ? data.endTime.toDate() : new Date(data.endTime)) : null,
         } as TimeEntry;
     });
 
@@ -72,8 +72,8 @@ export async function getTodaysTimeEntries(): Promise<TimeEntry[]> {
         return {
             id: doc.id,
             ...data,
-            startTime: data.startTime.toDate(),
-            endTime: data.endTime ? data.endTime.toDate() : null,
+            startTime: data.startTime instanceof Timestamp ? data.startTime.toDate() : new Date(data.startTime),
+            endTime: data.endTime ? (data.endTime instanceof Timestamp ? data.endTime.toDate() : new Date(data.endTime)) : null,
         } as TimeEntry;
     });
     return entries;
@@ -88,8 +88,8 @@ export async function getTimeEntriesByProject(projectId: string): Promise<TimeEn
         return {
             id: doc.id,
             ...data,
-            startTime: data.startTime.toDate(),
-            endTime: data.endTime ? data.endTime.toDate() : null,
+            startTime: data.startTime instanceof Timestamp ? data.startTime.toDate() : new Date(data.startTime),
+            endTime: data.endTime ? (data.endTime instanceof Timestamp ? data.endTime.toDate() : new Date(data.endTime)) : null,
         } as TimeEntry;
     });
     return entries;

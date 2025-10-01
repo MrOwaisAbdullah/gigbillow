@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { getTimeEntries } from "@/lib/api/time-entries"
 import { getProjects } from "@/lib/api/projects"
 import type { TimeEntry, Project } from "@/lib/types"
-import { format, formatDistanceToNow } from "date-fns"
+import { format } from "date-fns"
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "../ui/skeleton"
@@ -69,6 +69,7 @@ export function TimeLogSheet({ open, onOpenChange }: TimeLogSheetProps) {
       setEntries([]);
       setLastVisible(null);
       setHasNextPage(true);
+      setLoading(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
