@@ -18,7 +18,7 @@ export async function seedSampleData(userId: string) {
     const project3Data = { name: 'Branding Guide', clientId: client1Ref.id, rate: 75, status: 'completed' };
     const project1Ref = await addDoc(collection(db, `users/${userId}/projects`), project1Data);
     const project2Ref = await addDoc(collection(db, `users/${userId}/projects`), project2Data);
-    await addDoc(collection(db, `users/${userId}/projects`), project3Data);
+    const project3Ref = await addDoc(collection(db, `users/${userId}/projects`), project3Data);
 
     // 3. Seed Time Entries
     const timeEntry1 = { projectId: project1Ref.id, startTime: subDays(now, 2), endTime: subDays(now, 2), hours: 5, description: 'Initial design mockups' };
@@ -56,7 +56,7 @@ export async function seedSampleData(userId: string) {
      const invoice3Data = {
         invoiceNumber: `INV-${now.getFullYear()}-003`,
         clientId: client1Ref.id,
-        projectId: project3Data.name, // Using name as temp ref
+        projectId: project3Ref.id,
         amount: 1500,
         issuedDate: subDays(now, 60),
         dueDate: subDays(now, 30),

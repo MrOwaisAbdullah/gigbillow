@@ -26,53 +26,34 @@ export function RevenueChart() {
         const paidInvoices = invoices.filter(inv => inv.status === 'paid');
         const now = new Date();
         
-        const monthlyRevenue = Array.from({ length: 12 }, (_, i) => {
+        const monthlyRevenue = Array.from({ length: 12 }).map((_, i) => {
           const monthDate = subMonths(now, 11 - i);
           return {
             name: format(monthDate, 'MMM'),
             total: 0,
+            // Add a year/month key for accurate aggregation
+            key: format(monthDate, 'yyyy-MM'),
           };
         });
 
+        const revenueMap = monthlyRevenue.reduce((acc, month) => {
+            acc[month.key] = month;
+            return acc;
+        }, {} as {[key: string]: typeof monthlyRevenue[0]});
+
+
         paidInvoices.forEach(invoice => {
           const invoiceDate = new Date(invoice.issuedDate);
-          const monthIndex = getMonth(invoiceDate);
-          const invoiceYear = getYear(invoiceDate);
-          
-          // This logic can be tricky. Let's simplify by matching month and year.
-          const targetMonth = monthlyRevenue.find(m => {
-              const d = new Date(`${m.name} 1, ${getYear(now)}`); // May need adjustment for year changes
-              // A more robust way would be to create a year-month key
-              return format(invoiceDate, 'MMM') === m.name;
-          });
-          
-          if(targetMonth) {
-              targetMonth.total += invoice.amount;
+          // Check if invoice falls within the last 12 months
+          if (invoiceDate > subMonths(now, 12)) {
+            const invoiceKey = format(invoiceDate, 'yyyy-MM');
+            if (revenueMap[invoiceKey]) {
+                revenueMap[invoiceKey].total += invoice.amount;
+            }
           }
         });
         
-        // Re-aggregate because the above logic might be flawed across year boundaries
-        const finalMonthlyRevenue: {[key: string]: number} = {};
-        for(let i=0; i<12; i++) {
-            const d = subMonths(now, i);
-            finalMonthlyRevenue[format(d, 'MMM')] = 0;
-        }
-
-        paidInvoices.forEach(invoice => {
-            const invoiceDate = new Date(invoice.issuedDate);
-            if(invoiceDate > subMonths(now, 12)) {
-                const monthName = format(invoiceDate, 'MMM');
-                finalMonthlyRevenue[monthName] = (finalMonthlyRevenue[monthName] || 0) + invoice.amount;
-            }
-        });
-        
-        const dataForChart = Object.keys(finalMonthlyRevenue).map(key => ({
-            name: key,
-            total: finalMonthlyRevenue[key]
-        })).reverse();
-
-
-        setChartData(dataForChart);
+        setChartData(Object.values(revenueMap));
 
       } catch (error) {
         toast({ variant: 'destructive', title: 'Failed to load revenue chart' });
