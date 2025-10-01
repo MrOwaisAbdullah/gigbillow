@@ -74,7 +74,6 @@ export default function NewInvoicePage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const [isInvoiceCreated, setIsInvoiceCreated] = useState(false);
-  const [billToAddress, setBillToAddress] = useState('');
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
@@ -105,16 +104,6 @@ export default function NewInvoicePage() {
   const taxAmount = (subTotal * taxRate) / 100;
   const totalAmount = subTotal + taxAmount;
 
-  useEffect(() => {
-    if (clientId) {
-      const client = clients.find(c => c.id === clientId);
-      if (client) {
-        setBillToAddress(`${client.name}\n${client.email}`);
-      }
-    } else {
-        setBillToAddress('');
-    }
-  }, [clientId]);
   
   useEffect(() => {
     const projectName = searchParams.get('projectName');
@@ -315,12 +304,6 @@ export default function NewInvoicePage() {
                     </FormItem>
                   )}
                 />
-                 <div>
-                    <FormLabel>Bill To</FormLabel>
-                    <div className="text-sm mt-2 whitespace-pre-wrap rounded-md border border-input p-3 min-h-[100px] bg-muted/50">
-                        {billToAddress || <span className="text-muted-foreground">Select a client to see details</span>}
-                    </div>
-                </div>
               </div>
                  <FormField
                   control={form.control}
