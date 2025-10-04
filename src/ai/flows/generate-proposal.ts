@@ -15,7 +15,7 @@ import { z } from 'zod';
 const GenerateProposalInputSchema = z.object({
   jobPostText: z.string().max(2000),
   clientName: z.string().optional(),
-  budget: z.number().optional(),
+  budget: z.coerce.number().optional(),
   deadline: z.string().optional(),
   deliverables: z.string().optional(),
 });
@@ -78,6 +78,8 @@ const generateProposalFlow = ai.defineFlow(
   },
   async input => {
     const { output } = await generateProposalPrompt(input);
+    
     return output!;
   }
 );
+
