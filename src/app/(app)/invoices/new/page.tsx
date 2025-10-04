@@ -706,5 +706,3 @@ export default function NewInvoicePage() {
     </div>
   );
 }
-
-    
