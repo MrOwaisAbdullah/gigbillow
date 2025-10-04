@@ -35,6 +35,8 @@ export async function getInvoices(): Promise<Invoice[]> {
           taxRate: Number(data.taxRate) || 0,
       } as Invoice
     });
+    // Sort by issue date, newest first
+    invoices.sort((a, b) => new Date(b.issuedDate).getTime() - new Date(a.issuedDate).getTime());
     return invoices;
   } catch (error) {
       console.error("Failed to fetch invoices:", error);

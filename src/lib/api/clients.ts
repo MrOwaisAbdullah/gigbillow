@@ -15,7 +15,8 @@ export async function getClients(): Promise<Client[]> {
   if (!collectionPath) return [];
   try {
     const querySnapshot = await getDocs(collection(db, collectionPath));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
+    const clients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
+    return clients.reverse(); // Show newest first
   } catch (error) {
     return [];
   }

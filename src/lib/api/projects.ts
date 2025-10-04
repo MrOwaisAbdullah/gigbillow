@@ -17,7 +17,8 @@ export async function getProjects(): Promise<Project[]> {
   if (!collectionPath) return [];
   try {
     const querySnapshot = await getDocs(collection(db, collectionPath));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+    const projects = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+    return projects.reverse(); // Show newest first
   } catch(e) {
     return [];
   }
@@ -29,7 +30,8 @@ export async function getProjectsByClientId(clientId: string): Promise<Project[]
     try {
         const q = query(collection(db, collectionPath), where('clientId', '==', clientId));
         const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+        const projects = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+        return projects.reverse(); // Show newest first
     } catch(e) {
         return [];
     }
