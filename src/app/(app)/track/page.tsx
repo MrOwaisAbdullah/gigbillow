@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TrackPage() {
   return (
-    <div className="flex flex-col items-center justify-center gap-8 text-center">
+    <div className="flex flex-col items-center justify-center gap-8 text-center pb-8">
         <h1 className="text-4xl font-bold tracking-tight">Time Tracker</h1>
         <div className="w-full max-w-2xl">
             <TimeTracker />

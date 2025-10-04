@@ -15,13 +15,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -40,14 +33,17 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { ArrowLeft, CalendarIcon, Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { getClients } from '@/lib/api/clients';
-import { getProjects, getProjectsByClientId } from '@/lib/api/projects';
+import { getProjects } from '@/lib/api/projects';
 import { getTimeEntriesByProject } from '@/lib/api/time-entries';
 import { createInvoice } from '@/lib/api/invoices';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { Client, Project } from '@/lib/types';
+import { SelectWithCreate } from '@/components/select-with-create';
+import { ClientForm } from '@/components/clients/client-form';
+import { ProjectForm } from '@/components/projects/project-form';
 
 
 const lineItemSchema = z.object({
@@ -116,27 +112,33 @@ export default function NewInvoicePage() {
   const taxAmount = (subTotal * taxRate) / 100;
   const totalAmount = subTotal + taxAmount;
 
-  useEffect(() => {
-    async function fetchData() {
-        const [clientsData, projectsData] = await Promise.all([getClients(), getProjects()]);
-        setClients(clientsData);
-        setAllProjects(projectsData);
-    }
-    fetchData();
+  const fetchClients = useCallback(async () => {
+    const clientsData = await getClients();
+    setClients(clientsData);
+    return clientsData;
   }, []);
+
+  const fetchProjects = useCallback(async () => {
+    const projectsData = await getProjects();
+    setAllProjects(projectsData);
+    return projectsData;
+  }, []);
+
+
+  useEffect(() => {
+    fetchClients();
+    fetchProjects();
+  }, [fetchClients, fetchProjects]);
   
   useEffect(() => {
-    async function filterProjects() {
-        if (clientId) {
-            const clientProjects = await getProjectsByClientId(clientId);
-            setProjects(clientProjects);
-            form.setValue('projectId', ''); // Reset project when client changes
-        } else {
-            setProjects([]);
-        }
+    if (clientId) {
+      const clientProjects = allProjects.filter(p => p.clientId === clientId);
+      setProjects(clientProjects);
+      form.setValue('projectId', ''); // Reset project when client changes
+    } else {
+      setProjects([]);
     }
-    filterProjects();
-  }, [clientId, form]);
+  }, [clientId, allProjects, form]);
 
   useEffect(() => {
     const projectName = searchParams.get('projectName');
@@ -182,6 +184,24 @@ export default function NewInvoicePage() {
     }
   }, [projectId, form, allProjects]);
 
+  const handleNewClient = async () => {
+    const updatedClients = await fetchClients();
+    const newClient = updatedClients[updatedClients.length - 1];
+    if (newClient) {
+      form.setValue('clientId', newClient.id);
+    }
+  };
+
+  const handleNewProject = async () => {
+    const updatedProjects = await fetchProjects();
+    const filteredProjects = updatedProjects.filter(p => p.clientId === clientId);
+    setProjects(filteredProjects);
+    const newProject = filteredProjects[filteredProjects.length - 1];
+    if (newProject) {
+      form.setValue('projectId', newProject.id);
+    }
+  };
+
 
   async function onSubmit(values: InvoiceFormValues) {
     setIsSubmitting(true);
@@ -198,11 +218,7 @@ export default function NewInvoicePage() {
         });
         setIsInvoiceCreated(true);
     } catch (error) {
-        toast({
-            variant: 'destructive',
-            title: 'Failed to create invoice',
-            description: 'An unexpected error occurred. Please try again.',
-        });
+        // Error toast is handled in API call
     } finally {
         setIsSubmitting(false);
     }
@@ -217,7 +233,7 @@ export default function NewInvoicePage() {
   };
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 pb-8">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/invoices">
@@ -334,23 +350,17 @@ export default function NewInvoicePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Client</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
+                      <SelectWithCreate
                         value={field.value}
+                        onValueChange={field.onChange}
+                        items={clients.map(c => ({ value: c.id, label: c.name }))}
+                        placeholder="Select a client"
+                        dialogTitle="Create New Client"
+                        dialogDescription="Add a new client to your records."
+                        onCreated={handleNewClient}
                       >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a client" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {clients.map(client => (
-                            <SelectItem key={client.id} value={client.id}>
-                              {client.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                         <ClientForm />
+                      </SelectWithCreate>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -361,20 +371,18 @@ export default function NewInvoicePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Project</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={!clientId}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a project" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {projects.map(project => (
-                            <SelectItem key={project.id} value={project.id}>
-                              {project.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SelectWithCreate
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        items={projects.map(p => ({ value: p.id, label: p.name }))}
+                        placeholder="Select a project"
+                        dialogTitle="Create New Project"
+                        dialogDescription="Add a new project for the selected client."
+                        onCreated={handleNewProject}
+                        disabled={!clientId}
+                      >
+                         <ProjectForm clients={clients} initialClientId={clientId} />
+                      </SelectWithCreate>
                       <FormDescription>Selecting a project can auto-fill invoice details.</FormDescription>
                       <FormMessage />
                     </FormItem>

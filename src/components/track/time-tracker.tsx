@@ -1,15 +1,8 @@
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Play, Square, Pause, Trash2, BookOpen, Loader2 } from "lucide-react"
 import { getProjects } from "@/lib/api/projects"
 import { getTimeEntriesByProject, createTimeEntry } from "@/lib/api/time-entries"
@@ -26,11 +19,15 @@ import {
 } from "@/components/ui/alert-dialog"
 import { TimeLogSheet } from "./time-log-sheet"
 import type { Project, TimeEntry } from "@/lib/types"
+import { SelectWithCreate } from "../select-with-create"
+import { ProjectForm } from "../projects/project-form"
+import { getClients } from "@/lib/api/clients"
 
 type TimerState = 'running' | 'paused' | 'stopped';
 
 export function TimeTracker() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [timerState, setTimerState] = useState<TimerState>('stopped');
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -43,14 +40,23 @@ export function TimeTracker() {
 
   const { toast } = useToast();
   const selectedProject = selectedProjectId ? projects.find(p => p.id === selectedProjectId) : null;
+
+  const fetchProjects = useCallback(async () => {
+      const projectsData = await getProjects();
+      const activeProjects = projectsData.filter(p => p.status === 'active');
+      setProjects(activeProjects);
+      return activeProjects;
+  }, []);
+
+  const fetchClients = useCallback(async () => {
+    const clientsData = await getClients();
+    setClients(clientsData);
+  }, []);
   
   useEffect(() => {
-    async function fetchInitialData() {
-      const projectsData = await getProjects();
-      setProjects(projectsData.filter(p => p.status === 'active'));
-    }
-    fetchInitialData();
-  }, []);
+    fetchProjects();
+    fetchClients();
+  }, [fetchProjects, fetchClients]);
   
   useEffect(() => {
     async function fetchTotalTime() {
@@ -165,7 +171,7 @@ export function TimeTracker() {
             setTotalProjectTime(prev => prev + elapsedTime);
         }
     } catch (error) {
-        if(!isAutoSaving) toast({ variant: 'destructive', title: "Failed to save time" });
+        // API handles error toast
     } finally {
         if(!isAutoSaving) {
             setTimerState('stopped');
@@ -209,6 +215,14 @@ export function TimeTracker() {
       setStartTime(null);
       setLastSavedEntry(null);
   }
+  
+  const handleNewProject = async () => {
+    const updatedProjects = await fetchProjects();
+    const newProject = updatedProjects[updatedProjects.length - 1];
+    if(newProject) {
+        setSelectedProjectId(newProject.id);
+    }
+  }
 
   const formatTime = (timeInSeconds: number) => {
     const hours = Math.floor(timeInSeconds / 3600);
@@ -234,18 +248,18 @@ export function TimeTracker() {
         <CardContent className="p-6 space-y-6">
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="w-full sm:w-auto sm:flex-grow">
-                 <Select onValueChange={handleProjectChange} value={selectedProjectId || ''} disabled={isRunningOrPaused}>
-                  <SelectTrigger id="project" className="text-base">
-                    <SelectValue placeholder="Select a project to start tracking" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map(project => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                 <SelectWithCreate
+                    value={selectedProjectId || ''}
+                    onValueChange={handleProjectChange}
+                    items={projects.map(p => ({ value: p.id, label: p.name }))}
+                    placeholder="Select a project to start tracking"
+                    dialogTitle="Create New Project"
+                    dialogDescription="Add a new project to start tracking time."
+                    onCreated={handleNewProject}
+                    disabled={isRunningOrPaused}
+                 >
+                    <ProjectForm clients={clients} onSuccess={() => {}} />
+                 </SelectWithCreate>
             </div>
             {timerState !== 'running' ? (
                 <Button 

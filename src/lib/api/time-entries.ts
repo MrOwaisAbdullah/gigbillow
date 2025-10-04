@@ -19,25 +19,32 @@ import {
 } from 'firebase/firestore';
 import type { TimeEntry } from '@/lib/types';
 import { startOfDay } from 'date-fns';
+import { toast } from '@/hooks/use-toast';
 
 function getCollectionPath() {
     const auth = getAuth();
     const userId = auth.currentUser?.uid;
-    if (!userId) return null;
-    return `users/${userId}/timeEntries`;
+    return userId ? `users/${userId}/timeEntries` : null;
 }
 
 function docToTimeEntry(doc: DocumentSnapshot): TimeEntry {
     const data = doc.data()!;
-    const startTime = data.startTime;
-    const endTime = data.endTime;
+    
+    const toDate = (ts: any) => {
+        if (ts instanceof Timestamp) return ts.toDate();
+        if (ts instanceof Date) return ts;
+        // Handle cases where ts might be a string or number from localStorage
+        return new Date(ts);
+    };
+
     return {
         id: doc.id,
         ...data,
-        startTime: startTime instanceof Timestamp ? startTime.toDate() : new Date(startTime),
-        endTime: endTime ? (endTime instanceof Timestamp ? endTime.toDate() : new Date(endTime)) : null,
+        startTime: toDate(data.startTime),
+        endTime: data.endTime ? toDate(data.endTime) : null,
     } as TimeEntry;
 }
+
 
 export async function getTimeEntries(
     lastVisible: DocumentSnapshot | null = null,
@@ -46,36 +53,44 @@ export async function getTimeEntries(
     const collectionPath = getCollectionPath();
     if (!collectionPath) return { entries: [], next: null };
     
-    const coll = collection(db, collectionPath);
-    let q;
-    if (lastVisible) {
-        q = query(coll, orderBy('startTime', 'desc'), startAfter(lastVisible), limit(pageSize));
-    } else {
-        q = query(coll, orderBy('startTime', 'desc'), limit(pageSize));
+    try {
+        const coll = collection(db, collectionPath);
+        let q;
+        if (lastVisible) {
+            q = query(coll, orderBy('startTime', 'desc'), startAfter(lastVisible), limit(pageSize));
+        } else {
+            q = query(coll, orderBy('startTime', 'desc'), limit(pageSize));
+        }
+        
+        const querySnapshot = await getDocs(q);
+
+        const entries = querySnapshot.docs.map(docToTimeEntry);
+        const next = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+
+        return { entries, next };
+    } catch(e) {
+        return { entries: [], next: null };
     }
-    
-    const querySnapshot = await getDocs(q);
-
-    const entries = querySnapshot.docs.map(docToTimeEntry);
-    const next = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
-
-    return { entries, next };
 }
 
 export async function getTodaysTimeEntries(): Promise<TimeEntry[]> {
     const collectionPath = getCollectionPath();
     if (!collectionPath) return [];
 
-    const todayStart = startOfDay(new Date());
+    try {
+        const todayStart = startOfDay(new Date());
 
-    const q = query(
-        collection(db, collectionPath),
-        where('startTime', '>=', todayStart),
-        orderBy('startTime', 'desc')
-    );
+        const q = query(
+            collection(db, collectionPath),
+            where('startTime', '>=', todayStart),
+            orderBy('startTime', 'desc')
+        );
 
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(docToTimeEntry);
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(docToTimeEntry);
+    } catch (e) {
+        return [];
+    }
 }
 
 
@@ -83,29 +98,42 @@ export async function getTimeEntriesByProject(projectId: string): Promise<TimeEn
     const collectionPath = getCollectionPath();
     if (!collectionPath) return [];
 
-    const q = query(collection(db, collectionPath), where('projectId', '==', projectId));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(docToTimeEntry);
+    try {
+        const q = query(collection(db, collectionPath), where('projectId', '==', projectId));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(docToTimeEntry);
+    } catch(e) {
+        return [];
+    }
 }
 
 
 export async function createTimeEntry(entry: Omit<TimeEntry, 'id'>): Promise<TimeEntry> {
   const collectionPath = getCollectionPath();
-  if (!collectionPath) throw new Error('User not authenticated');
+  if (!collectionPath) {
+    toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to create a time entry.' });
+    throw new Error('User not authenticated');
+  }
   const docRef = await addDoc(collection(db, collectionPath), entry);
   return { id: docRef.id, ...entry };
 }
 
 export async function updateTimeEntry(id: string, entry: Partial<Omit<TimeEntry, 'id'>>): Promise<void> {
   const collectionPath = getCollectionPath();
-  if (!collectionPath) throw new Error('User not authenticated');
+  if (!collectionPath) {
+    toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to update a time entry.' });
+    throw new Error('User not authenticated');
+  }
   const docRef = doc(db, collectionPath, id);
   await updateDoc(docRef, entry);
 }
 
 export async function deleteTimeEntry(id: string): Promise<void> {
   const collectionPath = getCollectionPath();
-  if (!collectionPath) throw new Error('User not authenticated');
+  if (!collectionPath) {
+    toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to delete a time entry.' });
+    throw new Error('User not authenticated');
+  }
   const docRef = doc(db, collectionPath, id);
   await deleteDoc(docRef);
 }

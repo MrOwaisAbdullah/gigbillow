@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import { getClients, deleteClient } from "@/lib/api/clients"
 import { useToast } from "@/hooks/use-toast"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import type { Client } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
 
@@ -29,14 +29,16 @@ export function ClientsTable() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    async function fetchClients() {
-      const clientsData = await getClients();
-      setClients(clientsData);
-      setLoading(false);
-    }
-    fetchClients();
+  const fetchClients = useCallback(async () => {
+    setLoading(true);
+    const clientsData = await getClients();
+    setClients(clientsData);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
   const handleDelete = async (id: string, name: string) => {
     try {
@@ -47,11 +49,7 @@ export function ClientsTable() {
         description: `Client "${name}" has been deleted.`,
       });
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Failed to delete client',
-        description: 'Please try again later.',
-      });
+      // API handles error toast
     }
   };
   
