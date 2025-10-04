@@ -77,13 +77,12 @@ Use Tailwind CSS for styling within the HTML. The final output must be a single,
     *   **Left Column (Bill To):** Display "BILL TO", followed by the client's name and email.
     *   **Right Column (Invoice Details):** Display the Invoice Number, Issue Date, and Due Date. Align text to the right in this column.
 6.  **Line Items Table:**
-    *   Create a table with a header row containing "Description", and "Amount".
+    *   Create a table with a header row containing "Description".
     *   The table header should have a light gray background.
     *   Iterate through the 'lineItems' to create table rows. Each line item should be in its own row under the "Description" column.
-    *   Add a final row for the Sub-total. The description should be "Sub-total" and the amount should be the '{{subTotal}}'.
 7.  **Totals Section:**
-    *   Below the table, create a right-aligned section to display the Tax and the final Total.
-    *   Clearly label "Tax ({{taxRate}}%)" and "Total".
+    *   Below the table, create a right-aligned section to display the Sub-total, Tax, and the final Total.
+    *   Clearly label "Sub-total", "Tax ({{taxRate}}%)", and "Total".
     *   The "Total" amount should be in a larger, bold font to make it stand out.
 8.  **Footer:**
     *   If 'notes' are provided, add a "Notes" section at the bottom.
