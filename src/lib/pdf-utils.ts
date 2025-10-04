@@ -167,7 +167,7 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         const totals = [
             { label: 'Sub-total', value: `$${invoice.subTotal.toFixed(2)}` },
             { label: `Tax (${invoice.taxRate}%)`, value: `$${taxAmount.toFixed(2)}` },
-            { label: 'Total', value: `$${invoice.amount.toFixed(2)}`, bold: true },
+            { label: 'Total', value: `$${invoice.amount}`, bold: true },
         ];
 
         doc.setFontSize(10);
