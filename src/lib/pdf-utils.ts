@@ -153,7 +153,7 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         invoice.lineItems.forEach((item, index) => {
             const itemY = y + 5;
             const itemNumber = `${index + 1}.`;
-            const splitDescription = doc.splitTextToSize(item.description, doc.internal.pageSize.getWidth() - descriptionColX - pageMargin);
+            const splitDescription = doc.splitTextToSize(item.description.toUpperCase(), doc.internal.pageSize.getWidth() - descriptionColX - pageMargin);
             
             doc.text(itemNumber, numberColX, itemY);
             doc.text(splitDescription, descriptionColX, itemY);
@@ -193,7 +193,7 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
                 y += itemGap;
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(...gray);
-                const noteLines = doc.splitTextToSize(invoice.notes, doc.internal.pageSize.getWidth() - (pageMargin * 2));
+                const noteLines = doc.splitTextToSize(invoice.notes.toUpperCase(), doc.internal.pageSize.getWidth() - (pageMargin * 2));
                 doc.text(noteLines, pageMargin, y);
                 y += (noteLines.length * itemGap) + sectionGap;
             }
