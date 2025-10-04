@@ -375,7 +375,7 @@ export default function NewInvoicePage() {
 
         await updateInvoice(newInvoice.id, { enhancedSummary: enhancementResult.summary });
 
-        downloadInvoicePdf(values, client, user, totalAmount, enhancementResult.summary);
+        downloadInvoicePdf(values, client, { displayName: user.displayName, email: user.email }, totalAmount, enhancementResult.summary);
         
         await chargeFor('invoice_pdf');
 
