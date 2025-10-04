@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getInvoiceById } from '@/lib/api/invoices';
+import { getInvoiceById, updateInvoice } from '@/lib/api/invoices';
 import { getClientById } from '@/lib/api/clients';
 import { getProjectById } from '@/lib/api/projects';
 import { generateInvoicePdf } from '@/lib/pdf-utils';
@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
 
 const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
   paid: 'default',
@@ -35,6 +36,7 @@ export default function InvoiceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [client, setClient] = useState<Client | null>(null);
   const [project, setProject] = useState<Project | null>(null);
@@ -49,7 +51,6 @@ export default function InvoiceDetailPage() {
       try {
         const invoiceData = await getInvoiceById(id);
         if (!invoiceData) {
-          // Handle invoice not found, maybe redirect
           router.push('/invoices');
           return;
         }
@@ -64,7 +65,6 @@ export default function InvoiceDetailPage() {
         setProject(projectData);
       } catch (error) {
         console.error("Failed to fetch invoice details", error);
-        // Handle error
       } finally {
         setLoading(false);
       }
@@ -149,10 +149,8 @@ export default function InvoiceDetailPage() {
             </div>
 
             {invoice.enhancedSummary && (
-              <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground italic bg-muted/50 p-4 rounded-md">
-                {invoice.enhancedSummary.split('\n').map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
+              <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground italic bg-muted/50 p-4 rounded-md whitespace-pre-wrap">
+                {invoice.enhancedSummary}
               </div>
             )}
             
@@ -282,3 +280,5 @@ function InvoiceDetailSkeleton() {
         </div>
     )
 }
+
+    
