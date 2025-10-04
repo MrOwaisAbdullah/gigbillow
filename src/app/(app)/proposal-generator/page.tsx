@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,7 +34,6 @@ import {
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useState } from 'react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Popover,
   PopoverContent,
@@ -43,9 +43,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { generateProposal } from '@/ai/flows/generate-proposal';
 
 const formSchema = z.object({
-  mode: z.enum(['Marketplace', 'Private Client'], {
-    required_error: 'You need to select a proposal mode.',
-  }),
   jobPostText: z
     .string()
     .min(10, 'Job post text must be at least 10 characters.')
@@ -66,14 +63,11 @@ export default function ProposalGeneratorPage() {
   const form = useForm<ProposalFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      mode: 'Marketplace',
       jobPostText: '',
       clientName: '',
       deliverables: '',
     },
   });
-  
-  const mode = form.watch('mode');
 
   async function onSubmit(values: ProposalFormValues) {
     setIsGenerating(true);
@@ -121,41 +115,6 @@ export default function ProposalGeneratorPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="mode"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>Proposal Mode</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex flex-col space-y-1"
-                        >
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="Marketplace" />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              Marketplace (Upwork / Fiverr)
-                            </FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="Private Client" />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              Private Client (Email / PDF)
-                            </FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   control={form.control}
                   name="jobPostText"
@@ -313,12 +272,10 @@ export default function ProposalGeneratorPage() {
                 <Copy className="mr-2 h-4 w-4" />
                 Copy
               </Button>
-               {mode === 'Private Client' && (
-                  <Button disabled>
-                    <Download className="mr-2 h-4 w-4" />
-                    Download PDF
-                  </Button>
-                )}
+              <Button disabled>
+                <Download className="mr-2 h-4 w-4" />
+                Download PDF
+              </Button>
             </div>
           )}
         </div>

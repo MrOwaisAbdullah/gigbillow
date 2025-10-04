@@ -13,7 +13,6 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const GenerateProposalInputSchema = z.object({
-  mode: z.enum(['Marketplace', 'Private Client']),
   jobPostText: z.string().max(2000),
   clientName: z.string().optional(),
   budget: z.number().optional(),
@@ -55,12 +54,8 @@ const generateProposalPrompt = ai.definePrompt({
 
         **Personalization:**
         - If a client name is provided, use it.
-        - Adapt the tone for the proposal mode:
-            - **Marketplace:** More direct and concise. Get straight to the point.
-            - **Private Client:** Slightly more formal and consultative.
 
         **Input Details:**
-        - **Mode:** {{mode}}
         - **Job Post:**
         ---
         {{jobPostText}}
