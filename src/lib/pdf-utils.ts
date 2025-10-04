@@ -57,7 +57,6 @@ function addFooter(doc: jsPDF) {
 function generatePdf(fileName: string, title: string, addContent: (doc: jsPDF) => void) {
     const doc = new jsPDF('p', 'pt', 'a4');
     doc.setFont('helvetica', 'normal');
-
     addHeader(doc, title);
     addContent(doc);
     addFooter(doc);
@@ -77,7 +76,7 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         let y = pageMargin + 60;
         const sectionGap = 20;
         const itemGap = 12;
-        const rightColX = doc.internal.pageSize.getWidth() / 2;
+        const rightColX = doc.internal.pageSize.getWidth() / 2 + 20;
 
         // --- From / To Info ---
         doc.setFontSize(10);
@@ -118,12 +117,12 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         });
 
         y += 120;
+        
+        doc.setDrawColor(226, 232, 240); // border color
+        doc.line(pageMargin, y - sectionGap, doc.internal.pageSize.getWidth() - pageMargin, y - sectionGap);
 
         // --- AI Enhanced Summary ---
         if (invoice.enhancedSummary) {
-            doc.setDrawColor(226, 232, 240); // border color
-            doc.line(pageMargin, y - sectionGap, doc.internal.pageSize.getWidth() - pageMargin, y - sectionGap);
-
             doc.setFontSize(11);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(...black);
@@ -140,7 +139,7 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...primaryRgb);
-        doc.text('DESCRIPTION', pageMargin, tableHeaderY);
+        doc.text('DESCRIPTION', pageMargin + 20, tableHeaderY);
         y = tableHeaderY + 5;
         doc.setDrawColor(226, 232, 240); // border color
         doc.line(pageMargin, y, doc.internal.pageSize.getWidth() - pageMargin, y);
@@ -148,9 +147,13 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(...black);
-        invoice.lineItems.forEach(item => {
-            const splitDescription = doc.splitTextToSize(item.description, doc.internal.pageSize.getWidth() - (pageMargin * 2));
-            doc.text(splitDescription, pageMargin, y);
+        invoice.lineItems.forEach((item, index) => {
+            const itemNumber = `${index + 1}.`;
+            const descriptionX = pageMargin + 20;
+            const splitDescription = doc.splitTextToSize(item.description, doc.internal.pageSize.getWidth() - descriptionX - pageMargin);
+            
+            doc.text(itemNumber, pageMargin, y);
+            doc.text(splitDescription, descriptionX, y);
             y += (splitDescription.length * (itemGap + 2)) + 5;
         });
         y += itemGap / 2;
@@ -164,7 +167,7 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         const totals = [
             { label: 'Sub-total', value: `$${invoice.subTotal.toFixed(2)}` },
             { label: `Tax (${invoice.taxRate}%)`, value: `$${taxAmount.toFixed(2)}` },
-            { label: 'Total', value: `$${invoice.amount}`, bold: true },
+            { label: 'Total', value: `$${invoice.amount.toFixed(2)}`, bold: true },
         ];
 
         doc.setFontSize(10);
