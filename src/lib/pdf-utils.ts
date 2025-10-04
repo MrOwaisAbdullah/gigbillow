@@ -1,5 +1,5 @@
 
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import type { Invoice, Client } from './types';
 
@@ -35,7 +35,6 @@ const MutedForegroundRgb = [100, 116, 139]; // approx text-muted-foreground
 const brandName = 'ProManFlow';
 
 class PDFDocument extends jsPDF {
-    private pageNumber: number = 1;
     private readonly pageMargin = 20;
 
     constructor() {
@@ -48,7 +47,6 @@ class PDFDocument extends jsPDF {
         this.setFont('helvetica', 'bold');
         this.setTextColor(primaryRgb[0], primaryRgb[1], primaryRgb[2]);
         this.text(title, this.pageMargin, this.pageMargin + 20);
-        this.addFooter();
     }
 
     private addFooter() {
@@ -247,7 +245,6 @@ export function generateProposalPdf({ proposalText, clientName }: GeneratePropos
             if (y > doc.pageHeight - doc.margin - 20) {
                 doc.addPage();
                 y = doc.margin + 20;
-                doc.addFooter(); // Add footer to new page
             }
             doc.text(line, doc.margin, y);
             y += 15; // Line height
