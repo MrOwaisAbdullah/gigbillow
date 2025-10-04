@@ -20,7 +20,7 @@ export default function LandingPage() {
               <span className="font-bold">ProManFlow</span>
             </Link>
           </div>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
+          <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
             <Link
               href="#features"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
@@ -64,7 +64,7 @@ export default function LandingPage() {
                 <Link href="/register">Start Free Trial</Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="#features">Try Proposal Generator</Link>
+                <Link href="/proposal-generator">Try Proposal Generator</Link>
               </Button>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
@@ -74,7 +74,7 @@ export default function LandingPage() {
         </section>
 
         {/* Pain-Points Grid */}
-        <section className="py-20">
+        <section className="py-16 md:py-20">
           <div className="container mx-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
               <div className="p-6 rounded-lg">
@@ -103,7 +103,7 @@ export default function LandingPage() {
         </section>
 
         {/* Token Credit Block */}
-        <section className="bg-secondary/30 py-20">
+        <section className="bg-secondary/30 py-16 md:py-20">
           <div className="container mx-auto px-6 text-center">
             <h2 className="text-3xl font-bold">Simple, Pay-As-You-Grow Credits</h2>
             <p className="text-muted-foreground mt-2">No subscriptions. No hidden fees. Just tokens.</p>
@@ -114,7 +114,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="font-bold text-lg">Free, Forever</p>
-                  <p className="text-muted-foreground">Enough for a few projects a month.</p>
+                  <p className="text-muted-foreground text-sm mt-1">Enough for a few projects a month.</p>
                 </CardContent>
               </Card>
                <Card className="border-primary">
@@ -123,7 +123,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="font-semibold text-lg">1 Token = 1 Action</p>
-                  <p className="text-muted-foreground">Generate 1 invoice, or 1 proposal, or create 1 new project.</p>
+                  <p className="text-muted-foreground text-sm mt-1">Generate 1 invoice, or 1 proposal, or create 1 new project.</p>
                 </CardContent>
               </Card>
               <Card>
@@ -132,7 +132,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent>
                    <p className="font-bold text-lg">50 Tokens for $5</p>
-                   <p className="text-muted-foreground">Running low? Grab more on the fly.</p>
+                   <p className="text-muted-foreground text-sm mt-1">Running low? Grab more on the fly.</p>
                 </CardContent>
               </Card>
             </div>
@@ -142,7 +142,7 @@ export default function LandingPage() {
         {/* Social Proof Strip */}
         <section className="py-12 bg-primary text-primary-foreground">
           <div className="container mx-auto px-6 text-center">
-            <p className="font-semibold">
+            <p className="text-lg font-semibold">
               &quot;ProManFlow recovered $340 in billable hours my first
               week!&quot;
             </p>
@@ -156,12 +156,12 @@ export default function LandingPage() {
         </section>
 
         {/* Feature List */}
-        <section id="features" className="py-20">
+        <section id="features" className="py-16 md:py-20">
           <div className="container mx-auto px-6">
             <h2 className="text-3xl font-bold text-center mb-12">
               All The Tools You Need. None of The Fluff.
             </h2>
-            <ul className="space-y-4 max-w-2xl mx-auto">
+            <ul className="space-y-6 max-w-2xl mx-auto">
               {[
                 { title: 'Background-Safe Timer', description: 'Our timer is idle-aware and runs reliably in the background, so you never miss a billable second.' },
                 { title: '1-Click PDF Invoices', description: 'Generate professional invoices with your branding, line items, and a direct payment link automatically included.' },
@@ -172,8 +172,8 @@ export default function LandingPage() {
                 <li key={i} className="flex items-start gap-4">
                   <Check className="h-6 w-6 text-green-500 mt-1 flex-shrink-0" />
                   <div>
-                    <h4 className="font-semibold">{feature.title}</h4>
-                    <p className="text-muted-foreground text-sm">
+                    <h4 className="font-semibold text-lg">{feature.title}</h4>
+                    <p className="text-muted-foreground">
                       {feature.description}
                     </p>
                   </div>
@@ -184,20 +184,20 @@ export default function LandingPage() {
         </section>
 
         {/* Pricing Table */}
-        <section id="pricing" className="py-20 bg-secondary/30">
+        <section id="pricing" className="py-16 md:py-20 bg-secondary/30">
           <div className="container mx-auto px-6">
             <h2 className="text-3xl font-bold text-center mb-12">
               Simple Pricing for Every Freelancer
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               <Card>
-                <CardHeader className="text-center">
-                  <CardTitle>Free</CardTitle>
-                  <p className="text-4xl font-extrabold">$0</p>
+                <CardHeader className="text-center p-6">
+                  <CardTitle className="text-xl">Free</CardTitle>
+                  <p className="text-4xl font-extrabold mt-2">$0</p>
                   <p className="text-muted-foreground">No card required</p>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-2">
+                <CardContent className="space-y-4 p-6 pt-0">
+                  <ul className="space-y-3 text-muted-foreground">
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 10 tokens / month</li>
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> No token rollover</li>
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Community support</li>
@@ -207,13 +207,13 @@ export default function LandingPage() {
               </Card>
               <Card className="border-primary border-2 relative">
                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold">Most Popular</div>
-                <CardHeader className="text-center">
-                  <CardTitle>Starter</CardTitle>
-                  <p className="text-4xl font-extrabold">$15<span className="text-lg font-normal text-muted-foreground">/mo</span></p>
+                <CardHeader className="text-center p-6">
+                  <CardTitle className="text-xl">Starter</CardTitle>
+                  <p className="text-4xl font-extrabold mt-2">$15<span className="text-lg font-normal text-muted-foreground">/mo</span></p>
                   <p className="text-muted-foreground">For growing businesses</p>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                   <ul className="space-y-2">
+                <CardContent className="space-y-4 p-6 pt-0">
+                   <ul className="space-y-3 text-muted-foreground">
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 150 tokens / month</li>
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Rollover up to 150 tokens</li>
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Priority email support</li>
@@ -222,13 +222,13 @@ export default function LandingPage() {
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader className="text-center">
-                  <CardTitle>Booster</CardTitle>
-                  <p className="text-4xl font-extrabold">$30</p>
+                <CardHeader className="text-center p-6">
+                  <CardTitle className="text-xl">Booster</CardTitle>
+                  <p className="text-4xl font-extrabold mt-2">$30</p>
                   <p className="text-muted-foreground">One-time purchase</p>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-2">
+                <CardContent className="space-y-4 p-6 pt-0">
+                  <ul className="space-y-3 text-muted-foreground">
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 500 tokens</li>
                      <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Never expire</li>
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Priority email support</li>
@@ -262,10 +262,11 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t">
         <div className="container mx-auto px-6 py-8 text-center text-muted-foreground">
-          <div className="flex justify-center gap-4 mb-4">
-            <Link href="#" className="text-sm hover:underline">Invoice Generator</Link>
-            <Link href="#" className="text-sm hover:underline">Proposal Writer</Link>
-            <Link href="#" className="text-sm hover:underline">Time Tracker</Link>
+          <div className="flex flex-col md:flex-row justify-center gap-2 md:gap-4 mb-4">
+            <Link href="#features" className="text-sm hover:underline">Features</Link>
+            <Link href="#pricing" className="text-sm hover:underline">Pricing</Link>
+            <Link href="/proposal-generator" className="text-sm hover:underline">Proposal Writer</Link>
+            <Link href="/track" className="text-sm hover:underline">Time Tracker</Link>
           </div>
           <p className="text-sm">
             © 2024 ProManFlow. All rights reserved.
