@@ -35,7 +35,7 @@ import { ArrowLeft, CalendarIcon, Loader2, PlusCircle, Trash2 } from 'lucide-rea
 import { getClients } from '@/lib/api/clients';
 import { getProjects } from '@/lib/api/projects';
 import { getTimeEntriesByProject } from '@/lib/api/time-entries';
-import { createInvoice, enhanceInvoice as apiEnhanceInvoice, updateInvoice } from '@/lib/api/invoices';
+import { createInvoice, enhanceInvoice, updateInvoice } from '@/lib/api/invoices';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -303,8 +303,7 @@ export default function NewInvoicePage() {
             description: 'The AI is writing a professional summary for your invoice.',
         });
 
-        // Enhance summary with AI
-        const enhancementResult = await apiEnhanceInvoice({
+        const enhancementResult = await enhanceInvoice({
             clientName: client.name,
             userName: user.displayName || 'Freelancer',
             lineItems: values.lineItems,
@@ -316,7 +315,6 @@ export default function NewInvoicePage() {
 
         const invoiceText = generateInvoiceText(values, client, user, totalAmount, enhancementResult.summary);
         downloadTextFile(`${values.invoiceNumber}.txt`, invoiceText);
-
 
         toast({
             title: 'Invoice Created & Downloaded',
