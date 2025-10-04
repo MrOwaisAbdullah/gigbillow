@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import type { Invoice } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 import { enhanceInvoice as genkitEnhanceInvoice, type EnhanceInvoiceInput, type EnhanceInvoiceOutput } from '@/ai/flows/enhance-invoice';
@@ -72,4 +72,27 @@ export async function deleteInvoice(id: string): Promise<void> {
 
 export async function enhanceInvoice(input: EnhanceInvoiceInput): Promise<EnhanceInvoiceOutput> {
     return genkitEnhanceInvoice(input);
+}
+
+export async function getInvoiceById(id: string): Promise<Invoice | null> {
+    const collectionPath = getCollectionPath();
+    if (!collectionPath) return null;
+    try {
+        const docRef = doc(db, collectionPath, id);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            return {
+                id: docSnap.id,
+                ...data,
+                issuedDate: data.issuedDate.toDate(),
+                dueDate: data.dueDate.toDate(),
+            } as Invoice;
+        } else {
+            return null;
+        }
+    } catch (error) {
+        return null;
+    }
 }

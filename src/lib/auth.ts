@@ -8,9 +8,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
+  type UserCredential,
 } from 'firebase/auth';
 import { app } from './firebase';
-import type { UserCredential } from 'firebase/auth';
 
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
@@ -28,7 +28,9 @@ export const signInWithGoogle = async () => {
 export const registerWithEmailAndPassword = async (name: string, email: string, password: string): Promise<UserCredential> => {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCredential.user, { displayName: name });
+        if (auth.currentUser) {
+            await updateProfile(auth.currentUser, { displayName: name });
+        }
         return userCredential;
     } catch (error) {
         console.error("Error registering with email and password: ", error);

@@ -31,11 +31,11 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { ArrowLeft, CalendarIcon, Loader2, PlusCircle, Trash2, FileText } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { getClients } from '@/lib/api/clients';
 import { getProjects } from '@/lib/api/projects';
 import { getTimeEntriesByProject } from '@/lib/api/time-entries';
-import { createInvoice, enhanceInvoice as apiEnhanceInvoice } from '@/lib/api/invoices';
+import { createInvoice, enhanceInvoice as apiEnhanceInvoice, updateInvoice } from '@/lib/api/invoices';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -45,7 +45,6 @@ import { SelectWithCreate } from '@/components/select-with-create';
 import { ClientForm } from '@/components/clients/client-form';
 import { ProjectForm } from '@/components/projects/project-form';
 import { useAuth } from '@/components/auth/auth-provider';
-import { InvoicePreview } from '@/components/invoices/invoice-preview';
 
 
 const lineItemSchema = z.object({
@@ -79,11 +78,9 @@ export default function NewInvoicePage() {
   const router = useRouter();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isInvoiceCreated, setIsInvoiceCreated] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
-  const [enhancedInvoiceHtml, setEnhancedInvoiceHtml] = useState<string | null>(null);
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
@@ -209,13 +206,13 @@ export default function NewInvoicePage() {
   async function onSubmit(values: InvoiceFormValues) {
     setIsSubmitting(true);
     try {
-        const finalValues = {
+        const invoiceToCreate = {
             ...values,
             amount: totalAmount,
             status: 'unpaid' as const,
         };
 
-        await createInvoice(finalValues);
+        const newInvoice = await createInvoice(invoiceToCreate);
 
         const client = clients.find(c => c.id === values.clientId);
 
@@ -226,103 +223,51 @@ export default function NewInvoicePage() {
         }
         
         toast({
-            title: 'Enhancing Invoice...',
-            description: 'The AI is generating a professional invoice for you.',
+            title: 'Enhancing Summary & Generating PDF...',
+            description: 'The AI is writing a summary and your PDF is being created.',
         });
 
+        // Enhance summary with AI
         const enhancementResult = await apiEnhanceInvoice({
-            ...values,
             clientName: client.name,
-            clientEmail: client.email,
             userName: user.displayName || 'Freelancer',
-            userEmail: user.email || '',
-            issuedDate: format(values.issuedDate, 'PPP'),
-            dueDate: format(values.dueDate, 'PPP'),
-            taxAmount,
-            totalAmount: Number(totalAmount)
+            lineItems: values.lineItems,
+            totalAmount: Number(totalAmount),
+            dueDate: format(values.dueDate, 'PPP')
         });
 
-        setEnhancedInvoiceHtml(enhancementResult.html);
-        toast({
-            title: 'Invoice Enhanced',
-            description: 'Your invoice has been professionally formatted.',
+        await updateInvoice(newInvoice.id, { enhancedSummary: enhancementResult.summary });
+
+        // Generate PDF
+        const response = await fetch('/api/invoices/generate-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ invoiceId: newInvoice.id }),
         });
-        setIsInvoiceCreated(true);
+
+        if (!response.ok) {
+            throw new Error('Failed to generate PDF.');
+        }
+
+        const { pdfUrl } = await response.json();
+        await updateInvoice(newInvoice.id, { pdfUrl });
+
+        toast({
+            title: 'Invoice Created',
+            description: 'Your invoice has been created and the PDF is saved.',
+        });
+        router.push('/invoices');
+
     } catch (error) {
         console.error(error);
         toast({
             variant: 'destructive',
             title: 'An Error Occurred',
-            description: 'Failed to create or enhance the invoice. Please try again.',
+            description: 'Failed to create the invoice. Please try again.',
         });
     } finally {
         setIsSubmitting(false);
     }
-  }
-
-  const handleSaveAsPdf = () => {
-    const preview = document.getElementById('invoice-preview');
-    if (!preview || !enhancedInvoiceHtml) return;
-
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write('<html><head><title>Print Invoice</title>');
-      // Add A4 paper size styles
-      printWindow.document.write(`
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-          body { font-family: 'Inter', sans-serif; }
-          @page {
-            size: A4;
-            margin: 0;
-          }
-          @media print {
-            body {
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-            }
-            .no-print {
-              display: none;
-            }
-          }
-        </style>
-      `);
-      printWindow.document.write('</head><body>');
-      printWindow.document.write(enhancedInvoiceHtml);
-      printWindow.document.write('</body></html>');
-      
-      printWindow.document.close();
-      
-      // Use a timeout to ensure content is loaded before printing
-      setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-        printWindow.close();
-      }, 500);
-    }
-  };
-
-  if (enhancedInvoiceHtml) {
-    return (
-        <div className="flex flex-col gap-8 pb-16">
-            <div className="flex items-center justify-between">
-                 <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" onClick={() => setEnhancedInvoiceHtml(null)}>
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <h1 className="text-3xl font-bold tracking-tight">Invoice Preview</h1>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => router.push('/invoices')}>Done</Button>
-                    <Button onClick={handleSaveAsPdf}>
-                        <FileText className="mr-2 h-4 w-4" />
-                        Save as PDF
-                    </Button>
-                </div>
-            </div>
-            <InvoicePreview htmlContent={enhancedInvoiceHtml} />
-        </div>
-    );
   }
 
   return (

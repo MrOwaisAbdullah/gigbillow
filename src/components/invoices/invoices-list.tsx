@@ -26,6 +26,7 @@ import { useEffect, useState } from "react"
 import type { Invoice, Client, Project } from "@/lib/types"
 import { format } from "date-fns"
 import { Skeleton } from "../ui/skeleton"
+import Link from "next/link";
 
 const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
   paid: 'default',
@@ -167,8 +168,8 @@ export function InvoicesList() {
                   <TableCell>{client?.name}</TableCell>
                   <TableCell>{project?.name}</TableCell>
                   <TableCell>${invoice.amount.toFixed(2)}</TableCell>
-                  <TableCell>{format(invoice.issuedDate, 'PPP')}</TableCell>
-                  <TableCell>{format(invoice.dueDate, 'PPP')}</TableCell>
+                  <TableCell>{format(new Date(invoice.issuedDate), 'PPP')}</TableCell>
+                  <TableCell>{format(new Date(invoice.dueDate), 'PPP')}</TableCell>
                   <TableCell>
                     <Badge variant={statusVariantMap[invoice.status]} className="capitalize">
                       {invoice.status}
@@ -184,7 +185,11 @@ export function InvoicesList() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={invoice.pdfUrl || '#'} target="_blank" rel="noopener noreferrer" aria-disabled={!invoice.pdfUrl}>
+                            View
+                          </Link>
+                        </DropdownMenuItem>
                          {invoice.status !== 'paid' && <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice.id)}>Mark as Paid</DropdownMenuItem>}
                         <DropdownMenuItem onClick={() => handleDelete(invoice.id)}>Delete</DropdownMenuItem>
                       </DropdownMenuContent>
