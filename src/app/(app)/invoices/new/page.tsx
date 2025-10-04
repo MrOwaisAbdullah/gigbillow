@@ -223,8 +223,8 @@ export default function NewInvoicePage() {
         }
         
         toast({
-            title: 'Enhancing Summary & Generating PDF...',
-            description: 'The AI is writing a summary and your PDF is being created.',
+            title: 'Enhancing Summary & Generating Document...',
+            description: 'The AI is writing a summary and your document is being created.',
         });
 
         // Enhance summary with AI
@@ -246,6 +246,8 @@ export default function NewInvoicePage() {
         });
 
         if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred during PDF generation.' }));
+            console.error('PDF Generation API Error:', errorData);
             throw new Error('Failed to generate PDF.');
         }
 
@@ -254,7 +256,7 @@ export default function NewInvoicePage() {
 
         toast({
             title: 'Invoice Created',
-            description: 'Your invoice has been created and the PDF is saved.',
+            description: 'Your invoice has been created and the document is saved.',
         });
         router.push('/invoices');
 
