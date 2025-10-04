@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { firestore as adminFirestore, storage } from '@/lib/firebase-admin';
 import { renderToBuffer, Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 import type { Invoice, Client, Project } from '@/lib/types';
-import type { UserInfo } from 'firebase-admin/auth';
 import { getAuth } from 'firebase-admin/auth';
 import React from 'react';
 import { format } from 'date-fns';
@@ -143,6 +142,7 @@ async function getInvoiceData(invoiceId: string, userId: string) {
     if (!invoiceSnap.exists) throw new Error('Invoice not found');
     const invoiceData = invoiceSnap.data()!;
 
+    // Convert Firestore Timestamps to Date objects
     const invoice = {
       id: invoiceSnap.id,
       ...invoiceData,
