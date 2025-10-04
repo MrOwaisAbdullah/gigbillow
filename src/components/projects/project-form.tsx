@@ -25,6 +25,8 @@ import { Loader2 } from 'lucide-react';
 import { createProject } from '@/lib/api/projects';
 import type { Client, Project } from '@/lib/types';
 import { useState, useEffect } from 'react';
+import { SelectWithCreate } from '../select-with-create';
+import { ClientForm } from '../clients/client-form';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Project name must be at least 2 characters.'),
@@ -38,9 +40,10 @@ type ProjectFormProps = {
   initialClientId?: string;
   onSuccess: (newProject: Project) => void;
   onCancel?: () => void;
+  onClientCreated: () => void;
 }
 
-export function ProjectForm({ clients, initialClientId, onSuccess, onCancel }: ProjectFormProps) {
+export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onClientCreated }: ProjectFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -100,25 +103,18 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel }: P
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Client</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  defaultValue={field.value}
-                  disabled={!!initialClientId}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a client" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {clients.map(client => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                 <SelectWithCreate
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    items={clients.map(c => ({ value: c.id, label: c.name }))}
+                    placeholder="Select a client"
+                    dialogTitle="Create New Client"
+                    dialogDescription="Add a new client to your records."
+                    onCreated={onClientCreated}
+                    disabled={!!initialClientId}
+                  >
+                      <ClientForm onSuccess={() => {}} />
+                  </SelectWithCreate>
                 <FormMessage />
               </FormItem>
             )}

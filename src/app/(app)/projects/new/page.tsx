@@ -14,7 +14,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getClients } from '@/lib/api/clients';
 import type { Client } from '@/lib/types';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ProjectForm } from '@/components/projects/project-form';
 
 export default function NewProjectPage() {
@@ -22,13 +22,15 @@ export default function NewProjectPage() {
   const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
 
-  useEffect(() => {
-    async function fetchClients() {
-      const clientsData = await getClients();
-      setClients(clientsData);
-    }
-    fetchClients();
+  const fetchClients = useCallback(async () => {
+    const clientsData = await getClients();
+    setClients(clientsData);
+    return clientsData;
   }, []);
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
   const handleSuccess = (newProject: { id: string; name: string }) => {
     toast({
@@ -36,6 +38,12 @@ export default function NewProjectPage() {
       description: `Project "${newProject.name}" has been successfully created.`,
     });
     router.push('/projects');
+  };
+
+  const handleClientCreated = async () => {
+    await fetchClients();
+    // No need to set the value here as ProjectForm's SelectWithCreate doesn't have access to the form from here.
+    // The user will see the new client in the list. A more advanced implementation could automatically select it.
   };
 
 
@@ -57,7 +65,12 @@ export default function NewProjectPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ProjectForm clients={clients} onSuccess={handleSuccess} onCancel={() => router.push('/projects')} />
+          <ProjectForm 
+            clients={clients} 
+            onSuccess={handleSuccess} 
+            onCancel={() => router.push('/projects')}
+            onClientCreated={handleClientCreated}
+          />
         </CardContent>
       </Card>
     </div>
