@@ -149,9 +149,11 @@ export default function InvoiceDetailPage() {
             </div>
 
             {invoice.enhancedSummary && (
-                <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground italic bg-muted/50 p-4 rounded-md">
-                   <p>{invoice.enhancedSummary}</p>
-                </div>
+              <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground italic bg-muted/50 p-4 rounded-md">
+                {invoice.enhancedSummary.split('\n').map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
+              </div>
             )}
             
             <div>
