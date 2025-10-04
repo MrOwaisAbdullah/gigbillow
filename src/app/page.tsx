@@ -13,36 +13,34 @@ export default function LandingPage() {
   return (
     <div className="bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
-          <div className="mr-4 flex">
-            <Link href="/" className="mr-6 flex items-center space-x-2">
+        <div className="container mx-auto flex h-14 max-w-5xl items-center justify-between">
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center space-x-2">
               <Zap className="h-6 w-6 text-primary" />
               <span className="font-bold">ProManFlow</span>
             </Link>
-          </div>
-          <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
-            <Link
-              href="#features"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Features
-            </Link>
-            <Link
-              href="#pricing"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Pricing
-            </Link>
-          </nav>
-          <div className="flex flex-1 items-center justify-end space-x-4">
-            <nav className="flex items-center space-x-2">
-              <Button asChild variant="ghost">
-                <Link href="/login">Log In</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/register">Start Free Trial</Link>
-              </Button>
+            <nav className="ml-6 hidden items-center space-x-6 text-sm font-medium md:flex">
+              <Link
+                href="#features"
+                className="transition-colors hover:text-foreground/80 text-foreground/60"
+              >
+                Features
+              </Link>
+              <Link
+                href="#pricing"
+                className="transition-colors hover:text-foreground/80 text-foreground/60"
+              >
+                Pricing
+              </Link>
             </nav>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button asChild variant="ghost">
+              <Link href="/login">Log In</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/register">Start Free Trial</Link>
+            </Button>
           </div>
         </div>
       </header>
@@ -206,7 +204,7 @@ export default function LandingPage() {
                 </CardContent>
               </Card>
               <Card className="border-primary border-2 relative">
-                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold">Most Popular</div>
+                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap">Most Popular</div>
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Starter</CardTitle>
                   <p className="text-4xl font-extrabold mt-2">$15<span className="text-lg font-normal text-muted-foreground">/mo</span></p>
