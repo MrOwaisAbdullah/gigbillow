@@ -62,11 +62,7 @@ export async function POST(req: NextRequest) {
         displayName: user.displayName ?? '',
         photoURL: user.photoURL ?? '',
         phoneNumber: user.phoneNumber ?? '',
-        disabled: user.disabled,
-        metadata: user.metadata,
-        customClaims: user.customClaims,
-        tenantId: user.tenantId,
-        providerData: user.providerData,
+        providerId: user.providerData?.[0]?.providerId || '',
         toJSON: () => ({...user})
     };
 
