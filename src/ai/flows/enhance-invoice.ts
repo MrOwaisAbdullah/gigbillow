@@ -46,7 +46,7 @@ const enhanceInvoicePrompt = ai.definePrompt({
   output: { schema: EnhanceInvoiceOutputSchema },
   prompt: `You are an expert invoice designer. Your task is to generate a professional, clean, and modern HTML invoice based on the data provided.
 
-Use Tailwind CSS for styling within the HTML. The final output should be a single HTML string.
+Use Tailwind CSS for styling within the HTML. The final output must be a single, complete HTML string.
 
 **Invoice Data:**
 - Invoice Number: {{invoiceNumber}}
@@ -68,24 +68,28 @@ Use Tailwind CSS for styling within the HTML. The final output should be a singl
   - {{this.description}}
 {{/each}}
 
-**Instructions:**
-1.  Create a full HTML document structure (<html>, <head> with Tailwind CDN link, <body>).
-2.  Use a professional and modern design. Use cards, shadows, and a clean layout.
-3.  The color scheme should be based on these CSS variables, which will be present: --primary, --secondary, --background, --foreground, --card, --border. Use them like \`bg-background\`, \`text-primary\`, etc.
-4.  The main invoice should be in a container with a max-width and centered.
-5.  Clearly display the invoice title, number, dates, and "Bill To" / "From" sections.
-6.  Present the line items in a table with columns for Description and Amount (for the subtotal).
-7.  The footer should clearly show the Sub-total, Tax, and the final Total amount.
-8.  If a payment URL is provided, include a prominent "Pay Now" button that links to it. The button should be styled like a primary action button.
-9.  If notes are provided, display them in a "Notes" section at the bottom.
-10. Ensure the entire output is a single, valid HTML string. Do not wrap it in markdown.
-
-Example Structure:
-- Header with your company name and "Invoice" title.
-- Section with invoice details (number, dates) and client/your info.
-- Main content table for line items.
-- Footer section for totals.
-- "Pay Now" button and notes at the very bottom.
+**Design & Styling Instructions:**
+1.  **Document Structure:** Create a full HTML5 document ('<!DOCTYPE html><html>...</html>').
+2.  **Tailwind CSS:** Include the Tailwind CSS CDN script in the '<head>': '<script src="https://cdn.tailwindcss.com"></script>'.
+3.  **Layout:** The main content should be within a '<body>' tag with a light gray background ('bg-gray-100'). The invoice itself should be a white card ('bg-white') centered on the page, with padding, rounded corners, and a subtle shadow. Use a standard A4 paper aspect ratio by setting 'max-w-4xl mx-auto p-8'.
+4.  **Header:** Create a header section. On the left, display "{{userName}}". On the right, display "INVOICE" in a larger, bold font.
+5.  **Details Section:** Below the header, create a section with two columns.
+    *   **Left Column (Bill To):** Display "BILL TO", followed by the client's name and email.
+    *   **Right Column (Invoice Details):** Display the Invoice Number, Issue Date, and Due Date. Align text to the right in this column.
+6.  **Line Items Table:**
+    *   Create a table with a header row containing "Description", and "Amount".
+    *   The table header should have a light gray background.
+    *   Iterate through the 'lineItems' to create table rows. Each line item should be in its own row under the "Description" column.
+    *   Add a final row for the Sub-total. The description should be "Sub-total" and the amount should be the '{{subTotal}}'.
+7.  **Totals Section:**
+    *   Below the table, create a right-aligned section to display the Tax and the final Total.
+    *   Clearly label "Tax ({{taxRate}}%)" and "Total".
+    *   The "Total" amount should be in a larger, bold font to make it stand out.
+8.  **Footer:**
+    *   If 'notes' are provided, add a "Notes" section at the bottom.
+    *   If a 'paymentUrl' is provided, include a prominent, styled "Pay Now" button that links to it. The button should have a primary brand color, padding, and rounded corners.
+9.  **Typography & Spacing:** Use professional fonts (e.g., sans-serif). Use padding and margins generously to create a clean, readable layout. Use 'text-gray-500' for labels and secondary text, and 'text-gray-900' for primary content.
+10. **Final Output:** Ensure the entire output is a single, valid HTML string. Do not wrap it in markdown.
 
 Begin generating the HTML now.
 `,

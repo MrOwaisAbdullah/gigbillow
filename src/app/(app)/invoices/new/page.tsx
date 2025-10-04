@@ -209,29 +209,26 @@ export default function NewInvoicePage() {
   async function onSubmit(values: InvoiceFormValues) {
     setIsSubmitting(true);
     try {
-        const invoiceData = {
-            invoiceNumber: values.invoiceNumber,
-            clientId: values.clientId,
-            projectId: values.projectId,
-            issuedDate: values.issuedDate,
-            dueDate: values.dueDate,
-            lineItems: values.lineItems,
-            taxRate: values.taxRate,
-            paymentUrl: values.paymentUrl,
-            notes: values.notes,
-            subTotal: values.subTotal,
+        const finalValues = {
+            ...values,
             amount: totalAmount,
             status: 'unpaid' as const,
         };
 
-        const newInvoice = await createInvoice(invoiceData);
+        await createInvoice(finalValues);
 
         const client = clients.find(c => c.id === values.clientId);
 
         if (!client || !user) {
             toast({ variant: 'destructive', title: 'Error', description: 'Could not find client or user information.' });
+            setIsSubmitting(false);
             return;
         }
+        
+        toast({
+            title: 'Enhancing Invoice...',
+            description: 'The AI is generating a professional invoice for you.',
+        });
 
         const enhancementResult = await apiEnhanceInvoice({
             ...values,
@@ -265,15 +262,43 @@ export default function NewInvoicePage() {
 
   const handleSaveAsPdf = () => {
     const preview = document.getElementById('invoice-preview');
-    if (preview) {
-        const printWindow = window.open('', '', 'height=800,width=800');
-        if(printWindow) {
-            printWindow.document.write(preview.innerHTML);
-            printWindow.document.close();
-            printWindow.focus();
-            printWindow.print();
-            printWindow.close();
-        }
+    if (!preview || !enhancedInvoiceHtml) return;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write('<html><head><title>Print Invoice</title>');
+      // Add A4 paper size styles
+      printWindow.document.write(`
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+          body { font-family: 'Inter', sans-serif; }
+          @page {
+            size: A4;
+            margin: 0;
+          }
+          @media print {
+            body {
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .no-print {
+              display: none;
+            }
+          }
+        </style>
+      `);
+      printWindow.document.write('</head><body>');
+      printWindow.document.write(enhancedInvoiceHtml);
+      printWindow.document.write('</body></html>');
+      
+      printWindow.document.close();
+      
+      // Use a timeout to ensure content is loaded before printing
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      }, 500);
     }
   };
 
