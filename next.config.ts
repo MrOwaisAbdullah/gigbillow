@@ -31,10 +31,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  env: {
-    FIREBASE_SERVICE_ACCOUNT: process.env.FIREBASE_SERVICE_ACCOUNT,
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  }
 };
 
 export default nextConfig;
