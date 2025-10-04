@@ -35,7 +35,8 @@ import { ArrowLeft, CalendarIcon, Loader2, PlusCircle, Trash2 } from 'lucide-rea
 import { getClients } from '@/lib/api/clients';
 import { getProjects } from '@/lib/api/projects';
 import { getTimeEntriesByProject } from '@/lib/api/time-entries';
-import { createInvoice, enhanceInvoice, updateInvoice } from '@/lib/api/invoices';
+import { createInvoice, updateInvoice } from '@/lib/api/invoices';
+import { enhanceInvoice } from '@/ai/flows/enhance-invoice';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';

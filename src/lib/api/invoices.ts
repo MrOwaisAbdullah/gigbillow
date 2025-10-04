@@ -1,11 +1,8 @@
-'use client';
-
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy } from 'firebase/firestore';
 import type { Invoice } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
-import { enhanceInvoice as genkitEnhanceInvoice, type EnhanceInvoiceInput, type EnhanceInvoiceOutput } from '@/ai/flows/enhance-invoice';
 
 function getCollectionPath() {
     const auth = getAuth();
@@ -71,10 +68,6 @@ export async function deleteInvoice(id: string): Promise<void> {
   }
   const docRef = doc(db, collectionPath, id);
   await deleteDoc(docRef);
-}
-
-export async function enhanceInvoice(input: EnhanceInvoiceInput): Promise<EnhanceInvoiceOutput> {
-    return genkitEnhanceInvoice(input);
 }
 
 export async function getInvoiceById(id: string): Promise<Invoice | null> {
