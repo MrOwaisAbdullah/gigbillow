@@ -48,8 +48,6 @@ import { ProjectForm } from '@/components/projects/project-form';
 
 const lineItemSchema = z.object({
   description: z.string().min(1, 'Description is required.'),
-  // quantity: z.coerce.number().min(0.1, 'Quantity must be greater than 0.'),
-  // unitPrice: z.coerce.number().min(0, 'Unit price must be non-negative.'),
 });
 
 const formSchema = z.object({
@@ -233,7 +231,7 @@ export default function NewInvoicePage() {
   };
 
   return (
-    <div className="flex flex-col gap-8 pb-8">
+    <div className="flex flex-col gap-8 pb-16">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/invoices">
@@ -359,7 +357,7 @@ export default function NewInvoicePage() {
                         dialogDescription="Add a new client to your records."
                         onCreated={handleNewClient}
                       >
-                         <ClientForm />
+                         <ClientForm onSuccess={() => {}} />
                       </SelectWithCreate>
                       <FormMessage />
                     </FormItem>
@@ -381,7 +379,7 @@ export default function NewInvoicePage() {
                         onCreated={handleNewProject}
                         disabled={!clientId}
                       >
-                         <ProjectForm clients={clients} initialClientId={clientId} />
+                         <ProjectForm clients={clients} initialClientId={clientId} onSuccess={() => {}} />
                       </SelectWithCreate>
                       <FormDescription>Selecting a project can auto-fill invoice details.</FormDescription>
                       <FormMessage />
