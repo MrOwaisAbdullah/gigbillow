@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
         email: user.email || '',
         displayName: user.displayName || '',
         photoURL: user.photoURL || '',
-        phoneNumber: user.phoneNumber || null, // phoneNumber can be null on UserInfo type
+        phoneNumber: user.phoneNumber || '',
         providerId: user.providerData?.[0]?.providerId || '',
         toJSON: () => ({...user})
     };
