@@ -58,10 +58,10 @@ export async function POST(req: NextRequest) {
     // Cast user to a plain object to satisfy @react-pdf/renderer's requirements
     const userObject: UserInfo = {
         uid: user.uid,
-        email: user.email ?? '',
-        displayName: user.displayName ?? '',
-        photoURL: user.photoURL ?? '',
-        phoneNumber: user.phoneNumber ?? null,
+        email: user.email || '',
+        displayName: user.displayName || '',
+        photoURL: user.photoURL || '',
+        phoneNumber: user.phoneNumber || null, // phoneNumber can be null on UserInfo type
         providerId: user.providerData?.[0]?.providerId || '',
         toJSON: () => ({...user})
     };
