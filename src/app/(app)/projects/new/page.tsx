@@ -73,7 +73,7 @@ export default function NewProjectPage() {
         <CardHeader>
           <CardTitle>Project Details</CardTitle>
           <CardDescription>
-            Enter the details for the new project. (Costs 1 token)
+            Enter the details for the new project.
           </CardDescription>
         </CardHeader>
         <CardContent>

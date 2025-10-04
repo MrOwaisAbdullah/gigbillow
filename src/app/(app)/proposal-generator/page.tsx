@@ -88,10 +88,11 @@ export default function ProposalGeneratorPage() {
         ...values,
         deadline: values.deadline ? format(values.deadline, 'PPP') : undefined,
       });
+      
+      setGeneratedProposal(result.proposal);
 
       await chargeFor('proposal');
 
-      setGeneratedProposal(result.proposal);
       toast({
         title: 'Proposal Generated',
         description: 'Your new proposal is ready below.',
@@ -125,7 +126,7 @@ export default function ProposalGeneratorPage() {
               <CardHeader>
                 <CardTitle>Job Details</CardTitle>
                 <CardDescription>
-                  Provide the details for the job you're applying for. (Costs 1 token)
+                  Provide the details for the job you're applying for.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -248,7 +249,7 @@ export default function ProposalGeneratorPage() {
                     ) : (
                       <Sparkles className="mr-2 h-4 w-4" />
                     )}
-                    Generate Proposal
+                    Generate Proposal (-1 Token)
                   </Button>
               </CardContent>
             </Card>

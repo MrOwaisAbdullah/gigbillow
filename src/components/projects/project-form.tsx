@@ -170,7 +170,7 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
           {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
           <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Project
+              Create Project (-1 Token)
           </Button>
         </div>
       </form>

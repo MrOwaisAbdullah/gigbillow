@@ -332,9 +332,10 @@ export default function NewInvoicePage() {
         await updateInvoice(newInvoice.id, { enhancedSummary: enhancementResult.summary });
 
         const invoiceText = generateInvoiceText(values, client, user, totalAmount, enhancementResult.summary);
-        downloadTextFile(`${values.invoiceNumber}.txt`, invoiceText);
-
+        
         await chargeFor('invoice_pdf');
+
+        downloadTextFile(`${values.invoiceNumber}.txt`, invoiceText);
 
         toast({
             title: 'Invoice Created & Downloaded',
@@ -370,7 +371,7 @@ export default function NewInvoicePage() {
             <CardHeader>
               <CardTitle>Invoice Details</CardTitle>
               <CardDescription>
-                Fill out the form to create a new invoice. (Costs 1 token)
+                Fill out the form to create a new invoice.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -499,7 +500,7 @@ export default function NewInvoicePage() {
                         items={projects.map(p => ({ value: p.id, label: p.name }))}
                         placeholder="Select a project"
                         dialogTitle="Create New Project"
-                        dialogDescription="Add a new project for the selected client. (Costs 1 token)"
+                        dialogDescription="Add a new project for the selected client. This will use 1 token."
                         onCreated={handleNewProject}
                         disabled={!clientId}
                       >
@@ -655,7 +656,7 @@ export default function NewInvoicePage() {
             </Button>
             <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create & Download
+            Create & Download (-1 Token)
             </Button>
           </div>
         </form>
