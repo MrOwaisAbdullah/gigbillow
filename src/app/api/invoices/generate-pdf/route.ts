@@ -132,9 +132,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await file.makePublic();
-
-    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
+    const [publicUrl] = await file.getSignedUrl({
+      action: 'read',
+      expires: '03-09-2491'
+    });
 
     return NextResponse.json({ pdfUrl: publicUrl });
   } catch (error: any) {
