@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getPublicInvoiceById } from '@/lib/api/invoices';
+import { getPublicInvoiceById } from './actions';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
