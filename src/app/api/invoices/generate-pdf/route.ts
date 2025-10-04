@@ -165,7 +165,7 @@ async function getInvoiceData(invoiceId: string, userId: string) {
     return { invoice, client, project, user };
 }
 
-function InvoicePDF({ invoice, client, project, user }: { invoice: Invoice; client: Client; project: Project; user: UserInfo; }) {
+function InvoicePDF({ invoice, client, project, user }: { invoice: Invoice; client: Client; project: Project; user: { displayName?: string, email?: string }; }) {
   const taxAmount = (invoice.subTotal * invoice.taxRate) / 100;
   
   return React.createElement(Document, null, 
@@ -251,14 +251,10 @@ export async function POST(req: NextRequest) {
 
     const { invoice, client, project, user } = await getInvoiceData(invoiceId, userId);
     
-    const userObject: UserInfo = {
-        uid: user.uid,
-        email: user.email || '',
-        displayName: user.displayName || '',
-        photoURL: user.photoURL || '',
-        phoneNumber: user.phoneNumber || null,
-        providerId: user.providerData?.[0]?.providerId || 'password',
-        toJSON: () => ({ ...user })
+    // Simplify the user object to avoid serialization issues with the PDF renderer
+    const userObject = {
+        displayName: user.displayName,
+        email: user.email,
     };
 
     const pdfBuffer = await renderToBuffer(
