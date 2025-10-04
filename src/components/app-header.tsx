@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -36,7 +37,7 @@ export function AppHeader() {
   const pathname = usePathname()
   const segments = pathname.split('/').filter(Boolean)
   const { user } = useAuth();
-  const { tokens, loading: tokensLoading, openDialog } = useToken();
+  const { tokens, totalTokens, loading: tokensLoading, openDialog } = useToken();
 
   const breadcrumbItems = segments.map((segment, index) => {
     // Exclude 'app' from breadcrumbs
@@ -88,7 +89,7 @@ export function AppHeader() {
       </div>
        <Button variant="outline" size="sm" onClick={openDialog}>
             <Zap className="mr-2 h-4 w-4 text-yellow-500" />
-            {tokensLoading ? '...' : tokens} Tokens
+            {tokensLoading ? '...' : `${tokens}/${totalTokens}`} Tokens
        </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

@@ -1,7 +1,7 @@
+
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { getAuth } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { UserToken } from '@/lib/types';
@@ -10,12 +10,14 @@ import { useAuth } from '../auth/auth-provider';
 
 type TokenContextType = {
   tokens: number;
+  totalTokens: number;
   loading: boolean;
   openDialog: () => void;
 };
 
 const TokenContext = createContext<TokenContextType>({
   tokens: 0,
+  totalTokens: 0,
   loading: true,
   openDialog: () => {},
 });
@@ -49,7 +51,7 @@ export const TokenProvider = ({ children }: { children: React.ReactNode }) => {
 
 
   return (
-    <TokenContext.Provider value={{ tokens: tokenData?.balance ?? 0, loading, openDialog }}>
+    <TokenContext.Provider value={{ tokens: tokenData?.balance ?? 0, totalTokens: tokenData?.rollover_limit ?? 0, loading, openDialog }}>
       {children}
       <InsufficientTokensDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
     </TokenContext.Provider>
