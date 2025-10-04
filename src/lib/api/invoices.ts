@@ -5,10 +5,14 @@ import { getAuth } from 'firebase/auth';
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import type { Invoice } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
+import { enhanceInvoice as genkitEnhanceInvoice, type EnhanceInvoiceInput, type EnhanceInvoiceOutput } from '@/ai/flows/enhance-invoice';
 
 function getCollectionPath() {
     const auth = getAuth();
     const userId = auth.currentUser?.uid;
+    if (!userId) {
+        console.warn('User not authenticated, returning null collection path');
+    }
     return userId ? `users/${userId}/invoices` : null;
 }
 
@@ -26,11 +30,12 @@ export async function getInvoices(): Promise<Invoice[]> {
           ...data,
           issuedDate: data.issuedDate.toDate(),
           dueDate: data.dueDate.toDate(),
-          amount: parseFloat(data.amount),
+          amount: typeof data.amount === 'number' ? data.amount : parseFloat(data.amount || 0),
       } as Invoice
     });
     return invoices;
   } catch (error) {
+      console.error("Failed to fetch invoices:", error);
       return [];
   }
 }
@@ -63,4 +68,8 @@ export async function deleteInvoice(id: string): Promise<void> {
   }
   const docRef = doc(db, collectionPath, id);
   await deleteDoc(docRef);
+}
+
+export async function enhanceInvoice(input: EnhanceInvoiceInput): Promise<EnhanceInvoiceOutput> {
+    return genkitEnhanceInvoice(input);
 }

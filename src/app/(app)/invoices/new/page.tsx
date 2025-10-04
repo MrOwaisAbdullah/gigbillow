@@ -31,11 +31,11 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { ArrowLeft, CalendarIcon, Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, Loader2, PlusCircle, Trash2, FileText } from 'lucide-react';
 import { getClients } from '@/lib/api/clients';
 import { getProjects } from '@/lib/api/projects';
 import { getTimeEntriesByProject } from '@/lib/api/time-entries';
-import { createInvoice } from '@/lib/api/invoices';
+import { createInvoice, enhanceInvoice as apiEnhanceInvoice } from '@/lib/api/invoices';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -44,6 +44,8 @@ import type { Client, Project } from '@/lib/types';
 import { SelectWithCreate } from '@/components/select-with-create';
 import { ClientForm } from '@/components/clients/client-form';
 import { ProjectForm } from '@/components/projects/project-form';
+import { useAuth } from '@/components/auth/auth-provider';
+import { InvoicePreview } from '@/components/invoices/invoice-preview';
 
 
 const lineItemSchema = z.object({
@@ -75,11 +77,13 @@ export default function NewInvoicePage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInvoiceCreated, setIsInvoiceCreated] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [enhancedInvoiceHtml, setEnhancedInvoiceHtml] = useState<string | null>(null);
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
@@ -169,6 +173,7 @@ export default function NewInvoicePage() {
         if (!project || !project.rate) return;
         
         const projectTimeEntries = await getTimeEntriesByProject(projectId);
+        if (!projectTimeEntries) return;
         const totalHours = projectTimeEntries.reduce((acc, entry) => acc + entry.hours, 0);
 
         if (totalHours > 0) {
@@ -204,14 +209,7 @@ export default function NewInvoicePage() {
   async function onSubmit(values: InvoiceFormValues) {
     setIsSubmitting(true);
     try {
-        const finalValues = {
-            ...values,
-            amount: totalAmount,
-            status: 'unpaid' as const,
-        };
-        // This was the bug. The `...values` spread was overwriting the calculated `amount`.
-        // The fix is to construct the object correctly without spreading `values` last.
-        await createInvoice({
+        const invoiceData = {
             invoiceNumber: values.invoiceNumber,
             clientId: values.clientId,
             projectId: values.projectId,
@@ -222,28 +220,85 @@ export default function NewInvoicePage() {
             paymentUrl: values.paymentUrl,
             notes: values.notes,
             subTotal: values.subTotal,
-            amount: totalAmount, // Use the correctly calculated total amount
+            amount: totalAmount,
             status: 'unpaid' as const,
+        };
+
+        const newInvoice = await createInvoice(invoiceData);
+
+        const client = clients.find(c => c.id === values.clientId);
+
+        if (!client || !user) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not find client or user information.' });
+            return;
+        }
+
+        const enhancementResult = await apiEnhanceInvoice({
+            ...values,
+            clientName: client.name,
+            clientEmail: client.email,
+            userName: user.displayName || 'Freelancer',
+            userEmail: user.email || '',
+            issuedDate: format(values.issuedDate, 'PPP'),
+            dueDate: format(values.dueDate, 'PPP'),
+            taxAmount,
+            totalAmount
         });
+
+        setEnhancedInvoiceHtml(enhancementResult.html);
         toast({
-            title: 'Invoice Created',
-            description: `Invoice ${values.invoiceNumber} for $${totalAmount.toFixed(2)} has been created.`,
+            title: 'Invoice Enhanced',
+            description: 'Your invoice has been professionally formatted.',
         });
         setIsInvoiceCreated(true);
     } catch (error) {
-        // Error toast is handled in API call
+        console.error(error);
+        toast({
+            variant: 'destructive',
+            title: 'An Error Occurred',
+            description: 'Failed to create or enhance the invoice. Please try again.',
+        });
     } finally {
         setIsSubmitting(false);
     }
   }
 
   const handleSaveAsPdf = () => {
-    toast({
-      title: 'Generating PDF...',
-      description: 'Your invoice will be saved as a PDF.',
-    });
-    window.print();
+    const preview = document.getElementById('invoice-preview');
+    if (preview) {
+        const printWindow = window.open('', '', 'height=800,width=800');
+        if(printWindow) {
+            printWindow.document.write(preview.innerHTML);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }
+    }
   };
+
+  if (enhancedInvoiceHtml) {
+    return (
+        <div className="flex flex-col gap-8 pb-16">
+            <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-4">
+                    <Button variant="outline" size="icon" onClick={() => setEnhancedInvoiceHtml(null)}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <h1 className="text-3xl font-bold tracking-tight">Invoice Preview</h1>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => router.push('/invoices')}>Done</Button>
+                    <Button onClick={handleSaveAsPdf}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        Save as PDF
+                    </Button>
+                </div>
+            </div>
+            <InvoicePreview htmlContent={enhancedInvoiceHtml} />
+        </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8 pb-16">
@@ -394,7 +449,7 @@ export default function NewInvoicePage() {
                         onCreated={handleNewProject}
                         disabled={!clientId}
                       >
-                         <ProjectForm clients={clients} initialClientId={clientId} onSuccess={() => {}} />
+                         <ProjectForm clients={clients} initialClientId={clientId} onSuccess={() => {}} onClientCreated={() => {}} />
                       </SelectWithCreate>
                       <FormDescription>Selecting a project can auto-fill invoice details.</FormDescription>
                       <FormMessage />
@@ -544,16 +599,10 @@ export default function NewInvoicePage() {
             <Button type="button" variant="outline" asChild>
               <Link href="/invoices">Cancel</Link>
             </Button>
-            {isInvoiceCreated ? (
-             <Button type="button" variant="secondary" onClick={handleSaveAsPdf}>
-              Save as PDF
+            <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Create & Enhance Invoice
             </Button>
-            ) : (
-               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Invoice
-               </Button>
-            )}
           </div>
         </form>
       </Form>
