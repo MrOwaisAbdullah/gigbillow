@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { firestore as adminFirestore, storage } from '@/lib/firebase-admin';
 import { renderToBuffer } from '@react-pdf/renderer';
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
         displayName: user.displayName || '',
         photoURL: user.photoURL || '',
         phoneNumber: user.phoneNumber || '',
-        providerId: user.providerData?.[0]?.providerId || '',
+        providerId: user.providerData?.[0]?.providerId || 'password',
         toJSON: () => ({ ...user })
     };
 
