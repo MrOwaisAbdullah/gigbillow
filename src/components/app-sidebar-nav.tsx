@@ -9,6 +9,7 @@ import {
   Timer,
   LineChart,
   Package2,
+  PenSquare,
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
@@ -27,6 +28,7 @@ export function AppSidebarNav({ isCollapsed = false }: AppSidebarNavProps) {
     { href: '/clients', icon: Users, label: 'Clients' },
     { href: '/invoices', icon: FileText, label: 'Invoices' },
     { href: '/track', icon: Timer, label: 'Time Tracker' },
+    { href: '/proposal-generator', icon: PenSquare, label: 'Proposal Generator' },
     { href: '/reports', icon: LineChart, label: 'Reports' },
   ]
 

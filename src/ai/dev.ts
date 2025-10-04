@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/import-work-logs.ts';
 import '@/ai/flows/enhance-invoice.ts';
+import '@/ai/flows/generate-proposal.ts';
