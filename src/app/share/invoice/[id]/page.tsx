@@ -1,11 +1,9 @@
-'use client';
-
 import { notFound } from 'next/navigation';
 import { getPublicInvoiceById } from './actions';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -18,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import { toTitleCase } from '@/lib/utils';
 import { CreditCard, Package2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import type { Invoice, Client, Project } from '@/lib/types';
 
 type PublicInvoicePageProps = {
   params: { id: string };
@@ -31,40 +29,21 @@ const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 's
   overdue: 'destructive',
 };
 
-export default function PublicInvoicePage({ params, searchParams }: PublicInvoicePageProps) {
+export default async function PublicInvoicePage({ params, searchParams }: PublicInvoicePageProps) {
   const { id } = params;
   const userId = searchParams.userId as string;
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!userId) {
-      notFound();
-      return;
-    }
-
-    async function fetchData() {
-      const result = await getPublicInvoiceById(userId, id);
-      if (!result) {
-        notFound();
-      } else {
-        setData(result);
-      }
-      setLoading(false);
-    }
-    
-    fetchData();
-  }, [userId, id]);
-
-  if (loading) {
-    return <div>Loading...</div>; // Or a proper skeleton
+  if (!userId) {
+    notFound();
   }
+
+  const data = await getPublicInvoiceById(userId, id);
 
   if (!data) {
-    return notFound();
+    notFound();
   }
 
-  const { invoice, user, client, project } = data;
+  const { invoice, user, client, project } = data as { invoice: Invoice, user: { displayName: string, email: string }, client: Client, project: Project };
   
   const subTotal = Number(invoice.subTotal) || 0;
   const taxRate = Number(invoice.taxRate) || 0;
