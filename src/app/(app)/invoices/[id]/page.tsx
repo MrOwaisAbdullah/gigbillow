@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Download, CreditCard } from 'lucide-react';
+import { ArrowLeft, Download, CreditCard, Share2, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,6 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { toTitleCase } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
   paid: 'default',
@@ -40,6 +41,7 @@ export default function InvoiceDetailPage() {
   const [client, setClient] = useState<Client | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
@@ -82,6 +84,21 @@ export default function InvoiceDetailPage() {
     }
   }
 
+  const handleShare = () => {
+    if (!user) return;
+    const publicUrl = `${window.location.origin}/share/invoice/${id}?userId=${user.uid}`;
+    navigator.clipboard.writeText(publicUrl);
+    toast({
+        title: 'Link Copied',
+        description: 'Public link for this invoice has been copied to your clipboard.',
+        action: (
+            <Button variant="secondary" size="sm" asChild>
+                <a href={publicUrl} target="_blank" rel="noopener noreferrer">Open</a>
+            </Button>
+        )
+    });
+  };
+
   if (loading) {
     return <InvoiceDetailSkeleton />;
   }
@@ -97,9 +114,9 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  const subTotal = invoice.subTotal;
-  const taxRate = invoice.taxRate;
-  const amount = invoice.amount;
+  const subTotal = Number(invoice.subTotal) || 0;
+  const taxRate = Number(invoice.taxRate) || 0;
+  const amount = Number(invoice.amount) || 0;
   const taxAmount = (subTotal * taxRate) / 100;
 
   return (
@@ -200,7 +217,7 @@ export default function InvoiceDetailPage() {
 
         </CardContent>
         <CardFooter className="flex justify-between items-center border-t pt-6">
-          <div>
+          <div className='flex gap-2'>
             {invoice.paymentUrl && (
                 <Button asChild>
                     <a href={invoice.paymentUrl} target="_blank" rel="noopener noreferrer">
@@ -208,6 +225,9 @@ export default function InvoiceDetailPage() {
                     </a>
                 </Button>
             )}
+            <Button variant="secondary" onClick={handleShare}>
+                <Share2 className="mr-2" /> Share
+            </Button>
           </div>
           <Button variant="outline" onClick={handleDownloadPdf}>
             <Download className="mr-2" /> Download PDF
