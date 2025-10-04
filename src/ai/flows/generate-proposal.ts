@@ -43,12 +43,16 @@ const generateProposalPrompt = ai.definePrompt({
 
         Your task is to write a concise and compelling proposal based on the provided job details.
 
+        **Core Instructions:**
+        - Deeply analyze the job post to understand the client's core problem. Frame the proposal around how you will solve their problem and help them achieve their goals.
+        - Do not just list what you can do. Explain *how* your skills and approach will directly address their needs.
+        - Conclude with a short, natural call to action (e.g., "I'd be happy to discuss this further," or "Looking forward to hearing from you.").
+
         **Output Requirements:**
         - The proposal must be short, consisting of 2 to 4 paragraphs.
         - Each paragraph must be brief, around 2 to 3 lines.
-        - Do NOT use any markdown formatting like bolding (**).
+        - Do NOT use any markdown formatting.
         - Use proper paragraph spacing (use '\\n\\n' for new paragraphs).
-        - Deeply analyze the job post to understand the client's core problem. Do not just repeat what they wrote.
         - If a client name is provided, use it for personalization.
 
         **Input Details:**
@@ -60,7 +64,7 @@ const generateProposalPrompt = ai.definePrompt({
         - Deadline: {{#if this.deadline}}{{this.deadline}}{{else}}Not specified{{/if}}
         - Key Deliverables: {{#if this.deliverables}}{{this.deliverables}}{{else}}Not specified{{/if}}
 
-        Generate the concise, well-formatted proposal text now.
+        Generate the concise, well-formatted, and client-focused proposal text now.
     `
 });
 
