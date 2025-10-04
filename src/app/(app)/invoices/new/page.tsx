@@ -47,7 +47,7 @@ import { ProjectForm } from '@/components/projects/project-form';
 import { useAuth } from '@/components/auth/auth-provider';
 import { canAfford, chargeFor } from '@/lib/api/tokens';
 import { useToken } from '@/components/token/token-provider';
-import jsPDF from 'jspdf';
+import { generateInvoicePdf } from '@/lib/pdf-utils';
 
 
 const lineItemSchema = z.object({
@@ -73,127 +73,7 @@ const formSchema = z.object({
   subTotal: z.coerce.number().min(0).default(0),
 });
 
-type InvoiceFormValues = z.infer<typeof formSchema>;
-
-function downloadInvoicePdf(invoiceData: InvoiceFormValues, client: Client, user: { displayName?: string | null, email?: string | null }, total: number, enhancedSummary?: string) {
-  const doc = new jsPDF();
-  const margin = 20;
-  const pageWidth = doc.internal.pageSize.getWidth();
-  let y = margin;
-
-  // Header
-  doc.setFontSize(26);
-  doc.setFont('helvetica', 'bold');
-  doc.text('INVOICE', pageWidth / 2, y, { align: 'center' });
-  y += 20;
-
-  // From/To Info
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('From:', margin, y);
-  doc.text('Bill To:', pageWidth / 2, y);
-  
-  doc.setFont('helvetica', 'normal');
-  y += 7;
-  doc.text(user.displayName || 'Freelancer', margin, y);
-  doc.text(client.name, pageWidth / 2, y);
-  y += 7;
-  doc.text(user.email || '', margin, y);
-  doc.text(client.email, pageWidth / 2, y);
-  y += 15;
-
-  // Invoice Details
-  doc.setDrawColor(200);
-  doc.line(margin, y, pageWidth - margin, y);
-  y += 10;
-  
-  const details = [
-    { label: 'Invoice Number:', value: invoiceData.invoiceNumber },
-    { label: 'Issue Date:', value: format(new Date(invoiceData.issuedDate), 'PPP') },
-    { label: 'Due Date:', value: format(new Date(invoiceData.dueDate), 'PPP') },
-  ];
-
-  details.forEach(detail => {
-    doc.setFont('helvetica', 'bold');
-    doc.text(detail.label, margin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(detail.value, margin + 40, y);
-    y += 7;
-  });
-  
-  y += 5;
-  doc.line(margin, y, pageWidth - margin, y);
-  y += 15;
-
-  // Line Items
-  doc.setFont('helvetica', 'bold');
-  doc.text('Description', margin, y);
-  y += 10;
-  doc.setFont('helvetica', 'normal');
-  invoiceData.lineItems.forEach(item => {
-    const splitDescription = doc.splitTextToSize(item.description, pageWidth - (margin * 2));
-    doc.text(splitDescription, margin, y);
-    y += (splitDescription.length * 5) + 5;
-  });
-  y += 10;
-
-  // Totals
-  const totalsX = pageWidth - margin - 60;
-  doc.line(totalsX - 10, y, pageWidth - margin, y);
-  y += 7;
-
-  const taxAmount = (invoiceData.subTotal * invoiceData.taxRate) / 100;
-  const totals = [
-    { label: 'Sub-total:', value: `$${invoiceData.subTotal.toFixed(2)}` },
-    { label: `Tax (${invoiceData.taxRate}%):`, value: `$${taxAmount.toFixed(2)}` },
-    { label: 'Total:', value: `$${total.toFixed(2)}`, bold: true },
-  ];
-
-  totals.forEach(t => {
-    doc.setFont('helvetica', t.bold ? 'bold' : 'normal');
-    doc.text(t.label, totalsX, y, { align: 'left' });
-    doc.text(t.value, pageWidth - margin, y, { align: 'right' });
-    y += 7;
-  });
-  y += 10;
-  
-  // Enhanced Summary
-  if (enhancedSummary) {
-    y += 5;
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Summary', margin, y);
-    y += 8;
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    const summaryLines = doc.splitTextToSize(enhancedSummary, pageWidth - (margin * 2));
-    doc.text(summaryLines, margin, y);
-    y += (summaryLines.length * 5) + 10;
-  }
-
-  // Notes & Payment
-  if (invoiceData.notes || invoiceData.paymentUrl) {
-    if (invoiceData.notes) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Notes', margin, y);
-      y += 5;
-      doc.setFont('helvetica', 'normal');
-      const noteLines = doc.splitTextToSize(invoiceData.notes, pageWidth - (margin * 2));
-      doc.text(noteLines, margin, y);
-      y += (noteLines.length * 5) + 10;
-    }
-    if (invoiceData.paymentUrl) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Payment Link:', margin, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 255); // Blue link color
-      doc.textWithLink(invoiceData.paymentUrl, margin + 35, y, { url: invoiceData.paymentUrl });
-      y += 7;
-    }
-  }
-
-  doc.save(`${invoiceData.invoiceNumber}.pdf`);
-}
+export type InvoiceFormValues = z.infer<typeof formSchema>;
 
 export default function NewInvoicePage() {
   const { toast } = useToast();
@@ -373,9 +253,14 @@ export default function NewInvoicePage() {
             dueDate: format(values.dueDate, 'PPP')
         });
 
+        const updatedInvoiceData = { ...newInvoice, enhancedSummary: enhancementResult.summary };
         await updateInvoice(newInvoice.id, { enhancedSummary: enhancementResult.summary });
 
-        downloadInvoicePdf(values, client, { displayName: user.displayName, email: user.email }, totalAmount, enhancementResult.summary);
+        generateInvoicePdf({
+          invoice: updatedInvoiceData,
+          client: client,
+          user: { displayName: user.displayName, email: user.email },
+        });
         
         await chargeFor('invoice_pdf');
 
