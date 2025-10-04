@@ -58,11 +58,11 @@ export async function POST(req: NextRequest) {
     // Cast user to a plain object to satisfy @react-pdf/renderer's requirements
     const userObject: UserInfo = {
         uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
+        email: user.email ?? '',
+        displayName: user.displayName ?? '',
         providerId: 'firebase', // This is a required field
-        photoURL: user.photoURL,
-        phoneNumber: user.phoneNumber,
+        photoURL: user.photoURL ?? '',
+        phoneNumber: user.phoneNumber ?? '',
         emailVerified: user.emailVerified,
         disabled: user.disabled,
         metadata: user.metadata,
