@@ -1,26 +1,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { firestore as adminFirestore, storage } from '@/lib/firebase-admin';
-import { renderToBuffer, Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { renderToBuffer, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import type { Invoice, Client, Project } from '@/lib/types';
 import { getAuth } from 'firebase-admin/auth';
 import React from 'react';
 import { format } from 'date-fns';
 
-// Register fonts
-Font.register({
-  family: 'Inter',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa_pL7.woff2', fontWeight: 500 },
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1pL7.woff2', fontWeight: 600 },
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa25L7.woff2', fontWeight: 700 },
-  ],
-});
-
 const styles = StyleSheet.create({
   page: {
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontSize: 10,
     padding: 40,
     backgroundColor: '#ffffff',
@@ -37,12 +26,14 @@ const styles = StyleSheet.create({
   },
   companyName: {
     fontSize: 16,
-    fontWeight: 700,
+    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     color: 'hsl(180, 100%, 25%)',
   },
   invoiceTitle: {
     fontSize: 24,
-    fontWeight: 700,
+    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     textAlign: 'right',
   },
   invoiceDetails: {
@@ -55,7 +46,8 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   billTo: {
-    fontWeight: 600,
+    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     marginBottom: 2,
   },
   textMuted: {
@@ -73,7 +65,8 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   tableHeaderCell: {
-    fontWeight: 600,
+    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
   },
   tableRow: {
     flexDirection: 'row',
@@ -100,7 +93,8 @@ const styles = StyleSheet.create({
     color: '#71717a', // zinc-500
   },
   totalAmount: {
-    fontWeight: 600,
+    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
   },
   grandTotalRow: {
     flexDirection: 'row',
@@ -111,11 +105,13 @@ const styles = StyleSheet.create({
     borderTopColor: '#e4e4e7', // zinc-200
   },
   grandTotalLabel: {
-    fontWeight: 700,
+    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     fontSize: 12,
   },
   grandTotalAmount: {
-    fontWeight: 700,
+    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     fontSize: 12,
   },
   footer: {
@@ -134,36 +130,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
 });
-
-
-async function getInvoiceData(invoiceId: string, userId: string) {
-    const invoiceRef = adminFirestore.collection('users').doc(userId).collection('invoices').doc(invoiceId);
-    const invoiceSnap = await invoiceRef.get();
-    if (!invoiceSnap.exists) throw new Error('Invoice not found');
-    const invoiceData = invoiceSnap.data()!;
-
-    // Convert Firestore Timestamps to Date objects
-    const invoice = {
-      id: invoiceSnap.id,
-      ...invoiceData,
-      issuedDate: invoiceData.issuedDate.toDate(),
-      dueDate: invoiceData.dueDate.toDate(),
-    } as Invoice;
-
-    const clientRef = adminFirestore.collection('users').doc(userId).collection('clients').doc(invoice.clientId);
-    const clientSnap = await clientRef.get();
-    if (!clientSnap.exists) throw new Error('Client not found');
-    const client = { id: clientSnap.id, ...clientSnap.data() } as Client;
-
-    const projectRef = adminFirestore.collection('users').doc(userId).collection('projects').doc(invoice.projectId);
-    const projectSnap = await projectRef.get();
-    if (!projectSnap.exists) throw new Error('Project not found');
-    const project = { id: projectSnap.id, ...projectSnap.data() } as Project;
-
-    const user = await getAuth().getUser(userId);
-
-    return { invoice, client, project, user };
-}
 
 function InvoicePDF({ invoice, client, project, user }: { invoice: Invoice; client: Client; project: Project; user: { displayName?: string, email?: string }; }) {
   const taxAmount = (invoice.subTotal * invoice.taxRate) / 100;
@@ -188,9 +154,9 @@ function InvoicePDF({ invoice, client, project, user }: { invoice: Invoice; clie
         ),
         React.createElement(View, { style: { textAlign: 'right' } },
           React.createElement(Text, { style: [styles.textMuted, { marginBottom: 4 }] }, "Issue Date"),
-          React.createElement(Text, { style: { fontWeight: 600, marginBottom: 8 } }, format(new Date(invoice.issuedDate), 'PPP')),
+          React.createElement(Text, { style: { fontWeight: 600, marginBottom: 8, fontFamily: 'Helvetica-Bold' } }, format(new Date(invoice.issuedDate), 'PPP')),
           React.createElement(Text, { style: [styles.textMuted, { marginBottom: 4 }] }, "Due Date"),
-          React.createElement(Text, { style: { fontWeight: 600 } }, format(new Date(invoice.dueDate), 'PPP'))
+          React.createElement(Text, { style: { fontWeight: 600, fontFamily: 'Helvetica-Bold' } }, format(new Date(invoice.dueDate), 'PPP'))
         )
       ),
       invoice.enhancedSummary && React.createElement(View, { style: styles.summarySection },
@@ -223,7 +189,7 @@ function InvoicePDF({ invoice, client, project, user }: { invoice: Invoice; clie
         )
       ),
       invoice.notes && React.createElement(View, { style: { marginTop: 30 } },
-        React.createElement(Text, { style: { fontWeight: 600, marginBottom: 4 } }, "Notes"),
+        React.createElement(Text, { style: { fontWeight: 'bold', fontFamily: 'Helvetica-Bold', marginBottom: 4 } }, "Notes"),
         React.createElement(Text, { style: styles.textMuted }, invoice.notes)
       ),
       React.createElement(View, { style: styles.footer },
@@ -233,6 +199,35 @@ function InvoicePDF({ invoice, client, project, user }: { invoice: Invoice; clie
   );
 }
 
+
+async function getInvoiceData(invoiceId: string, userId: string) {
+    const invoiceRef = adminFirestore.collection('users').doc(userId).collection('invoices').doc(invoiceId);
+    const invoiceSnap = await invoiceRef.get();
+    if (!invoiceSnap.exists) throw new Error('Invoice not found');
+    const invoiceData = invoiceSnap.data()!;
+
+    // Convert Firestore Timestamps to serializable Date strings
+    const invoice = {
+      id: invoiceSnap.id,
+      ...invoiceData,
+      issuedDate: invoiceData.issuedDate.toDate().toISOString(),
+      dueDate: invoiceData.dueDate.toDate().toISOString(),
+    } as Invoice;
+
+    const clientRef = adminFirestore.collection('users').doc(userId).collection('clients').doc(invoice.clientId);
+    const clientSnap = await clientRef.get();
+    if (!clientSnap.exists) throw new Error('Client not found');
+    const client = { id: clientSnap.id, ...clientSnap.data() } as Client;
+
+    const projectRef = adminFirestore.collection('users').doc(userId).collection('projects').doc(invoice.projectId);
+    const projectSnap = await projectRef.get();
+    if (!projectSnap.exists) throw new Error('Project not found');
+    const project = { id: projectSnap.id, ...projectSnap.data() } as Project;
+
+    const user = await getAuth().getUser(userId);
+
+    return { invoice, client, project, user };
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -251,10 +246,10 @@ export async function POST(req: NextRequest) {
 
     const { invoice, client, project, user } = await getInvoiceData(invoiceId, userId);
     
-    // Simplify the user object to avoid serialization issues with the PDF renderer
+    // Simplify the user object to avoid serialization issues
     const userObject = {
-        displayName: user.displayName,
-        email: user.email,
+        displayName: user.displayName || 'ProManFlow User',
+        email: user.email || '',
     };
 
     const pdfBuffer = await renderToBuffer(
@@ -271,7 +266,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Make the file publically accessible - for a real app, you'd want more secure, time-limited URLs.
     await file.makePublic();
 
     const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
@@ -282,3 +276,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+    
