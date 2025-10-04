@@ -26,6 +26,7 @@ export async function getInvoices(): Promise<Invoice[]> {
           ...data,
           issuedDate: data.issuedDate.toDate(),
           dueDate: data.dueDate.toDate(),
+          amount: parseFloat(data.amount),
       } as Invoice
     });
     return invoices;
