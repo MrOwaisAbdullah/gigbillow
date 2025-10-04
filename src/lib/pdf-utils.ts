@@ -56,7 +56,7 @@ function addFooter(doc: jsPDF) {
 
 function generatePdf(fileName: string, title: string, addContent: (doc: jsPDF) => void) {
     const doc = new jsPDF('p', 'pt', 'a4');
-    doc.setFont('helvetica');
+    doc.setFont('helvetica', 'normal');
 
     addHeader(doc, title);
     addContent(doc);
@@ -77,14 +77,14 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         let y = pageMargin + 60;
         const sectionGap = 20;
         const itemGap = 12;
-        const rightColX = doc.internal.pageSize.getWidth() / 2 + 60;
+        const rightColX = doc.internal.pageSize.getWidth() / 2;
 
         // --- From / To Info ---
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...primaryRgb);
         doc.text('FROM', pageMargin, y);
-        doc.text('BILL TO', pageMargin, y + 60);
+        doc.text('ISSUED TO', pageMargin, y + 60);
 
         doc.setFontSize(11);
         doc.setTextColor(...black);
@@ -99,27 +99,31 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
 
         // --- Invoice Details (Right Column) ---
         const details = [
-            { label: 'Invoice Number', value: invoice.invoiceNumber },
-            { label: 'Issue Date', value: format(new Date(invoice.issuedDate), 'PPP') },
-            { label: 'Due Date', value: format(new Date(invoice.dueDate), 'PPP') },
+            { label: 'Invoice Number:', value: invoice.invoiceNumber },
+            { label: 'Issue Date:', value: format(new Date(invoice.issuedDate), 'PPP') },
+            { label: 'Due Date:', value: format(new Date(invoice.dueDate), 'PPP') },
         ];
         
         details.forEach((detail, i) => {
-            const detailY = y + 5 + (i * (itemGap + 10));
+            const detailY = y + 5 + (i * (itemGap + 5));
+            const labelWidth = doc.getStringUnitWidth(detail.label) * 10;
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(...primaryRgb);
-            doc.text(detail.label, doc.internal.pageSize.getWidth() - pageMargin, detailY, { align: 'right' });
+            doc.text(detail.label, rightColX, detailY, { align: 'left' });
             
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(...black);
-            doc.text(detail.value, doc.internal.pageSize.getWidth() - pageMargin, detailY + itemGap, { align: 'right' });
+            doc.text(detail.value, rightColX + labelWidth + 10, detailY, { align: 'left' });
         });
 
         y += 120;
 
         // --- AI Enhanced Summary ---
         if (invoice.enhancedSummary) {
+            doc.setDrawColor(226, 232, 240); // border color
+            doc.line(pageMargin, y - sectionGap, doc.internal.pageSize.getWidth() - pageMargin, y - sectionGap);
+
             doc.setFontSize(11);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(...black);
