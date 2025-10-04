@@ -46,18 +46,16 @@ const generateProposalPrompt = ai.definePrompt({
         **Core Instructions:**
         - Deeply analyze the job post to understand the client's core problem. Frame the proposal around how you will solve their problem and help them achieve their goals.
         - Do not just list what you can do. Explain *how* your skills and approach will directly address their needs.
+        - If a client name is provided, use it for personalization in the greeting or body of the proposal.
         - Conclude with a short, natural call to action (e.g., "I'd be happy to discuss this further," or "Looking forward to hearing from you.").
 
         **Output Requirements:**
         - The proposal must be short, consisting of 2 to 4 paragraphs.
         - Each paragraph must be brief, around 2 to 3 lines.
-        - Do NOT use any markdown formatting.
+        - DO NOT use any markdown formatting.
         - Use proper paragraph spacing (use '\\n\\n' for new paragraphs).
-        - If a client name is provided, use it for personalization.
-
+        
         **Input Details:**
-        ---
-        Job Post: {{this.jobPostText}}
         ---
         - Client Name: {{#if this.clientName}}{{this.clientName}}{{else}}Not specified{{/if}}
         - Budget: {{#if this.budget}}\${{this.budget}}{{else}}Not specified{{/if}}
