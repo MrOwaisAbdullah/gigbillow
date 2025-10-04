@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -277,7 +278,7 @@ export default function ProposalGeneratorPage() {
                     )}
                     Generate Proposal
                   </Button>
-              </Content>
+              </CardContent>
             </Card>
           </form>
         </Form>
