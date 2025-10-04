@@ -115,6 +115,17 @@ export default function ProposalGeneratorPage() {
     navigator.clipboard.writeText(generatedProposal);
     toast({ title: 'Copied to clipboard!' });
   };
+  
+  const handleDownload = () => {
+    const element = document.createElement('a');
+    const file = new Blob([generatedProposal], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = "proposal.txt";
+    document.body.appendChild(element); // Required for this to work in FireFox
+    element.click();
+    document.body.removeChild(element);
+    toast({ title: 'Download started!' });
+  }
 
   return (
     <div className="flex flex-col gap-8 pb-8">
@@ -293,9 +304,9 @@ export default function ProposalGeneratorPage() {
                 <Copy className="mr-2 h-4 w-4" />
                 Copy
               </Button>
-              <Button>
+              <Button onClick={handleDownload}>
                 <Download className="mr-2 h-4 w-4" />
-                Download PDF
+                Download
               </Button>
             </div>
           )}
