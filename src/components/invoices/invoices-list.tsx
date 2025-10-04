@@ -185,11 +185,7 @@ export function InvoicesList() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem asChild>
-                          <a href={invoice.pdfUrl || '#'} target="_blank" rel="noopener noreferrer" className={!invoice.pdfUrl ? 'pointer-events-none text-muted-foreground' : ''}>
-                            View Document
-                          </a>
-                        </DropdownMenuItem>
+                        <DropdownMenuItem>View Details</DropdownMenuItem>
                          {invoice.status !== 'paid' && <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice.id)}>Mark as Paid</DropdownMenuItem>}
                         <DropdownMenuItem onClick={() => handleDelete(invoice.id)}>Delete</DropdownMenuItem>
                       </DropdownMenuContent>

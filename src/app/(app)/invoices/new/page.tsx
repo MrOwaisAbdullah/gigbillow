@@ -72,6 +72,73 @@ const formSchema = z.object({
 
 type InvoiceFormValues = z.infer<typeof formSchema>;
 
+function generateInvoiceText(invoiceData: InvoiceFormValues, client: Client, user: { displayName?: string | null, email?: string | null }, total: number, enhancedSummary?: string) {
+    const taxAmount = (invoiceData.subTotal * invoiceData.taxRate) / 100;
+  
+    let content = `
+  ==================================================
+  INVOICE
+  ==================================================
+  
+  From:
+  ${user.displayName || 'Freelancer'}
+  ${user.email || ''}
+  
+  Bill To:
+  ${client.name}
+  ${client.email}
+  
+  --------------------------------------------------
+  
+  Invoice Number: ${invoiceData.invoiceNumber}
+  Issue Date: ${format(new Date(invoiceData.issuedDate), 'PPP')}
+  Due Date: ${format(new Date(invoiceData.dueDate), 'PPP')}
+  
+  --------------------------------------------------
+  Line Items:
+  --------------------------------------------------
+  
+  `;
+  
+    invoiceData.lineItems.forEach(item => {
+      content += `- ${item.description}\n`;
+    });
+  
+    content += `
+  --------------------------------------------------
+  
+  Sub-total: $${invoiceData.subTotal.toFixed(2)}
+  Tax (${invoiceData.taxRate}%): $${taxAmount.toFixed(2)}
+  Total: $${total.toFixed(2)}
+  
+  --------------------------------------------------
+  `;
+  
+    if (enhancedSummary) {
+      content += `
+  Summary:
+  ${enhancedSummary}
+  
+  `;
+    }
+    
+    if (invoiceData.notes) {
+      content += `
+  Notes:
+  ${invoiceData.notes}
+  
+  `;
+    }
+  
+    content += `
+  ==================================================
+  Thank you for your business!
+  ==================================================
+    `;
+  
+    return content;
+}
+
 export default function NewInvoicePage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -202,6 +269,15 @@ export default function NewInvoicePage() {
     }
   };
 
+  function downloadTextFile(filename: string, text: string) {
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }
 
   async function onSubmit(values: InvoiceFormValues) {
     setIsSubmitting(true);
@@ -223,8 +299,8 @@ export default function NewInvoicePage() {
         }
         
         toast({
-            title: 'Enhancing Summary & Generating Document...',
-            description: 'The AI is writing a summary and your document is being created.',
+            title: 'Enhancing Summary...',
+            description: 'The AI is writing a professional summary for your invoice.',
         });
 
         // Enhance summary with AI
@@ -238,25 +314,13 @@ export default function NewInvoicePage() {
 
         await updateInvoice(newInvoice.id, { enhancedSummary: enhancementResult.summary });
 
-        // Generate PDF
-        const response = await fetch('/api/invoices/generate-pdf', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ invoiceId: newInvoice.id }),
-        });
+        const invoiceText = generateInvoiceText(values, client, user, totalAmount, enhancementResult.summary);
+        downloadTextFile(`${values.invoiceNumber}.txt`, invoiceText);
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred during PDF generation.' }));
-            console.error('PDF Generation API Error:', errorData);
-            throw new Error('Failed to generate PDF.');
-        }
-
-        const { pdfUrl } = await response.json();
-        await updateInvoice(newInvoice.id, { pdfUrl });
 
         toast({
-            title: 'Invoice Created',
-            description: 'Your invoice has been created and the document is saved.',
+            title: 'Invoice Created & Downloaded',
+            description: 'Your invoice has been created and the document has started downloading.',
         });
         router.push('/invoices');
 
@@ -573,7 +637,7 @@ export default function NewInvoicePage() {
             </Button>
             <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create & Enhance Invoice
+            Create & Download
             </Button>
           </div>
         </form>

@@ -36,6 +36,5 @@ export type Invoice = {
   taxRate: number;
   paymentUrl?: string;
   notes?: string;
-  pdfUrl?: string;
   enhancedSummary?: string;
 };
