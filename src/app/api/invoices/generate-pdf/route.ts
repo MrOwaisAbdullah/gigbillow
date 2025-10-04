@@ -54,15 +54,13 @@ export async function POST(req: NextRequest) {
     }
 
     const { invoice, client, project, user } = await getInvoiceData(invoiceId, userId);
-
-    // Cast user to a plain object to satisfy @react-pdf/renderer's requirements
-    // and conform to the UserInfo type.
+    
     const userObject: UserInfo = {
         uid: user.uid,
         email: user.email || '',
         displayName: user.displayName || '',
         photoURL: user.photoURL || '',
-        phoneNumber: user.phoneNumber || null,
+        phoneNumber: user.phoneNumber || '',
         providerId: user.providerData?.[0]?.providerId || '',
         toJSON: () => ({ ...user })
     };
