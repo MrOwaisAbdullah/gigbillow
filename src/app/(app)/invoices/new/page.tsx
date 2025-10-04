@@ -242,7 +242,7 @@ export default function NewInvoicePage() {
             issuedDate: format(values.issuedDate, 'PPP'),
             dueDate: format(values.dueDate, 'PPP'),
             taxAmount,
-            totalAmount
+            totalAmount: Number(totalAmount)
         });
 
         setEnhancedInvoiceHtml(enhancementResult.html);
