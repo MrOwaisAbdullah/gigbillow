@@ -1,4 +1,3 @@
-
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -44,6 +43,7 @@ import { generateProposal } from '@/ai/flows/generate-proposal';
 import { canAfford, chargeFor } from '@/lib/api/tokens';
 import { useToken } from '@/components/token/token-provider';
 import { Skeleton } from '@/components/ui/skeleton';
+import jsPDF from 'jspdf';
 
 const formSchema = z.object({
   jobPostText: z
@@ -79,9 +79,9 @@ export default function ProposalGeneratorPage() {
 
     const hasEnoughTokens = await canAfford('proposal');
     if (!hasEnoughTokens) {
-        openDialog();
-        setIsGenerating(false);
-        return;
+      openDialog();
+      setIsGenerating(false);
+      return;
     }
 
     try {
@@ -89,9 +89,9 @@ export default function ProposalGeneratorPage() {
         ...values,
         deadline: values.deadline ? format(values.deadline, 'PPP') : undefined,
       });
-      
-      setGeneratedProposal(result.proposal);
 
+      setGeneratedProposal(result.proposal);
+      
       await chargeFor('proposal');
 
       toast({
@@ -115,17 +115,17 @@ export default function ProposalGeneratorPage() {
     navigator.clipboard.writeText(generatedProposal);
     toast({ title: 'Copied to clipboard!' });
   };
-  
+
   const handleDownload = () => {
-    const element = document.createElement('a');
-    const file = new Blob([generatedProposal], {type: 'text/plain'});
-    element.href = URL.createObjectURL(file);
-    element.download = "proposal.txt";
-    document.body.appendChild(element); // Required for this to work in FireFox
-    element.click();
-    document.body.removeChild(element);
+    const doc = new jsPDF();
+    const margin = 15;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const textLines = doc.splitTextToSize(generatedProposal, pageWidth - margin * 2);
+    
+    doc.text(textLines, margin, margin);
+    doc.save('proposal.pdf');
     toast({ title: 'Download started!' });
-  }
+  };
 
   return (
     <div className="flex flex-col gap-8 pb-8">
@@ -156,7 +156,8 @@ export default function ProposalGeneratorPage() {
                         />
                       </FormControl>
                       <FormDescription>
-                        The AI will use this to understand the project requirements.
+                        The AI will use this to understand the project
+                        requirements.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -255,14 +256,18 @@ export default function ProposalGeneratorPage() {
                   )}
                 />
 
-                 <Button type="submit" disabled={isGenerating} className="w-full">
-                    {isGenerating ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="mr-2 h-4 w-4" />
-                    )}
-                    Generate Proposal (-1 Token)
-                  </Button>
+                <Button
+                  type="submit"
+                  disabled={isGenerating}
+                  className="w-full"
+                >
+                  {isGenerating ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-2 h-4 w-4" />
+                  )}
+                  Generate Proposal (-1 Token)
+                </Button>
               </CardContent>
             </Card>
           </form>
@@ -288,12 +293,15 @@ export default function ProposalGeneratorPage() {
               ) : generatedProposal ? (
                 <Textarea
                   value={generatedProposal}
-                  onChange={e => setGeneratedProposal(e.target.value)}
+                  onChange={(e) => setGeneratedProposal(e.target.value)}
                   className="min-h-[300px] text-base"
                 />
               ) : (
                 <div className="flex h-[200px] items-center justify-center rounded-lg border-2 border-dashed text-center text-muted-foreground">
-                  <p className="max-w-xs">Your AI-generated proposal will appear here once you provide job details and click generate.</p>
+                  <p className="max-w-xs">
+                    Your AI-generated proposal will appear here once you
+                    provide job details and click generate.
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -306,7 +314,7 @@ export default function ProposalGeneratorPage() {
               </Button>
               <Button onClick={handleDownload}>
                 <Download className="mr-2 h-4 w-4" />
-                Download
+                Download PDF
               </Button>
             </div>
           )}
