@@ -6,7 +6,12 @@ function initializeAdminApp() {
   }
 
   try {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT as string);
+    const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (!serviceAccountString) {
+      throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set.');
+    }
+    const serviceAccount = JSON.parse(serviceAccountString);
+    
     return admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       storageBucket: `${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.appspot.com`,
