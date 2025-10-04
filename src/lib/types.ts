@@ -31,4 +31,9 @@ export type Invoice = {
   dueDate: Date;
   issuedDate: Date;
   status: 'paid' | 'unpaid' | 'overdue';
+  lineItems: { description: string }[];
+  subTotal: number;
+  taxRate: number;
+  paymentUrl?: string;
+  notes?: string;
 };

@@ -208,8 +208,23 @@ export default function NewInvoicePage() {
             ...values,
             amount: totalAmount,
             status: 'unpaid' as const,
-        }
-        await createInvoice(finalValues);
+        };
+        // This was the bug. The `...values` spread was overwriting the calculated `amount`.
+        // The fix is to construct the object correctly without spreading `values` last.
+        await createInvoice({
+            invoiceNumber: values.invoiceNumber,
+            clientId: values.clientId,
+            projectId: values.projectId,
+            issuedDate: values.issuedDate,
+            dueDate: values.dueDate,
+            lineItems: values.lineItems,
+            taxRate: values.taxRate,
+            paymentUrl: values.paymentUrl,
+            notes: values.notes,
+            subTotal: values.subTotal,
+            amount: totalAmount, // Use the correctly calculated total amount
+            status: 'unpaid' as const,
+        });
         toast({
             title: 'Invoice Created',
             description: `Invoice ${values.invoiceNumber} for $${totalAmount.toFixed(2)} has been created.`,
