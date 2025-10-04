@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getInvoiceById, updateInvoice } from '@/lib/api/invoices';
+import { getInvoiceById } from '@/lib/api/invoices';
 import { getClientById } from '@/lib/api/clients';
 import { getProjectById } from '@/lib/api/projects';
 import { generateInvoicePdf } from '@/lib/pdf-utils';
@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useToast } from '@/hooks/use-toast';
+import { toTitleCase } from '@/lib/utils';
 
 const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
   paid: 'default',
@@ -36,7 +36,6 @@ export default function InvoiceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const { toast } = useToast();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [client, setClient] = useState<Client | null>(null);
   const [project, setProject] = useState<Project | null>(null);
@@ -98,9 +97,9 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  const subTotal = Number(invoice.subTotal) || 0;
-  const taxRate = Number(invoice.taxRate) || 0;
-  const amount = Number(invoice.amount) || 0;
+  const subTotal = invoice.subTotal;
+  const taxRate = invoice.taxRate;
+  const amount = invoice.amount;
   const taxAmount = (subTotal * taxRate) / 100;
 
   return (
@@ -165,7 +164,7 @@ export default function InvoiceDetailPage() {
                 <TableBody>
                   {invoice.lineItems.map((item, index) => (
                     <TableRow key={index}>
-                      <TableCell>{item.description}</TableCell>
+                      <TableCell>{toTitleCase(item.description)}</TableCell>
                       <TableCell className="text-right">{project.name}</TableCell>
                     </TableRow>
                   ))}
@@ -195,7 +194,7 @@ export default function InvoiceDetailPage() {
             {invoice.notes && (
                 <div>
                     <h3 className="font-semibold mb-2">Notes</h3>
-                    <p className="text-sm text-muted-foreground">{invoice.notes}</p>
+                    <p className="text-sm text-muted-foreground">{toTitleCase(invoice.notes)}</p>
                 </div>
             )}
 
@@ -280,5 +279,3 @@ function InvoiceDetailSkeleton() {
         </div>
     )
 }
-
-    

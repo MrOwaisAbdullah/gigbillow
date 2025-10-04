@@ -1,7 +1,7 @@
-
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import type { Invoice, Client } from './types';
+import { toTitleCase } from './utils';
 
 // HSL to RGB conversion
 function hslToRgb(h: number, s: number, l: number): [number, number, number] {
@@ -159,7 +159,7 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
 
         invoice.lineItems.forEach((item, index) => {
             const isEvenRow = index % 2 === 0;
-            const splitDescription = doc.splitTextToSize(item.description.toUpperCase(), tableWidth - (descriptionColX - pageMargin));
+            const splitDescription = doc.splitTextToSize(toTitleCase(item.description), tableWidth - (descriptionColX - pageMargin));
             const rowHeight = (splitDescription.length * (itemGap - 2)) + 10;
 
             // Draw row background
@@ -215,7 +215,7 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
                 y += itemGap;
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(...gray);
-                const noteLines = doc.splitTextToSize(invoice.notes.toUpperCase(), doc.internal.pageSize.getWidth() - (pageMargin * 2));
+                const noteLines = doc.splitTextToSize(toTitleCase(invoice.notes), doc.internal.pageSize.getWidth() - (pageMargin * 2));
                 doc.text(noteLines, pageMargin, y);
                 y += (noteLines.length * itemGap) + sectionGap;
             }
