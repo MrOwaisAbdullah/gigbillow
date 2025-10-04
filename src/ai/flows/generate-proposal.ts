@@ -17,7 +17,7 @@ const GenerateProposalInputSchema = z.object({
   clientName: z.string().optional(),
   budget: z.number().optional(),
   deadline: z.string().optional(),
-  deliverables: z.string(),
+  deliverables: z.string().optional(),
 });
 
 export type GenerateProposalInput = z.infer<typeof GenerateProposalInputSchema>;
@@ -39,25 +39,37 @@ const generateProposalPrompt = ai.definePrompt({
     input: { schema: GenerateProposalInputSchema },
     output: { schema: GenerateProposalOutputSchema },
     prompt: `
-        You are a professional freelancer with expertise in writing winning project proposals.
-        Your task is to write a concise and compelling {mode} proposal (around 150-200 words) based on the provided job details.
+        You are a world-class freelance copywriter who specializes in writing highly personalized and impactful project proposals that win jobs. Your tone is confident, expert, and professional, but not robotic.
 
-        Job Post Description:
+        Your task is to write a concise and compelling proposal for the following job. The proposal should be short and impactful (around 150 words).
+
+        **Analysis of the Job Post:**
+        First, deeply analyze the provided job post to understand the client's core problem and desired outcome. Do not just repeat the job description.
+
+        **Proposal Strategy:**
+        - Start with a strong opening that shows you understand the client's real need. Avoid generic greetings like "I read your job post...".
+        - Briefly introduce yourself as the right person for the job, connecting your expertise directly to the client's problem.
+        - Propose a clear, high-level plan or mention the key deliverables.
+        - End with a confident call to action.
+
+        **Personalization:**
+        - If a client name is provided, use it.
+        - Adapt the tone for the proposal mode:
+            - **Marketplace:** More direct and concise. Get straight to the point.
+            - **Private Client:** Slightly more formal and consultative.
+
+        **Input Details:**
+        - **Mode:** {{mode}}
+        - **Job Post:**
         ---
-        {jobPostText}
+        {{jobPostText}}
         ---
+        - **Client Name:** {{#if clientName}}{{clientName}}{{else}}Not specified{{/if}}
+        - **Budget:** {{#if budget}}${{budget}}{{else}}Not specified{{/if}}
+        - **Deadline:** {{#if deadline}}{{deadline}}{{else}}Not specified{{/if}}
+        - **Key Deliverables:** {{#if deliverables}}{{deliverables}}{{else}}Not specified{{/if}}
 
-        Key Information:
-        - Client Name: {clientName}
-        - Budget: {budget, select, undefined{} other{\${budget}}}
-        - Deadline: {deadline}
-        - Key Deliverables: {deliverables}
-
-        Tailor the tone and content appropriately for the selected mode ({mode}).
-        For 'Marketplace' mode, be direct, concise, and focus on how your skills match the job post.
-        For 'Private Client' mode, adopt a slightly more formal and consultative tone, like you would in an email or a formal document.
-
-        Generate the proposal text now.
+        Generate the proposal text now based on these instructions. Do not sound like a generic AI.
     `
 });
 

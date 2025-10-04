@@ -1,4 +1,3 @@
-
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -54,7 +53,7 @@ const formSchema = z.object({
   clientName: z.string().optional(),
   budget: z.coerce.number().optional(),
   deadline: z.date().optional(),
-  deliverables: z.string().min(5, 'Deliverables must be at least 5 characters.'),
+  deliverables: z.string().optional(),
 });
 
 type ProposalFormValues = z.infer<typeof formSchema>;
@@ -183,7 +182,7 @@ export default function ProposalGeneratorPage() {
                   name="deliverables"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Key Deliverables</FormLabel>
+                      <FormLabel>Key Deliverables (Optional)</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="e.g., 5-page responsive website, new brand logo, 3 blog posts..."
