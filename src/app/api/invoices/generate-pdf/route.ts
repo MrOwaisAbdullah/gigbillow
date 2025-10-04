@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     padding: 40,
     backgroundColor: '#ffffff',
-    color: '#18181b', // zinc-900
+    color: '#18181b',
   },
   header: {
     flexDirection: 'row',
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     fontFamily: 'Helvetica-Bold',
-    color: 'hsl(180, 100%, 25%)',
+    color: '#008080',
   },
   invoiceTitle: {
     fontSize: 24,
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   textMuted: {
-    color: '#71717a', // zinc-500
+    color: '#71717a',
   },
   table: {
     width: '100%',
@@ -59,9 +59,9 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#f4f4f5', // zinc-100
+    backgroundColor: '#f4f4f5',
     borderBottomWidth: 1,
-    borderBottomColor: '#e4e4e7', // zinc-200
+    borderBottomColor: '#e4e4e7',
     padding: 8,
   },
   tableHeaderCell: {
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#e4e4e7', // zinc-200
+    borderBottomColor: '#e4e4e7',
     padding: 8,
   },
   tableCellDescription: {
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   totalLabel: {
-    color: '#71717a', // zinc-500
+    color: '#71717a',
   },
   totalAmount: {
     fontWeight: 'bold',
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#e4e4e7', // zinc-200
+    borderTopColor: '#e4e4e7',
   },
   grandTotalLabel: {
     fontWeight: 'bold',
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     right: 40,
     textAlign: 'center',
     fontSize: 8,
-    color: '#a1a1aa', // zinc-400
+    color: '#a1a1aa',
   },
   summarySection: {
     marginBottom: 30,
@@ -276,5 +276,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
-    
