@@ -1,9 +1,10 @@
 'use server';
 
-import { firestore } from '@/lib/firebase-admin';
+import { getFirestoreAdmin } from '@/lib/firebase-admin';
 
 export async function getPublicInvoiceById(userId: string, invoiceId: string): Promise<any | null> {
     try {
+        const firestore = getFirestoreAdmin();
         const docRef = firestore.collection('users').doc(userId).collection('invoices').doc(invoiceId);
         const docSnap = await docRef.get();
 

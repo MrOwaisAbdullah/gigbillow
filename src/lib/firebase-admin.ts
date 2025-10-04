@@ -1,19 +1,30 @@
 import * as admin from 'firebase-admin';
 
-// This is a more robust way to handle initialization in serverless environments
-if (!admin.apps.length) {
+function initializeAdminApp() {
+  if (admin.apps.length > 0) {
+    return admin.app();
+  }
+
   try {
-     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT as string);
-    admin.initializeApp({
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT as string);
+    return admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       storageBucket: `${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.appspot.com`,
     });
-  } catch (error) {
-    console.error('Firebase admin initialization error', error);
+  } catch (error: any) {
+    console.error('Firebase admin initialization error', error.stack);
+    throw new Error('Failed to initialize Firebase Admin SDK.');
   }
 }
 
-const firestore = admin.firestore();
-const storage = admin.storage();
+function getFirestoreAdmin() {
+  initializeAdminApp();
+  return admin.firestore();
+}
 
-export { firestore, storage };
+function getStorageAdmin() {
+  initializeAdminApp();
+  return admin.storage();
+}
+
+export { getFirestoreAdmin, getStorageAdmin };
