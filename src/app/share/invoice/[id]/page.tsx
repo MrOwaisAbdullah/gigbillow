@@ -1,3 +1,5 @@
+'use client';
+
 import { notFound } from 'next/navigation';
 import { getPublicInvoiceById } from './actions';
 import Link from 'next/link';
@@ -16,6 +18,7 @@ import {
 } from '@/components/ui/table';
 import { toTitleCase } from '@/lib/utils';
 import { CreditCard, Package2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 type PublicInvoicePageProps = {
   params: { id: string };
@@ -28,18 +31,37 @@ const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 's
   overdue: 'destructive',
 };
 
-export default async function PublicInvoicePage({ params, searchParams }: PublicInvoicePageProps) {
+export default function PublicInvoicePage({ params, searchParams }: PublicInvoicePageProps) {
   const { id } = params;
   const userId = searchParams.userId as string;
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!userId) {
-    notFound();
+  useEffect(() => {
+    if (!userId) {
+      notFound();
+      return;
+    }
+
+    async function fetchData() {
+      const result = await getPublicInvoiceById(userId, id);
+      if (!result) {
+        notFound();
+      } else {
+        setData(result);
+      }
+      setLoading(false);
+    }
+    
+    fetchData();
+  }, [userId, id]);
+
+  if (loading) {
+    return <div>Loading...</div>; // Or a proper skeleton
   }
 
-  const data = await getPublicInvoiceById(userId, id);
-
   if (!data) {
-    notFound();
+    return notFound();
   }
 
   const { invoice, user, client, project } = data;
