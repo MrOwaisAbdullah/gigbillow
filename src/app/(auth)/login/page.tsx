@@ -53,7 +53,10 @@ export default function LoginPage() {
   if (loading || user) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
-        Loading...
+        <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p>Loading your workspace...</p>
+        </div>
       </div>
     );
   }
@@ -98,11 +101,13 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-6 text-center">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-primary">
-            ProManFlow
-          </h1>
+           <Link href="/" className="mb-6 inline-block">
+             <h1 className="text-4xl font-bold tracking-tight text-primary">
+              ProManFlow
+            </h1>
+          </Link>
           <p className="mt-2 text-lg text-muted-foreground">
-            Your professional workspace, simplified.
+            Sign in to your professional workspace.
           </p>
         </div>
         <div className="rounded-lg border bg-card p-8 shadow-sm">

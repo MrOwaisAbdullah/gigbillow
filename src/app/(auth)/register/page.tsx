@@ -49,7 +49,14 @@ export default function RegisterPage() {
   }, [user, router]);
 
   if (loading || user) {
-    return <div className="flex h-screen w-screen items-center justify-center">Loading...</div>;
+    return (
+        <div className="flex h-screen w-screen items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p>Loading your workspace...</p>
+            </div>
+      </div>
+    );
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -76,7 +83,9 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-6 text-center">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-primary">ProManFlow</h1>
+          <Link href="/" className="mb-6 inline-block">
+             <h1 className="text-4xl font-bold tracking-tight text-primary">ProManFlow</h1>
+          </Link>
           <p className="mt-2 text-lg text-muted-foreground">
             Create your account to get started.
           </p>

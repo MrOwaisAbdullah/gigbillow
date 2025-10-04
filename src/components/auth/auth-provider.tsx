@@ -70,20 +70,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const auth = getAuth(app);
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       
-      const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
+      const isAuthPage = pathname === '/login' || pathname === '/register';
+      const isLandingPage = pathname === '/';
 
       if (user) {
         setUser(user);
         await checkAndSeedData(user.uid, user.email || '');
         setLoading(false);
-        if (isAuthPage) {
+        if (isAuthPage || isLandingPage) {
           router.push('/dashboard');
         }
       } else {
         setUser(null);
         setLoading(false);
-        if (!isAuthPage) {
-          router.push('/login');
+        if (!isAuthPage && !isLandingPage && !pathname.startsWith('/share')) {
+          router.push('/');
         }
       }
     });

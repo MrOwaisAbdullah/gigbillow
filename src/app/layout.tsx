@@ -3,8 +3,20 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'ProManFlow',
-  description: 'A professional web app for freelancers to manage multiple projects, track work hours, and generate automated invoices.',
+  title: 'ProManFlow — Free Time-Tracking, Invoices & Proposals',
+  description: 'Track billable hours, create PDF invoices, and write client-winning proposals with AI. 10 free credits monthly.',
+  openGraph: {
+    title: 'ProManFlow — Free Time-Tracking, Invoices & Proposals',
+    description: 'Track billable hours, create PDF invoices, and write client-winning proposals with AI. 10 free credits monthly.',
+    images: [
+      {
+        url: '/og-promanflow.png',
+        width: 1200,
+        height: 630,
+        alt: 'ProManFlow Banner',
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -17,7 +29,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
         {children}
