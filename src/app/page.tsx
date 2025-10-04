@@ -13,7 +13,7 @@ export default function LandingPage() {
   return (
     <div className="bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-14 max-w-5xl items-center justify-between">
+        <div className="container mx-auto flex h-14 max-w-5xl items-center justify-between px-2">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <Zap className="h-6 w-6 text-primary" />
