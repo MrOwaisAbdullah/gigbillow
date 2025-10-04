@@ -4,30 +4,33 @@ import type { Invoice, Client, Project } from '@/lib/types';
 import { getAuth } from 'firebase-admin/auth';
 import { format } from 'date-fns';
 
-async function getInvoiceData(invoiceId: string, userId: string) {
-    const invoiceRef = adminFirestore.collection('users').doc(userId).collection('invoices').doc(invoiceId);
-    const invoiceSnap = await invoiceRef.get();
+async function getInvoiceData(invoiceId: string, userId: string): Promise<{ invoice: Invoice; client: Client; project: Project; user: { displayName?: string; email?: string; }; }> {
+    const userDocRef = adminFirestore.collection('users').doc(userId);
+    
+    const invoiceSnap = await userDocRef.collection('invoices').doc(invoiceId).get();
     if (!invoiceSnap.exists) throw new Error('Invoice not found');
     const invoiceData = invoiceSnap.data()!;
 
     const invoice = {
       id: invoiceSnap.id,
       ...invoiceData,
-      issuedDate: invoiceData.issuedDate.toDate().toISOString(),
-      dueDate: invoiceData.dueDate.toDate().toISOString(),
+      issuedDate: invoiceData.issuedDate.toDate(),
+      dueDate: invoiceData.dueDate.toDate(),
     } as Invoice;
 
-    const clientRef = adminFirestore.collection('users').doc(userId).collection('clients').doc(invoice.clientId);
-    const clientSnap = await clientRef.get();
+    const clientSnap = await userDocRef.collection('clients').doc(invoice.clientId).get();
     if (!clientSnap.exists) throw new Error('Client not found');
     const client = { id: clientSnap.id, ...clientSnap.data() } as Client;
 
-    const projectRef = adminFirestore.collection('users').doc(userId).collection('projects').doc(invoice.projectId);
-    const projectSnap = await projectRef.get();
+    const projectSnap = await userDocRef.collection('projects').doc(invoice.projectId).get();
     if (!projectSnap.exists) throw new Error('Project not found');
     const project = { id: projectSnap.id, ...projectSnap.data() } as Project;
 
-    const user = await getAuth().getUser(userId);
+    const userRecord = await getAuth().getUser(userId);
+    const user = {
+        displayName: userRecord.displayName,
+        email: userRecord.email,
+    };
 
     return { invoice, client, project, user };
 }
@@ -116,12 +119,7 @@ export async function POST(req: NextRequest) {
 
     const { invoice, client, user } = await getInvoiceData(invoiceId, userId);
     
-    const userObject = {
-        displayName: user.displayName || 'ProManFlow User',
-        email: user.email || '',
-    };
-
-    const invoiceContent = createInvoiceText(invoice, client, userObject);
+    const invoiceContent = createInvoiceText(invoice, client, user);
     const textBuffer = Buffer.from(invoiceContent, 'utf-8');
 
     const bucket = storage.bucket();
@@ -140,7 +138,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ pdfUrl: publicUrl });
   } catch (error: any) {
-    console.error('PDF Generation Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Invoice Text Generation Error:', error);
+    return NextResponse.json({ error: error.message || 'An unknown server error occurred.' }, { status: 500 });
   }
 }
