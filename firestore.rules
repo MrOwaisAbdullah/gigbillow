@@ -1,21 +1,136 @@
+/**
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a strict user-ownership model for all data.
+ *
+ * Data Structure:
+ * - All data is nested under /users/{userId}, except for user tokens which are stored in /user_tokens/{userId}.
+ * - Clients, projects, time entries, and invoices are stored as subcollections under each user.
+ *
+ * Key Security Decisions:
+ * - Users can only access their own data.
+ * - No public data access is allowed.
+ * - Data schema is not strictly enforced to allow for prototyping.
+ *
+ * Denormalization for Authorization:
+ * - The `userId` is implicitly enforced by the document path.
+ */
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    /**
+     * @description Checks if the request is made by the owner of the document.
+     * @param {string} userId The user ID to check against.
+     * @return {bool} True if the request is made by the owner, false otherwise.
+     */
     function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
+      return request.auth.uid == userId;
     }
 
-    // Rules for user-specific collections
-    match /users/{userId}/{document=**} {
-      allow read, write: if isOwner(userId);
+    /**
+     * @description Checks if the request is made by the owner of the existing document.
+     * @param {string} userId The user ID to check against.
+     * @return {bool} True if the request is made by the owner and the document exists, false otherwise.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && exists(resource);
     }
 
-    // Rules for the user_tokens collection
+    /**
+     * @description Checks if the user is signed in.
+     * @return {bool} True if the user is signed in, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Rules for user profiles.
+     * @path /users/{userId}
+     * @allow (create) User with ID 'user123' can create their profile.
+     * @deny (create) User with ID 'user123' cannot create a profile with a mismatched ID 'user456'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+
+    /**
+     * @description Rules for clients.
+     * @path /users/{userId}/clients/{clientId}
+     * @allow (create) User with ID 'user123' can create a client.
+     * @deny (create) User with ID 'user123' cannot create a client with a mismatched ID 'user456'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/clients/{clientId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+
+    /**
+     * @description Rules for projects.
+     * @path /users/{userId}/projects/{projectId}
+     * @allow (create) User with ID 'user123' can create a project.
+     * @deny (create) User with ID 'user123' cannot create a project with a mismatched ID 'user456'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/projects/{projectId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+
+    /**
+     * @description Rules for time entries.
+     * @path /users/{userId}/timeEntries/{timeEntryId}
+     * @allow (create) User with ID 'user123' can create a time entry.
+     * @deny (create) User with ID 'user123' cannot create a time entry with a mismatched ID 'user456'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/timeEntries/{timeEntryId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+
+    /**
+     * @description Rules for invoices.
+     * @path /users/{userId}/invoices/{invoiceId}
+     * @allow (create) User with ID 'user123' can create an invoice.
+     * @deny (create) User with ID 'user123' cannot create an invoice with a mismatched ID 'user456'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/invoices/{invoiceId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+
+    /**
+     * @description Rules for user tokens.
+     * @path /user_tokens/{userId}
+     * @allow (create) User with ID 'user123' can create a user token.
+     * @deny (create) User with ID 'user123' cannot create a user token with a mismatched ID 'user456'.
+     */
     match /user_tokens/{userId} {
-      allow read, write: if isOwner(userId);
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
     }
   }
 }
