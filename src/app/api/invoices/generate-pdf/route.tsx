@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     };
 
     const pdfBuffer = await renderToBuffer(
-        React.createElement(InvoicePDFDocument, { invoice, client, project, user: userObject })
+        <InvoicePDFDocument invoice={invoice} client={client} project={project} user={userObject} />
     );
 
     const bucket = storage.bucket();
