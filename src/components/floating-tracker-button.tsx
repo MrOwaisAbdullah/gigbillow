@@ -8,7 +8,17 @@ import { Timer } from 'lucide-react';
 export function FloatingTrackerButton() {
   const pathname = usePathname();
 
-  if (pathname === '/track') {
+  const hiddenPaths = [
+    '/track',
+    '/invoices/new',
+    '/clients/new',
+    '/projects/new',
+    '/settings',
+  ];
+
+  const shouldHide = hiddenPaths.includes(pathname) || pathname.startsWith('/invoices/');
+
+  if (shouldHide) {
     return null;
   }
 
