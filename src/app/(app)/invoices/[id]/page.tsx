@@ -16,6 +16,14 @@ import { getProjectById } from '@/lib/api/projects';
 import { generateInvoicePdf } from '@/lib/pdf-utils';
 import type { Invoice, Client, Project } from '@/lib/types';
 import { useAuth } from '@/components/auth/auth-provider';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
   paid: 'default',
