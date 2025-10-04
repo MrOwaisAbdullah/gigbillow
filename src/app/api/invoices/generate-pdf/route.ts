@@ -131,74 +131,6 @@ const styles = StyleSheet.create({
   },
 });
 
-function InvoicePDF({ invoice, client, project, user }: { invoice: Invoice; client: Client; project: Project; user: { displayName?: string, email?: string }; }) {
-  const taxAmount = (invoice.subTotal * invoice.taxRate) / 100;
-  
-  return React.createElement(Document, null, 
-    React.createElement(Page, { size: "A4", style: styles.page },
-      React.createElement(View, { style: styles.header },
-        React.createElement(View, { style: styles.companyDetails },
-          React.createElement(Text, { style: styles.companyName }, user.displayName || 'ProManFlow'),
-          React.createElement(Text, null, user.email)
-        ),
-        React.createElement(View, { style: styles.invoiceDetails },
-          React.createElement(Text, { style: styles.invoiceTitle }, "INVOICE"),
-          React.createElement(Text, { style: styles.textMuted }, invoice.invoiceNumber)
-        )
-      ),
-      React.createElement(View, { style: styles.detailsSection },
-        React.createElement(View, null,
-          React.createElement(Text, { style: [styles.textMuted, { marginBottom: 4 }] }, "Bill To"),
-          React.createElement(Text, { style: styles.billTo }, client.name),
-          React.createElement(Text, null, client.email)
-        ),
-        React.createElement(View, { style: { textAlign: 'right' } },
-          React.createElement(Text, { style: [styles.textMuted, { marginBottom: 4 }] }, "Issue Date"),
-          React.createElement(Text, { style: { fontWeight: 600, marginBottom: 8, fontFamily: 'Helvetica-Bold' } }, format(new Date(invoice.issuedDate), 'PPP')),
-          React.createElement(Text, { style: [styles.textMuted, { marginBottom: 4 }] }, "Due Date"),
-          React.createElement(Text, { style: { fontWeight: 600, fontFamily: 'Helvetica-Bold' } }, format(new Date(invoice.dueDate), 'PPP'))
-        )
-      ),
-      invoice.enhancedSummary && React.createElement(View, { style: styles.summarySection },
-        React.createElement(Text, null, invoice.enhancedSummary)
-      ),
-      React.createElement(View, { style: styles.table },
-        React.createElement(View, { style: styles.tableHeader },
-          React.createElement(Text, { style: [styles.tableHeaderCell, { width: '100%' }] }, "Description")
-        ),
-        ...invoice.lineItems.map((item, index) => 
-          React.createElement(View, { style: styles.tableRow, key: index },
-            React.createElement(Text, { style: styles.tableCellDescription }, item.description)
-          )
-        )
-      ),
-      React.createElement(View, { style: styles.totalsSection },
-        React.createElement(View, { style: styles.totalsContainer },
-          React.createElement(View, { style: styles.totalRow },
-            React.createElement(Text, { style: styles.totalLabel }, "Sub-total"),
-            React.createElement(Text, { style: styles.totalAmount }, `$${invoice.subTotal.toFixed(2)}`)
-          ),
-          React.createElement(View, { style: styles.totalRow },
-            React.createElement(Text, { style: styles.totalLabel }, `Tax (${invoice.taxRate}%)`),
-            React.createElement(Text, { style: styles.totalAmount }, `$${taxAmount.toFixed(2)}`)
-          ),
-          React.createElement(View, { style: styles.grandTotalRow },
-            React.createElement(Text, { style: styles.grandTotalLabel }, "Total"),
-            React.createElement(Text, { style: styles.grandTotalAmount }, `$${invoice.amount.toFixed(2)}`)
-          )
-        )
-      ),
-      invoice.notes && React.createElement(View, { style: { marginTop: 30 } },
-        React.createElement(Text, { style: { fontWeight: 'bold', fontFamily: 'Helvetica-Bold', marginBottom: 4 } }, "Notes"),
-        React.createElement(Text, { style: styles.textMuted }, invoice.notes)
-      ),
-      React.createElement(View, { style: styles.footer },
-        React.createElement(Text, null, "Thank you for your business!")
-      )
-    )
-  );
-}
-
 
 async function getInvoiceData(invoiceId: string, userId: string) {
     const invoiceRef = adminFirestore.collection('users').doc(userId).collection('invoices').doc(invoiceId);
@@ -251,9 +183,73 @@ export async function POST(req: NextRequest) {
         displayName: user.displayName || 'ProManFlow User',
         email: user.email || '',
     };
+    
+    const taxAmount = (invoice.subTotal * invoice.taxRate) / 100;
 
     const pdfBuffer = await renderToBuffer(
-        React.createElement(InvoicePDF, { invoice, client, project, user: userObject })
+        React.createElement(Document, null, 
+          React.createElement(Page, { size: "A4", style: styles.page },
+            React.createElement(View, { style: styles.header },
+              React.createElement(View, { style: styles.companyDetails },
+                React.createElement(Text, { style: styles.companyName }, userObject.displayName),
+                React.createElement(Text, null, userObject.email)
+              ),
+              React.createElement(View, { style: styles.invoiceDetails },
+                React.createElement(Text, { style: styles.invoiceTitle }, "INVOICE"),
+                React.createElement(Text, { style: styles.textMuted }, invoice.invoiceNumber)
+              )
+            ),
+            React.createElement(View, { style: styles.detailsSection },
+              React.createElement(View, null,
+                React.createElement(Text, { style: [styles.textMuted, { marginBottom: 4 }] }, "Bill To"),
+                React.createElement(Text, { style: styles.billTo }, client.name),
+                React.createElement(Text, null, client.email)
+              ),
+              React.createElement(View, { style: { textAlign: 'right' } },
+                React.createElement(Text, { style: [styles.textMuted, { marginBottom: 4 }] }, "Issue Date"),
+                React.createElement(Text, { style: { fontWeight: 'bold', fontFamily: 'Helvetica-Bold', marginBottom: 8 } }, format(new Date(invoice.issuedDate), 'PPP')),
+                React.createElement(Text, { style: [styles.textMuted, { marginBottom: 4 }] }, "Due Date"),
+                React.createElement(Text, { style: { fontWeight: 'bold', fontFamily: 'Helvetica-Bold' } }, format(new Date(invoice.dueDate), 'PPP'))
+              )
+            ),
+            invoice.enhancedSummary && React.createElement(View, { style: styles.summarySection },
+              React.createElement(Text, null, invoice.enhancedSummary)
+            ),
+            React.createElement(View, { style: styles.table },
+              React.createElement(View, { style: styles.tableHeader },
+                React.createElement(Text, { style: [styles.tableHeaderCell, { width: '100%' }] }, "Description")
+              ),
+              ...invoice.lineItems.map((item, index) => 
+                React.createElement(View, { style: styles.tableRow, key: index },
+                  React.createElement(Text, { style: styles.tableCellDescription }, item.description)
+                )
+              )
+            ),
+            React.createElement(View, { style: styles.totalsSection },
+              React.createElement(View, { style: styles.totalsContainer },
+                React.createElement(View, { style: styles.totalRow },
+                  React.createElement(Text, { style: styles.totalLabel }, "Sub-total"),
+                  React.createElement(Text, { style: styles.totalAmount }, `$${invoice.subTotal.toFixed(2)}`)
+                ),
+                React.createElement(View, { style: styles.totalRow },
+                  React.createElement(Text, { style: styles.totalLabel }, `Tax (${invoice.taxRate}%)`),
+                  React.createElement(Text, { style: styles.totalAmount }, `$${taxAmount.toFixed(2)}`)
+                ),
+                React.createElement(View, { style: styles.grandTotalRow },
+                  React.createElement(Text, { style: styles.grandTotalLabel }, "Total"),
+                  React.createElement(Text, { style: styles.grandTotalAmount }, `$${invoice.amount.toFixed(2)}`)
+                )
+              )
+            ),
+            invoice.notes && React.createElement(View, { style: { marginTop: 30 } },
+              React.createElement(Text, { style: { fontWeight: 'bold', fontFamily: 'Helvetica-Bold', marginBottom: 4 } }, "Notes"),
+              React.createElement(Text, { style: styles.textMuted }, invoice.notes)
+            ),
+            React.createElement(View, { style: styles.footer },
+              React.createElement(Text, null, "Thank you for your business!")
+            )
+          )
+        )
     );
 
     const bucket = storage.bucket();
