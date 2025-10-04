@@ -167,7 +167,7 @@ export function InvoicesList() {
                   <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                   <TableCell>{client?.name}</TableCell>
                   <TableCell>{project?.name}</TableCell>
-                  <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+                  <TableCell>${(invoice.amount || 0).toFixed(2)}</TableCell>
                   <TableCell>{format(new Date(invoice.issuedDate), 'PPP')}</TableCell>
                   <TableCell>{format(new Date(invoice.dueDate), 'PPP')}</TableCell>
                   <TableCell>
@@ -186,9 +186,9 @@ export function InvoicesList() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem asChild>
-                          <Link href={invoice.pdfUrl || '#'} target="_blank" rel="noopener noreferrer" aria-disabled={!invoice.pdfUrl}>
-                            View
-                          </Link>
+                          <a href={invoice.pdfUrl || '#'} target="_blank" rel="noopener noreferrer" className={!invoice.pdfUrl ? 'pointer-events-none text-muted-foreground' : ''}>
+                            View PDF
+                          </a>
                         </DropdownMenuItem>
                          {invoice.status !== 'paid' && <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice.id)}>Mark as Paid</DropdownMenuItem>}
                         <DropdownMenuItem onClick={() => handleDelete(invoice.id)}>Delete</DropdownMenuItem>

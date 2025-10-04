@@ -5,13 +5,22 @@ import { InvoicePDFDocument } from '@/components/invoices/invoice-pdf-document';
 import type { Invoice, Client, Project } from '@/lib/types';
 import type { UserInfo } from 'firebase-admin/auth';
 import { getAuth } from 'firebase-admin/auth';
+import React from 'react';
 
 
 async function getInvoiceData(invoiceId: string, userId: string) {
     const invoiceRef = adminFirestore.collection('users').doc(userId).collection('invoices').doc(invoiceId);
     const invoiceSnap = await invoiceRef.get();
     if (!invoiceSnap.exists) throw new Error('Invoice not found');
-    const invoice = { id: invoiceSnap.id, ...invoiceSnap.data() } as Invoice;
+    const invoiceData = invoiceSnap.data()!;
+
+    // Convert Firestore Timestamps to JS Dates
+    const invoice = {
+      id: invoiceSnap.id,
+      ...invoiceData,
+      issuedDate: invoiceData.issuedDate.toDate(),
+      dueDate: invoiceData.dueDate.toDate(),
+    } as Invoice;
 
     const clientRef = adminFirestore.collection('users').doc(userId).collection('clients').doc(invoice.clientId);
     const clientSnap = await clientRef.get();
@@ -22,7 +31,7 @@ async function getInvoiceData(invoiceId: string, userId: string) {
     const projectSnap = await projectRef.get();
     if (!projectSnap.exists) throw new Error('Project not found');
     const project = { id: projectSnap.id, ...projectSnap.data() } as Project;
-    
+
     // We need the user's details for the invoice (name, email)
     const user = await getAuth().getUser(userId);
 
@@ -45,7 +54,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { invoice, client, project, user } = await getInvoiceData(invoiceId, userId);
-    
+
     // Cast user to a plain object to satisfy @react-pdf/renderer's requirements
     const userObject: UserInfo = {
         uid: user.uid,
@@ -64,7 +73,7 @@ export async function POST(req: NextRequest) {
     };
 
     const pdfBuffer = await renderToBuffer(
-        <InvoicePDFDocument invoice={invoice} client={client} project={project} user={userObject} />
+        React.createElement(InvoicePDFDocument, { invoice, client, project, user: userObject })
     );
 
     const bucket = storage.bucket();
@@ -77,11 +86,11 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const [publicUrl] = await file.getSignedUrl({
-        action: 'read',
-        expires: '03-09-2491', // Far future expiration date
-    });
-    
+    // Make the file publically accessible - for a real app, you'd want more secure, time-limited URLs.
+    await file.makePublic();
+
+    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
+
     return NextResponse.json({ pdfUrl: publicUrl });
   } catch (error: any) {
     console.error('PDF Generation Error:', error);
