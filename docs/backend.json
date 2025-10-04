@@ -1,0 +1,121 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's public profile information.",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "photoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's profile picture."
+        }
+      }
+    },
+    "Client": {
+      "title": "Client",
+      "description": "Represents a client of the freelancer.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "avatarUrl": { "type": "string", "format": "uri" }
+      },
+      "required": ["name", "email"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "Represents a project undertaken for a client.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "clientId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "completed", "on_hold"] },
+        "rate": { "type": "number" }
+      },
+      "required": ["name", "clientId", "status", "rate"]
+    },
+    "TimeEntry": {
+      "title": "Time Entry",
+      "description": "A record of time spent on a project.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "endTime": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "hours": { "type": "number" }
+      },
+      "required": ["projectId", "startTime", "hours"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "An invoice for a client.",
+      "type": "object",
+      "properties": {
+        "invoiceNumber": { "type": "string" },
+        "clientId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "amount": { "type": "number" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "issuedDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["paid", "unpaid", "overdue"] },
+        "lineItems": {
+          "type": "array",
+          "items": { "type": "object", "properties": { "description": { "type": "string" } } }
+        },
+        "subTotal": { "type": "number" },
+        "taxRate": { "type": "number" },
+        "paymentUrl": { "type": "string", "format": "uri" },
+        "notes": { "type": "string" },
+        "enhancedSummary": { "type": "string" }
+      },
+      "required": ["invoiceNumber", "clientId", "projectId", "amount", "issuedDate", "dueDate", "status"]
+    },
+    "UserToken": {
+      "title": "User Token",
+      "description": "Manages a user's token balance for premium features.",
+      "type": "object",
+      "properties": {
+        "balance": { "type": "number" },
+        "last_refill_at": { "type": "string", "format": "date-time" },
+        "rollover_limit": { "type": "number" }
+      },
+      "required": ["balance"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com", "password"]
+  },
+  "firestore": {
+    "/users/{userId}/clients/{clientId}": {
+      "schema": { "$ref": "#/entities/Client" },
+      "description": "Stores client information for each user."
+    },
+    "/users/{userId}/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "Stores project information for each user."
+    },
+    "/users/{userId}/timeEntries/{timeEntryId}": {
+      "schema": { "$ref": "#/entities/TimeEntry" },
+      "description": "Stores time tracking entries for each user."
+    },
+    "/users/{userId}/invoices/{invoiceId}": {
+      "schema": { "$ref": "#/entities/Invoice" },
+      "description": "Stores invoices for each user."
+    },
+    "/user_tokens/{userId}": {
+      "schema": { "$ref": "#/entities/UserToken" },
+      "description": "Stores token balances for each user."
+    }
+  }
+}
