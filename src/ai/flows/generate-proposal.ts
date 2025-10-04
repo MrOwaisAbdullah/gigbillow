@@ -62,7 +62,7 @@ const generateProposalPrompt = ai.definePrompt({
         {{this.jobPostText}}
         ---
         - **Client Name:** {{#if this.clientName}}{{this.clientName}}{{else}}Not specified{{/if}}
-        - **Budget:** {{#if this.budget}}${{this.budget}}{{else}}Not specified{{/if}}
+        - **Budget:** {{#if this.budget}}\${{this.budget}}{{else}}Not specified{{/if}}
         - **Deadline:** {{#if this.deadline}}{{this.deadline}}{{else}}Not specified{{/if}}
         - **Key Deliverables:** {{#if this.deliverables}}{{this.deliverables}}{{else}}Not specified{{/if}}
 
@@ -82,4 +82,3 @@ const generateProposalFlow = ai.defineFlow(
     return output!;
   }
 );
-
