@@ -65,10 +65,10 @@ const generateProposalPrompt = ai.definePrompt({
         ---
         {{jobPostText}}
         ---
-        - **Client Name:** {{#if clientName}}{{clientName}}{{else}}Not specified{{/if}}
-        - **Budget:** {{#if budget}}${{budget}}{{else}}Not specified{{/if}}
-        - **Deadline:** {{#if deadline}}{{deadline}}{{else}}Not specified{{/if}}
-        - **Key Deliverables:** {{#if deliverables}}{{deliverables}}{{else}}Not specified{{/if}}
+        - **Client Name:** {{#if this.clientName}}{{this.clientName}}{{else}}Not specified{{/if}}
+        - **Budget:** {{#if this.budget}}${{this.budget}}{{else}}Not specified{{/if}}
+        - **Deadline:** {{#if this.deadline}}{{this.deadline}}{{else}}Not specified{{/if}}
+        - **Key Deliverables:** {{#if this.deliverables}}{{this.deliverables}}{{else}}Not specified{{/if}}
 
         Generate the proposal text now based on these instructions. Do not sound like a generic AI.
     `
