@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
-import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, increment, setDoc } from 'firebase/firestore';
 import type { UserToken } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
@@ -72,12 +72,23 @@ export async function addTokens(amount: number): Promise<{ success: boolean, new
     }
     
     const tokenRef = doc(db, 'user_tokens', userId);
-    await updateDoc(tokenRef, {
-        balance: increment(amount)
-    });
-
     const tokenSnap = await getDoc(tokenRef);
-    const newBalance = (tokenSnap.data() as UserToken).balance;
+
+    if (tokenSnap.exists()) {
+        await updateDoc(tokenRef, {
+            balance: increment(amount)
+        });
+    } else {
+        await setDoc(tokenRef, {
+            balance: amount,
+            last_refill_at: new Date(),
+            rollover_limit: 0,
+        });
+    }
+
+
+    const updatedSnap = await getDoc(tokenRef);
+    const newBalance = (updatedSnap.data() as UserToken).balance;
 
      toast({
         title: `⚡ ${amount} tokens added!`,
