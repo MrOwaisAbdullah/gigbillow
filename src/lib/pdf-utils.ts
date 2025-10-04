@@ -29,8 +29,11 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
 // Brand colors from globals.css
 const primaryHsl = { h: 180 / 360, s: 1, l: 0.25 }; // HSL(180, 100%, 25%)
 const primaryRgb = hslToRgb(primaryHsl.h, primaryHsl.s, primaryHsl.l);
-const black: [number, number, number] = [0, 0, 0];
-const gray: [number, number, number] = [100, 116, 139]; // Muted-foreground
+const black = [0, 0, 0];
+const gray = [102, 112, 132];
+const lightGray = [241, 245, 249]; // A light gray for table backgrounds
+const white = [255, 255, 255];
+const borderGray = [226, 232, 240];
 
 const brandName = 'ProManFlow';
 const pageMargin = 40;
@@ -56,7 +59,8 @@ function addFooter(doc: jsPDF) {
 
 function generatePdf(fileName: string, title: string, addContent: (doc: jsPDF) => void) {
     const doc = new jsPDF('p', 'pt', 'a4');
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('helvetica');
+
     addHeader(doc, title);
     addContent(doc);
     addFooter(doc);
@@ -75,26 +79,26 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
     const addContent = (doc: jsPDF) => {
         let y = pageMargin + 60;
         const sectionGap = 20;
-        const itemGap = 12;
-        const rightColX = doc.internal.pageSize.getWidth() / 2 + 20;
+        const itemGap = 15;
+        const rightColX = doc.internal.pageSize.getWidth() / 2 + 60;
 
         // --- From / To Info ---
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...primaryRgb);
         doc.text('FROM', pageMargin, y);
-        doc.text('ISSUED TO', pageMargin, y + 60);
+        doc.text('ISSUED TO', pageMargin, y + 70);
 
         doc.setFontSize(11);
         doc.setTextColor(...black);
         doc.setFont('helvetica', 'bold');
-        doc.text(user.displayName || 'Freelancer', pageMargin, y + itemGap + 5);
-        doc.text(client.name, pageMargin, y + 60 + itemGap + 5);
+        doc.text(user.displayName || 'Freelancer', pageMargin, y + itemGap);
+        doc.text(client.name, pageMargin, y + 70 + itemGap);
         
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(...gray);
-        doc.text(user.email || '', pageMargin, y + itemGap * 2 + 5);
-        doc.text(client.email, pageMargin, y + 60 + itemGap * 2 + 5);
+        doc.text(user.email || '', pageMargin, y + itemGap * 2);
+        doc.text(client.email, pageMargin, y + 70 + itemGap * 2);
 
         // --- Invoice Details (Right Column) ---
         const details = [
@@ -104,8 +108,7 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         ];
         
         details.forEach((detail, i) => {
-            const detailY = y + 5 + (i * (itemGap + 5));
-            const labelWidth = doc.getStringUnitWidth(detail.label) * 10;
+            const detailY = y + (i * (itemGap + 2));
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(...primaryRgb);
@@ -113,14 +116,15 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
             
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(...black);
-            doc.text(detail.value, rightColX + labelWidth + 10, detailY, { align: 'left' });
+            doc.text(detail.value, rightColX + 90, detailY, { align: 'left' });
         });
 
-        y += 120;
-        
-        doc.setDrawColor(226, 232, 240); // border color
-        doc.line(pageMargin, y - sectionGap, doc.internal.pageSize.getWidth() - pageMargin, y - sectionGap);
+        y += 140;
 
+        // --- Separator before summary ---
+        doc.setDrawColor(...borderGray);
+        doc.line(pageMargin, y - sectionGap, doc.internal.pageSize.getWidth() - pageMargin, y - sectionGap);
+        
         // --- AI Enhanced Summary ---
         if (invoice.enhancedSummary) {
             doc.setFontSize(11);
@@ -135,31 +139,49 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         // --- Line Items Table ---
         const tableTop = y;
         const numberColX = pageMargin;
-        const descriptionColX = numberColX + 30;
+        const descriptionColX = numberColX + 40;
+        const tableWidth = doc.internal.pageSize.getWidth() - pageMargin * 2;
+        
+        // Draw table header
+        doc.setFillColor(...primaryRgb);
+        doc.rect(pageMargin, tableTop, tableWidth, 25, 'F');
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...primaryRgb);
-        doc.text('#', numberColX, tableTop);
-        doc.text('DESCRIPTION', descriptionColX, tableTop);
+        doc.setTextColor(...white);
+        doc.text('#', numberColX + 10, tableTop + 16);
+        doc.text('DESCRIPTION', descriptionColX, tableTop + 16);
         
-        y = tableTop + 5;
-        doc.setDrawColor(226, 232, 240); // border color
-        doc.line(pageMargin, y, doc.internal.pageSize.getWidth() - pageMargin, y);
-        y += itemGap;
+        y = tableTop + 25; // Move Y to below the header
         
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(...black);
+
         invoice.lineItems.forEach((item, index) => {
-            const itemY = y + 5;
+            const isEvenRow = index % 2 === 0;
+            const splitDescription = doc.splitTextToSize(item.description.toUpperCase(), tableWidth - (descriptionColX - pageMargin));
+            const rowHeight = (splitDescription.length * (itemGap - 2)) + 10;
+
+            // Draw row background
+            if (!isEvenRow) {
+                doc.setFillColor(...lightGray);
+                doc.rect(pageMargin, y, tableWidth, rowHeight, 'F');
+            }
+
+            const itemY = y + 15;
             const itemNumber = `${index + 1}.`;
-            const splitDescription = doc.splitTextToSize(item.description.toUpperCase(), doc.internal.pageSize.getWidth() - descriptionColX - pageMargin);
             
-            doc.text(itemNumber, numberColX, itemY);
+            doc.text(itemNumber, numberColX + 10, itemY);
             doc.text(splitDescription, descriptionColX, itemY);
-            y += (splitDescription.length * (itemGap + 2)) + 5;
+            y += rowHeight;
         });
-        y += itemGap / 2;
+
+        // Draw table borders
+        doc.setDrawColor(...borderGray);
+        doc.rect(pageMargin, tableTop, tableWidth, y - tableTop); // Outer border
+        doc.line(descriptionColX - 10, tableTop, descriptionColX - 10, y); // Vertical line after #
+        
+        y += itemGap;
 
         // --- Totals ---
         const totalsX = doc.internal.pageSize.getWidth() - pageMargin - 160;
@@ -229,7 +251,7 @@ export function generateProposalPdf({ proposalText, clientName }: GeneratePropos
             doc.text(`TO: ${clientName}`, doc.internal.pageSize.getWidth() - pageMargin, y, { align: 'right' });
         }
         y += 30;
-        doc.setDrawColor(226, 232, 240); // border color
+        doc.setDrawColor(...borderGray); // border color
         doc.line(pageMargin, y, doc.internal.pageSize.getWidth() - pageMargin, y);
         y += 40;
         
