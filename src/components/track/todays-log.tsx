@@ -31,11 +31,11 @@ export function TodaysLog() {
                 {[...Array(2)].map((_, i) => (
                     <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 text-left">
                         <div>
-                            <Skeleton className="h-5 w-28 mb-2" />
+                            <Skeleton className="h-5 w-32 mb-2" />
                             <Skeleton className="h-4 w-48" />
                         </div>
                         <div className="text-right">
-                            <Skeleton className="h-6 w-16 mb-2" />
+                            <Skeleton className="h-6 w-20 mb-2" />
                             <Skeleton className="h-4 w-32" />
                         </div>
                     </div>
@@ -46,8 +46,8 @@ export function TodaysLog() {
     
     if (entries.length === 0) {
         return (
-            <div className="text-center text-muted-foreground py-12 px-4 rounded-lg border border-dashed">
-                <Clock className="mx-auto h-10 w-10 mb-4" />
+            <div className="text-center text-muted-foreground py-12 px-4 rounded-lg border-2 border-dashed">
+                <Clock className="mx-auto h-10 w-10 mb-4 text-muted-foreground/50" />
                 <h3 className="text-lg font-semibold">No time logged today</h3>
                 <p>Start the timer on a project to begin tracking your work.</p>
             </div>

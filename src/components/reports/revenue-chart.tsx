@@ -62,11 +62,12 @@ export function RevenueChart() {
                 <CardDescription>Your total revenue over the last 12 months.</CardDescription>
             </CardHeader>
             <CardContent className="pl-2">
-                <div className="h-[350px] flex items-end gap-2 px-4">
+                <div className="h-[350px] flex items-end gap-4 px-4 pb-2">
                     {[...Array(12)].map((_, i) => (
-                        <Skeleton key={i} className="h-full w-full" style={{height: `${Math.random() * 80 + 10}%`}} />
+                        <Skeleton key={i} className="w-full" style={{height: `${Math.random() * 80 + 10}%`}} />
                     ))}
                 </div>
+                 <Skeleton className="h-4 w-full mt-2" />
             </CardContent>
         </Card>
     );

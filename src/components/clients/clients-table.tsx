@@ -59,11 +59,9 @@ export function ClientsTable() {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>
-                        <span className="sr-only">Actions</span>
-                        </TableHead>
+                        <TableHead className="w-2/5">Client</TableHead>
+                        <TableHead className="w-2/5">Email</TableHead>
+                        <TableHead className="w-1/5 text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -72,10 +70,10 @@ export function ClientsTable() {
                             <TableCell>
                                 <div className="flex items-center gap-3">
                                     <Skeleton className="h-9 w-9 rounded-full" />
-                                    <Skeleton className="h-4 w-32" />
+                                    <Skeleton className="h-5 w-32" />
                                 </div>
                             </TableCell>
-                            <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                            <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                             <TableCell>
                                 <div className="flex justify-end">
                                   <Skeleton className="h-8 w-8" />
@@ -96,7 +94,7 @@ export function ClientsTable() {
           <TableRow>
             <TableHead>Client</TableHead>
             <TableHead>Email</TableHead>
-            <TableHead>
+            <TableHead className="text-right">
               <span className="sr-only">Actions</span>
             </TableHead>
           </TableRow>

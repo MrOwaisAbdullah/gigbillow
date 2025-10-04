@@ -43,6 +43,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { generateProposal } from '@/ai/flows/generate-proposal';
 import { canAfford, chargeFor } from '@/lib/api/tokens';
 import { useToken } from '@/components/token/token-provider';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const formSchema = z.object({
   jobPostText: z
@@ -265,8 +266,13 @@ export default function ProposalGeneratorPage() {
             </CardHeader>
             <CardContent>
               {isGenerating ? (
-                <div className="flex h-[200px] items-center justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <div className="space-y-4 pt-2">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-5/6" />
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-4/6" />
                 </div>
               ) : generatedProposal ? (
                 <Textarea
@@ -276,7 +282,7 @@ export default function ProposalGeneratorPage() {
                 />
               ) : (
                 <div className="flex h-[200px] items-center justify-center rounded-lg border-2 border-dashed text-center text-muted-foreground">
-                  <p>Your AI-generated proposal will appear here.</p>
+                  <p className="max-w-xs">Your AI-generated proposal will appear here once you provide job details and click generate.</p>
                 </div>
               )}
             </CardContent>

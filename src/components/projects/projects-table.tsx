@@ -82,9 +82,9 @@ export function ProjectsTable() {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Project Name</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead className="w-2/5">Project Name</TableHead>
+                        <TableHead className="w-2/5">Client</TableHead>
+                        <TableHead className="w-1/5">Status</TableHead>
                         <TableHead>
                         <span className="sr-only">Actions</span>
                         </TableHead>
@@ -93,8 +93,8 @@ export function ProjectsTable() {
                 <TableBody>
                     {[...Array(3)].map((_, i) => (
                         <TableRow key={i}>
-                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                            <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                             <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                             <TableCell>
                                 <div className="flex justify-end">
@@ -118,7 +118,7 @@ export function ProjectsTable() {
             <TableHead>Project Name</TableHead>
             <TableHead>Client</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>
+            <TableHead className="text-right">
               <span className="sr-only">Actions</span>
             </TableHead>
           </TableRow>

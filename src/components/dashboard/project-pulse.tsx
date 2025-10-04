@@ -33,12 +33,12 @@ export function ProjectPulse() {
                     <CardTitle>Project Pulse</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {[...Array(2)].map((_, i) => (
+                    {[...Array(3)].map((_, i) => (
                         <div key={i}>
-                            <div className="grid grid-cols-3 items-center gap-4 text-sm mb-2">
-                                <Skeleton className="h-4 w-32" />
-                                <Skeleton className="h-4 w-24" />
-                                <Skeleton className="h-4 w-20" />
+                            <div className="flex justify-between text-sm mb-2">
+                                <Skeleton className="h-5 w-1/3" />
+                                <Skeleton className="h-5 w-1/4" />
+                                <Skeleton className="h-5 w-1/5" />
                             </div>
                             <Skeleton className="h-2 w-full" />
                         </div>

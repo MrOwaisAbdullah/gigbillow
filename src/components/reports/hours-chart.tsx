@@ -53,7 +53,7 @@ export function HoursChart() {
                 <CardDescription>Distribution of hours tracked this month.</CardDescription>
             </CardHeader>
             <CardContent className="flex justify-center items-center h-[350px]">
-                <Skeleton className="w-[240px] h-[240px] rounded-full" />
+                <Skeleton className="w-[250px] h-[250px] rounded-full" />
             </CardContent>
         </Card>
     );

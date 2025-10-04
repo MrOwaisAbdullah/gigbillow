@@ -41,11 +41,11 @@ export function TodaysPulse() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <div className="flex justify-between items-baseline">
-                        <Skeleton className="h-4 w-36" />
-                        <Skeleton className="h-7 w-16" />
+                        <span className="text-muted-foreground">Billable Hours Today</span>
+                        <Skeleton className="h-7 w-20" />
                     </div>
                     <div className="flex justify-between items-baseline">
-                        <Skeleton className="h-4 w-28" />
+                        <span className="text-muted-foreground">Earned Today</span>
                         <Skeleton className="h-7 w-24" />
                     </div>
                 </CardContent>
