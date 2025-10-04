@@ -38,3 +38,17 @@ export type Invoice = {
   notes?: string;
   enhancedSummary?: string;
 };
+
+export type UserToken = {
+    balance: number;
+    last_refill_at: Date;
+    rollover_limit: number;
+};
+
+export type TokenPack = {
+    id: string;
+    stripe_price_id: string;
+    tokens: number;
+    price_cents: number;
+    type: 'one_time' | 'recurring';
+};

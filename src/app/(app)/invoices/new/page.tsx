@@ -45,6 +45,8 @@ import { SelectWithCreate } from '@/components/select-with-create';
 import { ClientForm } from '@/components/clients/client-form';
 import { ProjectForm } from '@/components/projects/project-form';
 import { useAuth } from '@/components/auth/auth-provider';
+import { canAfford, chargeFor } from '@/lib/api/tokens';
+import { useToken } from '@/components/token/token-provider';
 
 
 const lineItemSchema = z.object({
@@ -144,6 +146,7 @@ export default function NewInvoicePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { openDialog } = useToken();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -260,11 +263,18 @@ export default function NewInvoicePage() {
   };
 
   const handleNewProject = async () => {
+    const hasEnoughTokens = await canAfford('project');
+    if (!hasEnoughTokens) {
+      openDialog();
+      return;
+    }
+
     const updatedProjects = await fetchProjects();
     const filteredProjects = updatedProjects.filter(p => p.clientId === clientId);
     setProjects(filteredProjects);
     const newProject = filteredProjects[filteredProjects.length - 1];
     if (newProject) {
+      await chargeFor('project');
       form.setValue('projectId', newProject.id);
     }
   };
@@ -281,6 +291,14 @@ export default function NewInvoicePage() {
 
   async function onSubmit(values: InvoiceFormValues) {
     setIsSubmitting(true);
+    
+    const hasEnoughTokens = await canAfford('invoice_pdf');
+    if (!hasEnoughTokens) {
+        openDialog();
+        setIsSubmitting(false);
+        return;
+    }
+
     try {
         const invoiceToCreate = {
             ...values,
@@ -316,6 +334,8 @@ export default function NewInvoicePage() {
         const invoiceText = generateInvoiceText(values, client, user, totalAmount, enhancementResult.summary);
         downloadTextFile(`${values.invoiceNumber}.txt`, invoiceText);
 
+        await chargeFor('invoice_pdf');
+
         toast({
             title: 'Invoice Created & Downloaded',
             description: 'Your invoice has been created and the document has started downloading.',
@@ -350,7 +370,7 @@ export default function NewInvoicePage() {
             <CardHeader>
               <CardTitle>Invoice Details</CardTitle>
               <CardDescription>
-                Fill out the form to create a new invoice.
+                Fill out the form to create a new invoice. (Costs 1 token)
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -479,7 +499,7 @@ export default function NewInvoicePage() {
                         items={projects.map(p => ({ value: p.id, label: p.name }))}
                         placeholder="Select a project"
                         dialogTitle="Create New Project"
-                        dialogDescription="Add a new project for the selected client."
+                        dialogDescription="Add a new project for the selected client. (Costs 1 token)"
                         onCreated={handleNewProject}
                         disabled={!clientId}
                       >

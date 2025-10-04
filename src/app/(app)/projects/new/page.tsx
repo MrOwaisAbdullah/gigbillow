@@ -16,11 +16,14 @@ import type { Client } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { ProjectForm } from '@/components/projects/project-form';
+import { useToken } from '@/components/token/token-provider';
+import { canAfford, chargeFor } from '@/lib/api/tokens';
 
 export default function NewProjectPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
+  const { openDialog } = useToken();
 
   const fetchClients = useCallback(async () => {
     const clientsData = await getClients();
@@ -32,7 +35,16 @@ export default function NewProjectPage() {
     fetchClients();
   }, [fetchClients]);
 
-  const handleSuccess = (newProject: { id: string; name: string }) => {
+  const handleSuccess = async (newProject: { id: string; name: string }) => {
+    const hasEnoughTokens = await canAfford('project');
+    if (!hasEnoughTokens) {
+        openDialog();
+        // Note: Project is created in DB, but we stop navigation.
+        // A more robust solution might revert the creation or prevent it in the first place.
+        return;
+    }
+
+    await chargeFor('project');
     toast({
       title: 'Project Created',
       description: `Project "${newProject.name}" has been successfully created.`,
@@ -61,7 +73,7 @@ export default function NewProjectPage() {
         <CardHeader>
           <CardTitle>Project Details</CardTitle>
           <CardDescription>
-            Enter the details for the new project.
+            Enter the details for the new project. (Costs 1 token)
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -22,6 +22,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import {
   CircleUser,
   PanelLeft,
+  Zap,
 } from "lucide-react"
 import { usePathname } from 'next/navigation'
 import React from "react"
@@ -29,12 +30,13 @@ import { AppSidebarNav } from "./app-sidebar-nav"
 import { useAuth } from "./auth/auth-provider"
 import { signOut } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
-
+import { useToken } from "./token/token-provider"
 
 export function AppHeader() {
   const pathname = usePathname()
   const segments = pathname.split('/').filter(Boolean)
   const { user } = useAuth();
+  const { tokens, loading: tokensLoading, openDialog } = useToken();
 
   const breadcrumbItems = segments.map((segment, index) => {
     // Exclude 'app' from breadcrumbs
@@ -84,6 +86,10 @@ export function AppHeader() {
       <div className="relative ml-auto flex-1 md:grow-0">
         {/* Can add a search bar here if needed */}
       </div>
+       <Button variant="outline" size="sm" onClick={openDialog}>
+            <Zap className="mr-2 h-4 w-4 text-yellow-500" />
+            {tokensLoading ? '...' : tokens} Tokens
+       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button

@@ -27,6 +27,8 @@ import type { Client, Project } from '@/lib/types';
 import { useState, useEffect } from 'react';
 import { SelectWithCreate } from '../select-with-create';
 import { ClientForm } from '../clients/client-form';
+import { canAfford } from '@/lib/api/tokens';
+import { useToken } from '../token/token-provider';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Project name must be at least 2 characters.'),
@@ -46,6 +48,7 @@ type ProjectFormProps = {
 export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onClientCreated }: ProjectFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { openDialog } = useToken();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,12 +69,17 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
+
+    const hasEnoughTokens = await canAfford('project');
+    if (!hasEnoughTokens && !initialClientId) { // Don't check if it's from invoice page
+      openDialog();
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const newProject = await createProject(values);
-      toast({
-        title: 'Project Created',
-        description: `Project "${values.name}" has been successfully created.`,
-      });
+      // The parent component will handle the success message and token charge
       onSuccess(newProject);
     } catch (error) {
       // API handles error toast

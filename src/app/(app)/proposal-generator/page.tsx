@@ -41,6 +41,8 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { generateProposal } from '@/ai/flows/generate-proposal';
+import { canAfford, chargeFor } from '@/lib/api/tokens';
+import { useToken } from '@/components/token/token-provider';
 
 const formSchema = z.object({
   jobPostText: z
@@ -59,6 +61,7 @@ export default function ProposalGeneratorPage() {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedProposal, setGeneratedProposal] = useState('');
+  const { openDialog } = useToken();
 
   const form = useForm<ProposalFormValues>({
     resolver: zodResolver(formSchema),
@@ -72,11 +75,22 @@ export default function ProposalGeneratorPage() {
   async function onSubmit(values: ProposalFormValues) {
     setIsGenerating(true);
     setGeneratedProposal('');
+
+    const hasEnoughTokens = await canAfford('proposal');
+    if (!hasEnoughTokens) {
+        openDialog();
+        setIsGenerating(false);
+        return;
+    }
+
     try {
       const result = await generateProposal({
         ...values,
         deadline: values.deadline ? format(values.deadline, 'PPP') : undefined,
       });
+
+      await chargeFor('proposal');
+
       setGeneratedProposal(result.proposal);
       toast({
         title: 'Proposal Generated',
@@ -111,7 +125,7 @@ export default function ProposalGeneratorPage() {
               <CardHeader>
                 <CardTitle>Job Details</CardTitle>
                 <CardDescription>
-                  Provide the details for the job you're applying for.
+                  Provide the details for the job you're applying for. (Costs 1 token)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -272,7 +286,7 @@ export default function ProposalGeneratorPage() {
                 <Copy className="mr-2 h-4 w-4" />
                 Copy
               </Button>
-              <Button disabled>
+              <Button>
                 <Download className="mr-2 h-4 w-4" />
                 Download PDF
               </Button>
