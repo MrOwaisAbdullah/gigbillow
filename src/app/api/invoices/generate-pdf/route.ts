@@ -60,10 +60,8 @@ export async function POST(req: NextRequest) {
         uid: user.uid,
         email: user.email ?? '',
         displayName: user.displayName ?? '',
-        providerId: 'firebase', // This is a required field
         photoURL: user.photoURL ?? '',
         phoneNumber: user.phoneNumber ?? '',
-        emailVerified: user.emailVerified,
         disabled: user.disabled,
         metadata: user.metadata,
         customClaims: user.customClaims,
