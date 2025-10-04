@@ -118,11 +118,42 @@ export default function ProposalGeneratorPage() {
 
   const handleDownload = () => {
     const doc = new jsPDF();
-    const margin = 15;
+    const margin = 20;
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let y = margin;
+
+    // Header
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Project Proposal', pageWidth / 2, y, { align: 'center' });
+    y += 15;
+
+    // Date and Client Info
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Date: ${format(new Date(), 'PPP')}`, margin, y);
+    const clientName = form.getValues('clientName');
+    if (clientName) {
+      doc.text(`To: ${clientName}`, pageWidth - margin, y, { align: 'right' });
+    }
+    y += 10;
+    doc.line(margin, y, pageWidth - margin, y); // Separator line
+    y += 15;
+    
+    // Proposal Body
+    doc.setFontSize(12);
     const textLines = doc.splitTextToSize(generatedProposal, pageWidth - margin * 2);
     
-    doc.text(textLines, margin, margin);
+    textLines.forEach((line: string) => {
+      if (y > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+      doc.text(line, margin, y);
+      y += 7; // Line height
+    });
+    
     doc.save('proposal.pdf');
     toast({ title: 'Download started!' });
   };
@@ -323,3 +354,5 @@ export default function ProposalGeneratorPage() {
     </div>
   );
 }
+
+    
