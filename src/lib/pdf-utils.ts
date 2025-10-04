@@ -39,7 +39,7 @@ function addHeader(doc: jsPDF, title: string) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(28);
     doc.setTextColor(...primaryRgb);
-    doc.text(title, doc.internal.pageSize.getWidth() - pageMargin, pageMargin, { align: 'right' });
+    doc.text(title, pageMargin, pageMargin, { align: 'left' });
 }
 
 function addFooter(doc: jsPDF) {
@@ -134,13 +134,16 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
 
         // --- Line Items Table ---
         const tableTop = y;
-        const tableHeaderY = tableTop + itemGap + 5;
-        
+        const numberColX = pageMargin;
+        const descriptionColX = numberColX + 30;
+
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...primaryRgb);
-        doc.text('DESCRIPTION', pageMargin + 20, tableHeaderY);
-        y = tableHeaderY + 5;
+        doc.text('#', numberColX, tableTop);
+        doc.text('DESCRIPTION', descriptionColX, tableTop);
+        
+        y = tableTop + 5;
         doc.setDrawColor(226, 232, 240); // border color
         doc.line(pageMargin, y, doc.internal.pageSize.getWidth() - pageMargin, y);
         y += itemGap;
@@ -148,12 +151,12 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(...black);
         invoice.lineItems.forEach((item, index) => {
+            const itemY = y + 5;
             const itemNumber = `${index + 1}.`;
-            const descriptionX = pageMargin + 20;
-            const splitDescription = doc.splitTextToSize(item.description, doc.internal.pageSize.getWidth() - descriptionX - pageMargin);
+            const splitDescription = doc.splitTextToSize(item.description, doc.internal.pageSize.getWidth() - descriptionColX - pageMargin);
             
-            doc.text(itemNumber, pageMargin, y);
-            doc.text(splitDescription, descriptionX, y);
+            doc.text(itemNumber, numberColX, itemY);
+            doc.text(splitDescription, descriptionColX, itemY);
             y += (splitDescription.length * (itemGap + 2)) + 5;
         });
         y += itemGap / 2;
