@@ -98,7 +98,10 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  const taxAmount = (invoice.subTotal * invoice.taxRate) / 100;
+  const subTotal = invoice.subTotal || 0;
+  const taxRate = invoice.taxRate || 0;
+  const amount = invoice.amount || 0;
+  const taxAmount = (subTotal * taxRate) / 100;
 
   return (
     <div className="flex flex-col gap-8 pb-8">
@@ -175,16 +178,16 @@ export default function InvoiceDetailPage() {
                     <Separator />
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Subtotal</span>
-                        <span>${invoice.subTotal.toFixed(2)}</span>
+                        <span>${subTotal.toFixed(2)}</span>
                     </div>
                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Tax ({invoice.taxRate}%)</span>
+                        <span className="text-muted-foreground">Tax ({taxRate}%)</span>
                         <span>${taxAmount.toFixed(2)}</span>
                     </div>
                     <Separator />
                      <div className="flex justify-between font-bold text-lg">
                         <span>Total Amount</span>
-                        <span>${invoice.amount.toFixed(2)}</span>
+                        <span>${amount.toFixed(2)}</span>
                     </div>
                 </div>
             </div>
@@ -277,3 +280,5 @@ function InvoiceDetailSkeleton() {
         </div>
     )
 }
+
+    
