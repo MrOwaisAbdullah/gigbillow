@@ -98,9 +98,9 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  const subTotal = invoice.subTotal || 0;
-  const taxRate = invoice.taxRate || 0;
-  const amount = invoice.amount || 0;
+  const subTotal = Number(invoice.subTotal) || 0;
+  const taxRate = Number(invoice.taxRate) || 0;
+  const amount = Number(invoice.amount) || 0;
   const taxAmount = (subTotal * taxRate) / 100;
 
   return (
@@ -280,5 +280,3 @@ function InvoiceDetailSkeleton() {
         </div>
     )
 }
-
-    

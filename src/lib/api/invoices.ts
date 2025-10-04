@@ -30,7 +30,9 @@ export async function getInvoices(): Promise<Invoice[]> {
           ...data,
           issuedDate: data.issuedDate.toDate(),
           dueDate: data.dueDate.toDate(),
-          amount: typeof data.amount === 'number' ? data.amount : parseFloat(data.amount || 0),
+          amount: Number(data.amount) || 0,
+          subTotal: Number(data.subTotal) || 0,
+          taxRate: Number(data.taxRate) || 0,
       } as Invoice
     });
     return invoices;
@@ -88,6 +90,9 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
                 ...data,
                 issuedDate: data.issuedDate.toDate(),
                 dueDate: data.dueDate.toDate(),
+                amount: Number(data.amount) || 0,
+                subTotal: Number(data.subTotal) || 0,
+                taxRate: Number(data.taxRate) || 0,
             } as Invoice;
         } else {
             return null;
