@@ -1,16 +1,17 @@
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy } from 'firebase/firestore';
-import type { Invoice } from '@/lib/types';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, Timestamp } from 'firebase/firestore';
+import type { Invoice, Client, Project } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
-function getCollectionPath() {
+function getCollectionPath(userId?: string) {
     const auth = getAuth();
-    const userId = auth.currentUser?.uid;
-    if (!userId) {
+    const currentUserId = auth.currentUser?.uid;
+    const resolvedUserId = userId || currentUserId;
+    if (!resolvedUserId) {
         console.warn('User not authenticated, returning null collection path');
     }
-    return userId ? `users/${userId}/invoices` : null;
+    return resolvedUserId ? `users/${resolvedUserId}/invoices` : null;
 }
 
 
@@ -92,6 +93,53 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
             return null;
         }
     } catch (error) {
+        return null;
+    }
+}
+
+
+export async function getPublicInvoiceData(userId: string, invoiceId: string): Promise<{ invoice: Invoice, user: { displayName: string, email: string }, client: Client, project: Project } | null> {
+    if (!userId || !invoiceId) return null;
+    try {
+        const invoiceRef = doc(db, `users/${userId}/invoices/${invoiceId}`);
+        const invoiceSnap = await getDoc(invoiceRef);
+
+        if (!invoiceSnap.exists()) {
+            console.log('Public invoice not found');
+            return null;
+        }
+
+        const invoiceData = invoiceSnap.data();
+        const invoice = {
+            id: invoiceSnap.id,
+            ...invoiceData,
+            issuedDate: (invoiceData.issuedDate as Timestamp).toDate(),
+            dueDate: (invoiceData.dueDate as Timestamp).toDate(),
+        } as Invoice;
+
+        const userDocRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userDocRef);
+        const user = userSnap.exists() ? userSnap.data() : { displayName: 'Freelancer', email: ''};
+        
+        const clientRef = doc(db, `users/${userId}/clients/${invoice.clientId}`);
+        const clientSnap = await getDoc(clientRef);
+        const client = clientSnap.exists() ? { id: clientSnap.id, ...clientSnap.data() } as Client : null;
+
+        const projectRef = doc(db, `users/${userId}/projects/${invoice.projectId}`);
+        const projectSnap = await getDoc(projectRef);
+        const project = projectSnap.exists() ? { id: projectSnap.id, ...projectSnap.data() } as Project : null;
+
+        if (!client || !project) {
+            console.log('Client or Project not found for public invoice');
+            return null;
+        }
+
+        return { invoice, user: user as any, client, project };
+
+    } catch (error) {
+        console.error("Error fetching public invoice data:", error);
+        // It's important to not throw here to avoid crashing the client,
+        // and instead return null to let the page handle the "not found" state.
         return null;
     }
 }

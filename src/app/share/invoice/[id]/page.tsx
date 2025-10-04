@@ -1,6 +1,7 @@
-import { notFound } from 'next/navigation';
-import { getPublicInvoiceById } from './actions';
-import Link from 'next/link';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useParams, useSearchParams, notFound } from 'next/navigation';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
@@ -15,13 +16,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { toTitleCase } from '@/lib/utils';
-import { CreditCard, Package2 } from 'lucide-react';
+import { CreditCard, Package2, Loader2 } from 'lucide-react';
 import type { Invoice, Client, Project } from '@/lib/types';
-
-type PublicInvoicePageProps = {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
+import { getPublicInvoiceData } from '@/lib/api/invoices';
 
 const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
   paid: 'default',
@@ -29,21 +26,56 @@ const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 's
   overdue: 'destructive',
 };
 
-export default async function PublicInvoicePage({ params, searchParams }: PublicInvoicePageProps) {
-  const { id } = params;
-  const userId = searchParams.userId as string;
+type PublicInvoiceData = {
+  invoice: Invoice;
+  user: { displayName: string; email: string };
+  client: Client;
+  project: Project;
+};
 
-  if (!userId) {
-    notFound();
+export default function PublicInvoicePage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const [data, setData] = useState<PublicInvoiceData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const userId = searchParams.get('userId');
+
+  useEffect(() => {
+    if (!userId || !id) {
+      setLoading(false);
+      return;
+    }
+
+    async function fetchData() {
+      try {
+        const result = await getPublicInvoiceData(userId, id);
+        setData(result);
+      } catch (error) {
+        console.error("Failed to fetch public invoice", error);
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchData();
+  }, [userId, id]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
-
-  const data = await getPublicInvoiceById(userId, id);
 
   if (!data) {
     notFound();
   }
 
-  const { invoice, user, client, project } = data as { invoice: Invoice, user: { displayName: string, email: string }, client: Client, project: Project };
+  const { invoice, user, client, project } = data;
   
   const subTotal = Number(invoice.subTotal) || 0;
   const taxRate = Number(invoice.taxRate) || 0;
