@@ -39,12 +39,13 @@ export function TimeLogSheet({ open, onOpenChange }: TimeLogSheetProps) {
     }
 
     if (!loadMore && Object.keys(projects).length === 0) {
-        const projectsData = await getProjects();
+        const projectsResult = await getProjects();
+        const projectsData = projectsResult.projects;
         const projectsById = projectsData.reduce((acc, p) => ({ ...acc, [p.id]: p }), {} as { [key: string]: Project });
         setProjects(projectsById);
     }
 
-    const result = await getTimeEntries(loadMore ? lastVisible : null, 15);
+    const result = await getTimeEntries(lastVisible, 15);
     
     setEntries(prev => loadMore ? [...prev, ...result.entries] : result.entries);
     setLastVisible(result.next);

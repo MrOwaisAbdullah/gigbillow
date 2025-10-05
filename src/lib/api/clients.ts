@@ -1,6 +1,6 @@
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, limit, startAfter, endBefore, DocumentSnapshot } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, limit, startAfter, endBefore, DocumentSnapshot, endBeforeLimit } from 'firebase/firestore';
 import type { Client } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
@@ -26,7 +26,7 @@ export async function getClients(
     } else if (page === 'next' && cursor) {
         q = query(coll, orderBy('name'), startAfter(cursor), limit(pageSize));
     } else if (page === 'prev' && cursor) {
-        q = query(coll, orderBy('name', 'desc'), startAfter(cursor), limit(pageSize));
+        q = query(coll, orderBy('name'), endBefore(cursor), limit(pageSize));
     } else {
         q = query(coll, orderBy('name'), limit(pageSize));
     }
@@ -34,24 +34,13 @@ export async function getClients(
     const querySnapshot = await getDocs(q);
     const clients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
     
-    if (page === 'prev') {
-        clients.reverse();
-    }
-
     const firstVisible = querySnapshot.docs[0];
     const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
 
-    // These will be used to determine if 'next' or 'prev' pages exist
-    const hasNextQuery = query(coll, orderBy('name'), startAfter(lastVisible), limit(1));
-    const hasNextSnap = await getDocs(hasNextQuery);
-    
-    const hasPrevQuery = query(coll, orderBy('name', 'desc'), startAfter(firstVisible), limit(1));
-    const hasPrevSnap = await getDocs(hasPrevQuery);
-
     return { 
         clients, 
-        next: hasNextSnap.docs.length > 0 ? lastVisible : null,
-        prev: page === 'first' ? null : (hasPrevSnap.docs.length > 0 ? firstVisible : null),
+        next: lastVisible,
+        prev: firstVisible,
      };
   } catch (error) {
     console.error("Error fetching clients:", error);

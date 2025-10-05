@@ -19,7 +19,8 @@ export function RevenueChart() {
 
   useEffect(() => {
     async function fetchChartData() {
-        const invoices = await getInvoices();
+        const invoicesResult = await getInvoices('first', null, 9999);
+        const invoices = invoicesResult.invoices;
         const paidInvoices = invoices.filter(inv => inv.status === 'paid');
         const now = new Date();
         

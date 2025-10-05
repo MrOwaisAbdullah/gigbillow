@@ -24,7 +24,8 @@ export function HoursChart() {
 
   useEffect(() => {
     async function fetchChartData() {
-      const [projects, timeEntriesResult] = await Promise.all([getProjects(), getTimeEntries()]);
+      const [projectsResult, timeEntriesResult] = await Promise.all([getProjects('first', null, 9999), getTimeEntries(null, 9999)]);
+      const projects = projectsResult.projects;
       const timeEntries = timeEntriesResult.entries;
       const startOfCurrentMonth = startOfMonth(new Date());
 

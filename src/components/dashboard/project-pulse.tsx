@@ -16,7 +16,8 @@ export function ProjectPulse() {
 
     useEffect(() => {
         async function fetchProjectData() {
-            const [projectsData, timeEntriesResult] = await Promise.all([getProjects(), getTimeEntries()]);
+            const [projectsResult, timeEntriesResult] = await Promise.all([getProjects('first', null, 9999), getTimeEntries(null, 9999)]);
+            const projectsData = projectsResult.projects;
             setProjects(projectsData.filter(p => p.status === 'active').slice(0, 3));
             setTimeEntries(timeEntriesResult.entries);
             setLoading(false);

@@ -24,8 +24,8 @@ export function InvoicesTable() {
 
   useEffect(() => {
     async function fetchData() {
-      const invoicesData = await getInvoices();
-      const outstandingInvoices = invoicesData.filter(inv => inv.status === 'unpaid' || inv.status === 'overdue');
+      const invoicesResult = await getInvoices('first', null, 5);
+      const outstandingInvoices = invoicesResult.invoices.filter(inv => inv.status === 'unpaid' || inv.status === 'overdue');
       setInvoices(outstandingInvoices);
 
       if (outstandingInvoices.length > 0) {

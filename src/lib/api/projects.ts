@@ -28,7 +28,7 @@ export async function getProjects(
     } else if (page === 'next' && cursor) {
         q = query(coll, orderBy('name'), startAfter(cursor), limit(pageSize));
     } else if (page === 'prev' && cursor) {
-        q = query(coll, orderBy('name', 'desc'), startAfter(cursor), limit(pageSize));
+        q = query(coll, orderBy('name'), endBefore(cursor), limit(pageSize));
     } else {
         q = query(coll, orderBy('name'), limit(pageSize));
     }
@@ -36,23 +36,13 @@ export async function getProjects(
     const querySnapshot = await getDocs(q);
     const projects = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
     
-    if (page === 'prev') {
-        projects.reverse();
-    }
-
     const firstVisible = querySnapshot.docs[0];
     const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
-
-    const hasNextQuery = query(coll, orderBy('name'), startAfter(lastVisible), limit(1));
-    const hasNextSnap = await getDocs(hasNextQuery);
-    
-    const hasPrevQuery = query(coll, orderBy('name', 'desc'), startAfter(firstVisible), limit(1));
-    const hasPrevSnap = await getDocs(hasPrevQuery);
     
     return { 
         projects, 
-        next: hasNextSnap.docs.length > 0 ? lastVisible : null,
-        prev: page === 'first' ? null : (hasPrevSnap.docs.length > 0 ? firstVisible : null)
+        next: lastVisible,
+        prev: firstVisible
     };
   } catch(e) {
     console.error("Error fetching projects:", e);

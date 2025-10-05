@@ -19,7 +19,8 @@ async function checkAndSeedData(userId: string, email: string) {
 
     try {
         // We get the raw clients here because the API one might not be ready yet
-        const clients = await getClients();
+        const clientsResult = await getClients();
+        const clients = clientsResult.clients;
         if (clients.length === 0) {
             console.log('No data found for sample user, seeding now...');
             await seedSampleData(userId);
@@ -82,7 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (isNewUser) {
            toast({ title: '🎉 Welcome to GigBillow!', description: 'You have been credited with 10 free tokens to get you started.' });
         } else if (wasRefilled) {
-            toast({ title: '🎉 Your monthly credits are here!', description: 'Your 10 free tokens have been refilled.' });
+            // Toast is handled in checkAndRefillTokens for refills
         }
         await checkAndSeedData(user.uid, user.email || '');
         setLoading(false);

@@ -1,6 +1,6 @@
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, Timestamp, limit, startAfter, DocumentSnapshot } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, Timestamp, limit, startAfter, DocumentSnapshot, endBefore } from 'firebase/firestore';
 import type { Invoice, Client, Project } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
@@ -32,7 +32,7 @@ export async function getInvoices(
     } else if (page === 'next' && cursor) {
         q = query(coll, orderBy('issuedDate', 'desc'), startAfter(cursor), limit(pageSize));
     } else if (page === 'prev' && cursor) {
-        q = query(coll, orderBy('issuedDate'), startAfter(cursor), limit(pageSize));
+        q = query(coll, orderBy('issuedDate', 'desc'), endBefore(cursor), limit(pageSize));
     } else {
         q = query(coll, orderBy('issuedDate', 'desc'), limit(pageSize));
     }
@@ -51,23 +51,13 @@ export async function getInvoices(
       } as Invoice
     });
 
-     if (page === 'prev') {
-        invoices.reverse();
-    }
-
     const firstVisible = querySnapshot.docs[0];
     const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
-    
-    const hasNextQuery = query(coll, orderBy('issuedDate', 'desc'), startAfter(lastVisible), limit(1));
-    const hasNextSnap = await getDocs(hasNextQuery);
-    
-    const hasPrevQuery = query(coll, orderBy('issuedDate'), startAfter(firstVisible), limit(1));
-    const hasPrevSnap = await getDocs(hasPrevQuery);
 
     return { 
         invoices, 
-        next: hasNextSnap.docs.length > 0 ? lastVisible : null,
-        prev: page === 'first' ? null : (hasPrevSnap.docs.length > 0 ? firstVisible : null)
+        next: lastVisible,
+        prev: firstVisible
     };
 
   } catch (error) {

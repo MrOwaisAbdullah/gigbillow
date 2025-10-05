@@ -18,7 +18,8 @@ export function SummaryStats() {
 
   useEffect(() => {
     async function fetchStats() {
-      const [invoicesData, timeEntriesResult] = await Promise.all([getInvoices(), getTimeEntries()]);
+      const [invoicesResult, timeEntriesResult] = await Promise.all([getInvoices('first', null, 9999), getTimeEntries(null, 9999)]);
+      const invoicesData = invoicesResult.invoices;
       const timeEntriesData = timeEntriesResult.entries;
       
       const thirtyDaysAgo = subDays(new Date(), 30);
