@@ -10,6 +10,7 @@ import {
   LineChart,
   PenSquare,
   Gift,
+  Settings,
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
@@ -26,13 +27,14 @@ export function AppSidebarNav({ isCollapsed = false, onLinkClick }: AppSidebarNa
 
   const navItems = [
     { href: '/dashboard', icon: LayoutGrid, label: 'Dashboard' },
+    { href: '/proposal-generator', icon: PenSquare, label: 'Proposal Generator' },
     { href: '/projects', icon: FolderKanban, label: 'Projects' },
     { href: '/clients', icon: Users, label: 'Clients' },
     { href: '/invoices', icon: FileText, label: 'Invoices' },
     { href: '/track', icon: Timer, label: 'Time Tracker' },
-    { href: '/proposal-generator', icon: PenSquare, label: 'Proposal Generator' },
-    { href: '/referrals', icon: Gift, label: 'Referrals' },
     { href: '/reports', icon: LineChart, label: 'Reports' },
+    { href: '/referrals', icon: Gift, label: 'Referrals' },
+    { href: '/settings', icon: Settings, label: 'Settings' },
   ]
 
   const linkClasses = (href: string) => cn(
