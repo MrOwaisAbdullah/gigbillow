@@ -20,35 +20,10 @@ import Autoplay from "embla-carousel-autoplay"
 import React from 'react';
 import { useAuth } from '@/components/auth/auth-provider';
 
-function HeaderButtons({ isHero = false }: { isHero?: boolean }) {
-    const { user } = useAuth();
-
-    const buttonSize = isHero ? 'lg' : 'default';
-
-    if (user) {
-        return (
-            <Button asChild size={buttonSize}>
-                <Link href="/dashboard">Go to Dashboard</Link>
-            </Button>
-        )
-    }
-
-    return (
-        <>
-            <Button asChild variant="ghost" size={buttonSize}>
-                <Link href="/login">Log In</Link>
-            </Button>
-            <Button asChild size={buttonSize}>
-                <Link href="/register">
-                    Start Free Trial
-                </Link>
-            </Button>
-        </>
-    )
-}
-
 
 export default function LandingPage() {
+  const { user } = useAuth();
+
   const carouselImages = [
     { src: 'https://picsum.photos/seed/dashboard/1200/800', hint: 'app dashboard' },
     { src: 'https://picsum.photos/seed/invoices/1200/800', hint: 'invoicing app' },
@@ -86,7 +61,20 @@ export default function LandingPage() {
             </nav>
           </div>
           <div className="flex items-center space-x-2">
-             <HeaderButtons />
+             {user ? (
+                <Button asChild>
+                    <Link href="/dashboard">Go to Dashboard</Link>
+                </Button>
+            ) : (
+                <>
+                    <Button asChild variant="ghost">
+                        <Link href="/login">Log In</Link>
+                    </Button>
+                    <Button asChild>
+                        <Link href="/register">Start Free Trial</Link>
+                    </Button>
+                </>
+            )}
           </div>
         </div>
       </header>
@@ -104,7 +92,15 @@ export default function LandingPage() {
               required.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <HeaderButtons isHero={true} />
+                {user ? (
+                    <Button asChild size="lg">
+                        <Link href="/dashboard">Go to Dashboard</Link>
+                    </Button>
+                ) : (
+                    <Button asChild size="lg">
+                        <Link href="/register">Start Free Trial</Link>
+                    </Button>
+                )}
               <Button asChild size="lg" variant="outline">
                   <Link href="/proposal-generator">Try Proposal Writer</Link>
               </Button>
@@ -319,7 +315,15 @@ export default function LandingPage() {
               waiting for you.
             </p>
             <div className="mt-8">
-              <HeaderButtons isHero={true} />
+              {user ? (
+                    <Button asChild size="lg">
+                        <Link href="/dashboard">Go to Dashboard</Link>
+                    </Button>
+                ) : (
+                    <Button asChild size="lg">
+                        <Link href="/register">Start Free Trial</Link>
+                    </Button>
+                )}
             </div>
           </div>
         </section>
@@ -342,5 +346,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
