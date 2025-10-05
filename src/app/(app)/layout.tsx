@@ -10,9 +10,10 @@ import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
+import { WelcomeTour } from '@/components/welcome-tour';
 
 function AppContent({ children }: { children: React.ReactNode }) {
-  const { loading } = useAuth();
+  const { loading, isNewUser } = useAuth();
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -44,6 +45,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       <FloatingTrackerButton />
+      {isNewUser && <WelcomeTour />}
     </div>
   );
 }

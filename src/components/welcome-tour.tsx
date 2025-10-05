@@ -1,0 +1,148 @@
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from '@/components/ui/carousel';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import Image from 'next/image';
+import { Check } from 'lucide-react';
+
+const tourSteps = [
+  {
+    title: '1. Win Your Next Job',
+    description: "Paste a job description into the Proposal Generator and let AI write a compelling, client-winning proposal in seconds.",
+    imageSrc: 'https://picsum.photos/seed/proposals/1200/800',
+    imageHint: 'proposal generator'
+  },
+  {
+    title: '2. Manage Clients & Projects',
+    description: 'Once you win the job, add the client and create a new project. Set an hourly rate to make time tracking seamless.',
+    imageSrc: 'https://picsum.photos/seed/projects_page/1200/800',
+    imageHint: 'project management app'
+  },
+  {
+    title: '3. Track Every Billable Second',
+    description: 'Use the simple, background-safe time tracker to log your hours accurately. Never lose a minute of your hard work.',
+    imageSrc: 'https://picsum.photos/seed/tracker/1200/800',
+    imageHint: 'time tracker'
+  },
+  {
+    title: '4. Get Paid Faster',
+    description: 'When it’s time to bill, generate a professional, 1-click PDF invoice. Add a payment link to get paid instantly.',
+    imageSrc: 'https://picsum.photos/seed/invoices/1200/800',
+    imageHint: 'invoicing app'
+  },
+  {
+    title: '5. Understand Your Business',
+    description: 'Keep an eye on your performance with reports. Visualize your revenue, see where your hours are going, and make smarter decisions.',
+    imageSrc: 'https://picsum.photos/seed/reports/1200/800',
+    imageHint: 'analytics dashboard'
+  },
+];
+
+export function WelcomeTour() {
+  const [open, setOpen] = useState(true);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    if (!api) return;
+    
+    setCurrent(api.selectedScrollSnap());
+    api.on('select', () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
+
+  const isLastStep = current === tourSteps.length - 1;
+
+  const handleFinish = () => {
+    setOpen(false);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">Welcome to GigBillow!</DialogTitle>
+          <DialogDescription>
+            Here’s a quick tour of how to get the most out of your new workspace.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <Carousel setApi={setApi} className="w-full">
+          <CarouselContent>
+            {tourSteps.map((step, index) => (
+              <CarouselItem key={index}>
+                <div className="p-1">
+                  <Card>
+                    <CardContent className="flex flex-col lg:flex-row items-center justify-center p-4 gap-6">
+                        <div className="w-full lg:w-1/2 flex-shrink-0">
+                           <Image
+                                src={step.imageSrc}
+                                alt={step.title}
+                                width={600}
+                                height={400}
+                                className="rounded-lg w-full aspect-video object-cover"
+                                data-ai-hint={step.imageHint}
+                            />
+                        </div>
+                        <div className="space-y-3 text-center lg:text-left">
+                           <h3 className="text-xl font-semibold">{step.title}</h3>
+                           <p className="text-muted-foreground">{step.description}</p>
+                        </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="hidden sm:flex" />
+          <CarouselNext className="hidden sm:flex" />
+        </Carousel>
+
+        <div className="flex items-center justify-center gap-2 mt-2">
+            {tourSteps.map((_, i) => (
+                <button
+                    key={i}
+                    onClick={() => api?.scrollTo(i)}
+                    className={`h-2 w-2 rounded-full transition-colors ${
+                    current === i ? 'bg-primary' : 'bg-muted'
+                    }`}
+                    aria-label={`Go to step ${i + 1}`}
+                />
+            ))}
+        </div>
+        
+        <DialogFooter>
+            {isLastStep ? (
+                 <Button onClick={handleFinish} className="w-full sm:w-auto">
+                    <Check className="mr-2 h-4 w-4" />
+                    Get Started
+                 </Button>
+            ): (
+                 <Button onClick={() => api?.scrollNext()} className="w-full sm:w-auto">
+                    Next
+                 </Button>
+            )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

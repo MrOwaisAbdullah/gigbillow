@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
@@ -9,9 +10,10 @@ import { getClients } from '@/lib/api/clients';
 import { useToast } from '@/hooks/use-toast';
 import { checkAndRefillTokens } from '@/lib/api/tokens';
 
-const AuthContext = createContext<{ user: User | null; loading: boolean }>({
+const AuthContext = createContext<{ user: User | null; loading: boolean, isNewUser: boolean }>({
   user: null,
   loading: true,
+  isNewUser: false,
 });
 
 async function checkAndSeedData(userId: string, email: string) {
@@ -37,6 +39,7 @@ async function checkAndSeedData(userId: string, email: string) {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isNewUser, setIsNewUser] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
@@ -51,6 +54,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (user) {
         setUser(user);
         const { isNewUser, wasRefilled } = await checkAndRefillTokens(user);
+        
+        setIsNewUser(isNewUser);
+
         if (isNewUser) {
            toast({ title: '🎉 Welcome to GigBillow!', description: 'You have been credited with 10 free tokens to get you started.' });
         } else if (wasRefilled) {
@@ -65,6 +71,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } else {
         setUser(null);
+        setIsNewUser(false);
         setLoading(false);
         if (!isPublicPage) {
           sessionStorage.setItem('redirectAfterLogin', pathname);
@@ -77,7 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [router, pathname, toast]);
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, isNewUser }}>
       {children}
     </AuthContext.Provider>
   );
