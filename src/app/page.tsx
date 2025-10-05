@@ -19,25 +19,11 @@ import Image from 'next/image';
 import Autoplay from "embla-carousel-autoplay"
 import React from 'react';
 import { useAuth } from '@/components/auth/auth-provider';
-import { Loader2 } from 'lucide-react';
 
 function HeaderButtons({ isHero = false }: { isHero?: boolean }) {
-    const { user, loading } = useAuth();
+    const { user } = useAuth();
 
     const buttonSize = isHero ? 'lg' : 'default';
-
-    if (loading) {
-        return (
-            <>
-                <Button size={buttonSize} disabled={true}>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                </Button>
-                <Button variant="ghost" size={buttonSize} disabled={true}>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                </Button>
-            </>
-        )
-    }
 
     if (user) {
         return (
