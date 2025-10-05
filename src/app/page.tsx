@@ -24,13 +24,15 @@ import { Loader2 } from 'lucide-react';
 function HeaderButtons({ isHero = false }: { isHero?: boolean }) {
     const { user, loading } = useAuth();
 
+    const buttonSize = isHero ? 'lg' : 'default';
+
     if (loading) {
         return (
             <>
-                <Button variant="ghost" disabled={true}>
+                <Button variant="ghost" size={buttonSize} disabled={true}>
                      <Loader2 className="h-4 w-4 animate-spin" />
                 </Button>
-                <Button disabled={true}>
+                <Button size={buttonSize} disabled={true}>
                     <Loader2 className="h-4 w-4 animate-spin" />
                 </Button>
             </>
@@ -39,7 +41,7 @@ function HeaderButtons({ isHero = false }: { isHero?: boolean }) {
 
     if (user) {
         return (
-            <Button asChild size={isHero ? 'lg' : 'default'}>
+            <Button asChild size={buttonSize}>
                 <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
         )
@@ -47,10 +49,10 @@ function HeaderButtons({ isHero = false }: { isHero?: boolean }) {
 
     return (
         <>
-            <Button asChild variant="ghost" size={isHero ? 'lg' : 'default'}>
+            <Button asChild variant="ghost" size={buttonSize}>
                 <Link href="/login">Log In</Link>
             </Button>
-            <Button asChild size={isHero ? 'lg' : 'default'}>
+            <Button asChild size={buttonSize}>
                 <Link href="/register">
                     Start Free Trial
                 </Link>
@@ -351,5 +353,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
