@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import Link from 'next/link';
@@ -13,7 +14,7 @@ import {
   CarouselContent,
   CarouselItem,
 } from '@/components/ui/carousel';
-import { Check, Zap, FileText, Timer, PenSquare } from 'lucide-react';
+import { Check, Zap, FileText, Timer, PenSquare, Package2, Cog, FileClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import Autoplay from "embla-carousel-autoplay"
@@ -22,7 +23,7 @@ import { useAuth } from '@/components/auth/auth-provider';
 
 
 export default function LandingPage() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   const carouselImages = [
     { src: 'https://picsum.photos/seed/dashboard/1200/800', hint: 'app dashboard' },
@@ -34,6 +35,39 @@ export default function LandingPage() {
   const plugin = React.useRef(
     Autoplay({ delay: 2000, stopOnInteraction: true })
   );
+
+  const features = [
+    { 
+        icon: Timer,
+        title: 'Background-safe timer', 
+        description: 'Our timer is idle-aware and runs reliably in the background, so you never miss a billable second.' 
+    },
+    { 
+        icon: FileClock,
+        title: '1-click PDF invoices', 
+        description: 'Generate professional invoices with your branding, line items, and a direct payment link automatically included.' 
+    },
+    { 
+        icon: PenSquare,
+        title: 'AI proposal writer', 
+        description: 'Turn a job post into a client-winning proposal in seconds. With templates for marketplaces or private clients.'
+    },
+    { 
+        icon: Zap,
+        title: 'Pay-as-you-grow tokens', 
+        description: 'Start free, then top-up tokens as you need them. Paid plans include token rollover.' 
+    },
+    { 
+        icon: Package2,
+        title: '7-day pro trial', 
+        description: 'Start with a 7-day trial to unlock 150 tokens. After, stay on the free plan or upgrade for just $15/month.'
+    },
+    { 
+        icon: Cog,
+        title: 'Simple project management', 
+        description: 'Keep track of clients, projects, rates, and statuses all in one place.' 
+    },
+  ];
 
 
   return (
@@ -61,7 +95,12 @@ export default function LandingPage() {
             </nav>
           </div>
           <div className="flex items-center space-x-2">
-             {user ? (
+             {loading ? (
+                 <>
+                    <Button variant="ghost" disabled>Log In</Button>
+                    <Button disabled>Start Free Trial</Button>
+                 </>
+             ) : user ? (
                 <Button asChild>
                     <Link href="/dashboard">Go to Dashboard</Link>
                 </Button>
@@ -221,31 +260,32 @@ export default function LandingPage() {
         </section>
 
         {/* Feature List */}
-        <section id="features" className="py-16 md:py-20">
-          <div className="container mx-auto px-6">
-            <h2 className="text-3xl font-bold text-center mb-12">
-              All The Tools You Need. None of The Fluff.
-            </h2>
-            <ul className="space-y-6 max-w-2xl mx-auto">
-              {[
-                { title: 'Background-Safe Timer', description: 'Our timer is idle-aware and runs reliably in the background, so you never miss a billable second.' },
-                { title: '1-Click PDF Invoices', description: 'Generate professional invoices with your branding, line items, and a direct payment link automatically included.' },
-                { title: 'AI Proposal Writer', description: 'Turn a job post into a client-winning proposal in seconds. With templates for marketplaces or private clients.' },
-                { title: 'Pay-As-You-Grow Tokens', description: 'Start free, then top-up tokens as you need them. Paid plans include token rollover.' },
-                { title: '7-Day Pro Trial', description: 'Start with a 7-day trial to unlock 150 tokens. After, stay on the free plan or upgrade for just $15/month.' },
-              ].map((feature, i) => (
-                <li key={i} className="flex items-start gap-4">
-                  <Check className="h-6 w-6 text-green-500 mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-lg">{feature.title}</h4>
-                    <p className="text-muted-foreground">
-                      {feature.description}
+        <section id="features" className="py-16 md:py-20 bg-background">
+            <div className="container mx-auto px-6">
+                <div className="text-center max-w-3xl mx-auto">
+                    <h2 className="text-3xl font-bold">Your complete toolkit for freelance success</h2>
+                    <p className="text-muted-foreground mt-4 text-lg">
+                        GigBillow isn't just another tool—it's a smart assistant designed to handle the tedious parts of freelancing, so you can focus on what you do best.
                     </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
+                    {features.map((feature, i) => (
+                        <Card key={i} className="bg-card flex flex-col">
+                            <CardHeader className="flex-shrink-0">
+                                <div className="flex items-center gap-4">
+                                    <div className="bg-primary/10 text-primary p-3 rounded-full">
+                                        <feature.icon className="h-6 w-6" />
+                                    </div>
+                                    <CardTitle className="text-lg">{feature.title}</CardTitle>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="flex-grow">
+                                <p className="text-muted-foreground">{feature.description}</p>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
         </section>
 
         {/* Pricing Table */}
