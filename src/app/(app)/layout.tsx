@@ -7,9 +7,19 @@ import { FloatingTrackerButton } from '@/components/floating-tracker-button';
 import { AuthProvider, useAuth } from '@/components/auth/auth-provider';
 import { TokenProvider } from '@/components/token/token-provider';
 import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const { loading } = useAuth();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      localStorage.setItem('referralCode', refCode);
+    }
+  }, [searchParams]);
 
   if (loading) {
     return (

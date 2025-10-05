@@ -53,3 +53,18 @@ export type TokenPack = {
     price_cents: number;
     type: 'one_time' | 'recurring';
 };
+
+export type Referral = {
+    id: string;
+    referrer_user_id: string;
+    referred_stripe_cust_id: string;
+    reached_paid: boolean;
+    created_at: Date;
+};
+
+export type UserProfile = {
+    displayName: string;
+    email: string;
+    photoURL: string;
+    referral_code: string;
+}

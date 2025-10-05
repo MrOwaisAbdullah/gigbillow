@@ -18,6 +18,10 @@
           "type": "string",
           "format": "uri",
           "description": "URL of the user's profile picture."
+        },
+        "referral_code": {
+            "type": "string",
+            "description": "A unique code to refer other users."
         }
       }
     },
@@ -91,6 +95,18 @@
         "rollover_limit": { "type": "number" }
       },
       "required": ["balance"]
+    },
+    "Referral": {
+        "title": "Referral",
+        "description": "Tracks a referral made by a user.",
+        "type": "object",
+        "properties": {
+            "referrer_user_id": { "type": "string" },
+            "referred_stripe_cust_id": { "type": "string" },
+            "reached_paid": { "type": "boolean", "default": false },
+            "created_at": { "type": "string", "format": "date-time" }
+        },
+        "required": ["referrer_user_id"]
     }
   },
   "auth": {
@@ -116,6 +132,10 @@
     "/user_tokens/{userId}": {
       "schema": { "$ref": "#/entities/UserToken" },
       "description": "Stores token balances for each user."
+    },
+    "/users/{userId}/referrals/{referralId}": {
+        "schema": { "$ref": "#/entities/Referral" },
+        "description": "Stores referral records for each user."
     }
   }
 }
