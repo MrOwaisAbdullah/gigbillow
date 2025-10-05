@@ -15,15 +15,15 @@ export default function DashboardPage() {
         <SummaryStats />
       </div>
 
+      <div className="grid gap-4 md:grid-cols-1">
+        <QuickActions />
+      </div>
+
       <div className="grid gap-8 lg:grid-cols-2">
         <TodaysPulse />
         <ProjectPulse />
       </div>
       
-      <div className="grid gap-4 md:grid-cols-1">
-        <QuickActions />
-      </div>
-
       <div>
         <h2 className="text-2xl font-semibold mb-4">Outstanding Invoices</h2>
         <InvoicesTable />
