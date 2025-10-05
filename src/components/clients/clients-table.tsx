@@ -61,7 +61,6 @@ export function ClientsTable() {
     }
     setHasNextPage(!!next);
     setLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, cursors]);
 
   useEffect(() => {
@@ -88,9 +87,11 @@ export function ClientsTable() {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-2/5">Client</TableHead>
-                        <TableHead className="w-2/5">Email</TableHead>
-                        <TableHead className="w-1/5 text-right">Actions</TableHead>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead className="text-right">
+                          <span className="sr-only">Actions</span>
+                        </TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
