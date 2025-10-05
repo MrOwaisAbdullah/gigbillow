@@ -114,7 +114,7 @@ export default function LandingPage() {
         {/* App Screenshot Carousel */}
         <section className="container mx-auto px-6 -mt-12 sm:-mt-16 md:-mt-24 relative z-10">
            <Carousel
-              className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10"
+              className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10 mt-4"
               plugins={[plugin.current]}
               onMouseEnter={plugin.current.stop}
               onMouseLeave={plugin.current.reset}
