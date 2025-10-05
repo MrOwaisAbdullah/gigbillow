@@ -5,6 +5,8 @@ import { getAuth } from 'firebase/auth';
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, getDoc, orderBy, limit, startAfter, endBefore, DocumentSnapshot } from 'firebase/firestore';
 import type { Project } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/lib/error-emitter';
+import { FirestorePermissionError } from '@/lib/errors';
 
 function getCollectionPath() {
     const auth = getAuth();
@@ -19,7 +21,7 @@ export async function getProjects(
 ): Promise<{ projects: Project[], next: DocumentSnapshot | null, prev: DocumentSnapshot | null }> {
   const collectionPath = getCollectionPath();
   if (!collectionPath) return { projects: [], next: null, prev: null };
-  try {
+  
     const coll = collection(db, collectionPath);
     let q;
 
@@ -33,7 +35,15 @@ export async function getProjects(
         q = query(coll, orderBy('name'), limit(pageSize));
     }
     
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(q).catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: collectionPath,
+            operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+    });
+
     const projects = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
     
     const firstVisible = querySnapshot.docs[0];
@@ -44,10 +54,6 @@ export async function getProjects(
         next: lastVisible,
         prev: firstVisible
     };
-  } catch(e) {
-    console.error("Error fetching projects:", e);
-    return { projects: [], next: null, prev: null };
-  }
 }
 
 export async function getProjectsByClientId(clientId: string): Promise<Project[]> {
@@ -69,18 +75,34 @@ export async function createProject(project: Omit<Project, 'id'>): Promise<Proje
     toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to create a project.' });
     throw new Error('User not authenticated');
   }
-  const docRef = await addDoc(collection(db, collectionPath), project);
+  const docRef = await addDoc(collection(db, collectionPath), project).catch((serverError) => {
+    const permissionError = new FirestorePermissionError({
+        path: collectionPath,
+        operation: 'create',
+        requestResourceData: project,
+    });
+    errorEmitter.emit('permission-error', permissionError);
+    throw permissionError;
+  });
   return { id: docRef.id, ...project };
 }
 
 export async function updateProject(id: string, project: Partial<Omit<Project, 'id'>>): Promise<void> {
   const collectionPath = getCollectionPath();
-  if (!collectionPath) {
+   if (!collectionPath) {
      toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to update a project.' });
      throw new Error('User not authenticated');
   }
   const docRef = doc(db, collectionPath, id);
-  await updateDoc(docRef, project);
+  await updateDoc(docRef, project).catch((serverError) => {
+    const permissionError = new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'update',
+        requestResourceData: project,
+    });
+    errorEmitter.emit('permission-error', permissionError);
+    throw permissionError;
+  });
 }
 
 export async function deleteProject(id: string): Promise<void> {
@@ -90,22 +112,33 @@ export async function deleteProject(id: string): Promise<void> {
     throw new Error('User not authenticated');
   }
   const docRef = doc(db, collectionPath, id);
-  await deleteDoc(docRef);
+  await deleteDoc(docRef).catch((serverError) => {
+    const permissionError = new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'delete',
+    });
+    errorEmitter.emit('permission-error', permissionError);
+    throw permissionError;
+  });
 }
 
 export async function getProjectById(id: string): Promise<Project | null> {
     const collectionPath = getCollectionPath();
     if (!collectionPath) return null;
-    try {
-        const docRef = doc(db, collectionPath, id);
-        const docSnap = await getDoc(docRef);
+    
+    const docRef = doc(db, collectionPath, id);
+    const docSnap = await getDoc(docRef).catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'get',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+    });
 
-        if (docSnap.exists()) {
-            return { id: docSnap.id, ...docSnap.data() } as Project;
-        } else {
-            return null;
-        }
-    } catch(e) {
+    if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as Project;
+    } else {
         return null;
     }
 }
