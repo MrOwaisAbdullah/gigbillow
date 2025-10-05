@@ -54,12 +54,13 @@ export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boo
 }
 
 
-export type SpendAction = 'proposal' | 'invoice_pdf' | 'project';
+export type SpendAction = 'proposal' | 'invoice_pdf' | 'project' | 'import_work_log';
 
 const TOKEN_COSTS: Record<SpendAction, number> = {
     proposal: 1,
     invoice_pdf: 1,
     project: 1,
+    import_work_log: 1,
 };
 
 async function spendToken(userId: string, cost: number): Promise<{ success: boolean, newBalance?: number }> {

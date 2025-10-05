@@ -33,6 +33,8 @@ import { useToast } from '@/hooks/use-toast'
 import { importWorkLogs, type ImportWorkLogsOutput } from '@/ai/flows/import-work-logs'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { canAfford, chargeFor } from '@/lib/api/tokens'
+import { useToken } from '../token/token-provider'
 
 const formSchema = z.object({
   platformName: z.enum(['Fiverr', 'Upwork', 'Other']),
@@ -55,6 +57,7 @@ export function ImportWorkLogDialog({ open, onOpenChange }: ImportWorkLogDialogP
   const { toast } = useToast()
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { openDialog } = useToken();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,8 +69,19 @@ export function ImportWorkLogDialog({ open, onOpenChange }: ImportWorkLogDialogP
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
+    
+    const hasEnoughTokens = await canAfford('import_work_log');
+    if (!hasEnoughTokens) {
+        openDialog();
+        setIsSubmitting(false);
+        return;
+    }
+
     try {
       const result = await importWorkLogs(values)
+      
+      await chargeFor('import_work_log');
+
       toast({
         title: 'Work Log Imported',
         description: 'Data successfully extracted. You can now create an invoice.',
@@ -158,7 +172,7 @@ export function ImportWorkLogDialog({ open, onOpenChange }: ImportWorkLogDialogP
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Import & Create Invoice
+                Import & Create Invoice (-1 Token)
               </Button>
             </DialogFooter>
           </form>
