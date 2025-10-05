@@ -29,10 +29,10 @@ function HeaderButtons({ isHero = false }: { isHero?: boolean }) {
     if (loading) {
         return (
             <>
-                <Button variant="ghost" size={buttonSize} disabled={true}>
+                <Button size={buttonSize} disabled={true}>
                     <Loader2 className="h-4 w-4 animate-spin" />
                 </Button>
-                <Button size={buttonSize} disabled={true}>
+                <Button variant="ghost" size={buttonSize} disabled={true}>
                     <Loader2 className="h-4 w-4 animate-spin" />
                 </Button>
             </>
@@ -118,7 +118,10 @@ export default function LandingPage() {
               required.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-                <HeaderButtons isHero={true} />
+              <HeaderButtons isHero={true} />
+              <Button asChild size="lg" variant="outline">
+                  <Link href="/proposal-generator">Try Proposal Writer</Link>
+              </Button>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
               Free forever with monthly credits. Upgrade only when you scale.
@@ -128,7 +131,7 @@ export default function LandingPage() {
 
         {/* App Screenshot Carousel */}
         <section className="container mx-auto px-6 -mt-12 sm:-mt-16 md:-mt-24 relative z-10">
-           <Carousel 
+           <Carousel
               className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10"
               plugins={[plugin.current]}
               onMouseEnter={plugin.current.stop}
