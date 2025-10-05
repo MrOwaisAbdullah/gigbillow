@@ -288,19 +288,39 @@ export default function LandingPage() {
               </Card>
               <Card>
                 <CardHeader className="text-center p-6">
-                  <CardTitle className="text-xl">Booster</CardTitle>
-                  <p className="text-4xl font-extrabold mt-2">$30</p>                  <p className="text-muted-foreground">One-time purchase</p>
+                  <CardTitle className="text-xl">Mini (one-time)</CardTitle>
+                  <p className="text-4xl font-extrabold mt-2">$5</p>
+                  <p className="text-muted-foreground">Low-budget top-up</p>
                 </CardHeader>
                 <CardContent className="space-y-4 p-6 pt-0">
                   <ul className="space-y-3 text-muted-foreground">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 500 tokens</li>
+                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 50 tokens</li>
                      <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Never expire</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Priority email support</li>
+                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> One-time purchase</li>
                   </ul>
                   <Button variant="secondary" className="w-full">Buy Now</Button>
                 </CardContent>
               </Card>
             </div>
+            
+            <Card className="max-w-5xl mx-auto mt-8 p-6 md:p-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6">
+                <div className="md:col-span-2">
+                    <h3 className="text-xl font-bold">Booster Pack</h3>
+                    <p className="text-muted-foreground mt-1">For power users and agencies. Get a large bundle of tokens that never expire.</p>
+                     <ul className="space-y-3 text-muted-foreground mt-4">
+                        <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 500 tokens</li>
+                        <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Never expire</li>
+                        <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Priority email support</li>
+                    </ul>
+                </div>
+                <div className="text-center md:text-right">
+                    <p className="text-4xl font-extrabold mt-2">$30</p>
+                    <p className="text-muted-foreground">One-time purchase</p>
+                    <Button size="lg" className="mt-4 w-full md:w-auto">Buy Booster Pack</Button>
+                </div>
+              </div>
+            </Card>
           </div>
         </section>
 
