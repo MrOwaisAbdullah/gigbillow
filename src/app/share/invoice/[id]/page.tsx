@@ -87,7 +87,7 @@ export default function PublicInvoicePage() {
         <div className="flex w-full max-w-4xl items-center justify-between">
             <div className="flex items-center gap-2 text-lg font-semibold text-primary">
                 <Package2 className="h-6 w-6" />
-                <span>ProManFlow</span>
+                <span>GigBillow</span>
             </div>
             <Badge variant={statusVariantMap[invoice.status]} className="capitalize h-7">{invoice.status}</Badge>
         </div>

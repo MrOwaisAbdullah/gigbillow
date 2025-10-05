@@ -84,7 +84,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md space-y-6 text-center">
         <div>
           <Link href="/" className="mb-6 inline-block">
-             <h1 className="text-4xl font-bold tracking-tight text-primary">ProManFlow</h1>
+             <h1 className="text-4xl font-bold tracking-tight text-primary">GigBillow</h1>
           </Link>
           <p className="mt-2 text-lg text-muted-foreground">
             Create your account to get started.

@@ -35,7 +35,7 @@ const lightGray = [241, 245, 249]; // A light gray for table backgrounds
 const white = [255, 255, 255];
 const borderGray = [226, 232, 240];
 
-const brandName = 'ProManFlow';
+const brandName = 'GigBillow';
 const pageMargin = 40;
 
 function addHeader(doc: jsPDF, title: string) {

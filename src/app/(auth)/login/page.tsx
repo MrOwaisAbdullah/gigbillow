@@ -103,7 +103,7 @@ export default function LoginPage() {
         <div>
            <Link href="/" className="mb-6 inline-block">
              <h1 className="text-4xl font-bold tracking-tight text-primary">
-              ProManFlow
+              GigBillow
             </h1>
           </Link>
           <p className="mt-2 text-lg text-muted-foreground">

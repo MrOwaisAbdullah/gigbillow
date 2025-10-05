@@ -17,7 +17,7 @@ export default function LandingPage() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <Zap className="h-6 w-6 text-primary" />
-              <span className="font-bold">ProManFlow</span>
+              <span className="font-bold">GigBillow</span>
             </Link>
             <nav className="ml-6 hidden items-center space-x-6 text-sm font-medium md:flex">
               <Link
@@ -141,7 +141,7 @@ export default function LandingPage() {
         <section className="py-12 bg-primary text-primary-foreground">
           <div className="container mx-auto px-6 text-center">
             <p className="text-lg font-semibold">
-              &quot;ProManFlow recovered $340 in billable hours my first
+              &quot;GigBillow recovered $340 in billable hours my first
               week!&quot;
             </p>
             <p className="text-sm opacity-80 mt-2">
@@ -267,7 +267,7 @@ export default function LandingPage() {
             <Link href="/track" className="text-sm hover:underline">Time Tracker</Link>
           </div>
           <p className="text-sm">
-            © 2024 ProManFlow. All rights reserved.
+            © 2024 GigBillow. All rights reserved.
           </p>
         </div>
       </footer>

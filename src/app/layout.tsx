@@ -3,17 +3,17 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'ProManFlow — Free Time-Tracking, Invoices & Proposals',
+  title: 'GigBillow — Free Time-Tracking, Invoices & Proposals',
   description: 'Track billable hours, create PDF invoices, and write client-winning proposals with AI. 10 free credits monthly.',
   openGraph: {
-    title: 'ProManFlow — Free Time-Tracking, Invoices & Proposals',
+    title: 'GigBillow — Free Time-Tracking, Invoices & Proposals',
     description: 'Track billable hours, create PDF invoices, and write client-winning proposals with AI. 10 free credits monthly.',
     images: [
       {
         url: '/og-promanflow.png',
         width: 1200,
         height: 630,
-        alt: 'ProManFlow Banner',
+        alt: 'GigBillow Banner',
       },
     ],
   },
