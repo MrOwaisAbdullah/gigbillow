@@ -1,164 +1,192 @@
 /**
- * @fileoverview Firestore Security Rules for the application.
- *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for most data, with public read access to the user profiles collection.
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a strict user-ownership model for most data,
+ *              allowing users to only access and modify data associated with their
+ *              own user ID. Public read access is not generally permitted.
  *
  * Data Structure:
- * - /users/{userId}: User profiles, readable by everyone but writable only by the owning user.
- * - /users/{userId}/clients/{clientId}: Clients belonging to a specific user, accessible only by that user.
- * - /users/{userId}/projects/{projectId}: Projects belonging to a specific user, accessible only by that user.
- * - /users/{userId}/timeEntries/{timeEntryId}: Time entries belonging to a specific user, accessible only by that user.
- * - /users/{userId}/invoices/{invoiceId}: Invoices belonging to a specific user, accessible only by that user.
- * - /user_tokens/{userId}: Token balances for each user, accessible only by that user.
- * - /referrals/{referralId}: Referral records, accessible only by the creating user (referrer_user_id).
+ * - /users/{userId}: User profile information.
+ * - /users/{userId}/clients/{clientId}: Client data for a specific user.
+ * - /users/{userId}/projects/{projectId}: Project data for a specific user.
+ * - /users/{userId}/timeEntries/{timeEntryId}: Time entries for a specific user.
+ * - /users/{userId}/invoices/{invoiceId}: Invoices for a specific user.
+ * - /user_tokens/{userId}: Token balance for a specific user.
+ * - /referrals/{referralId}: Referral records.  Referrals can only be created.
  *
  * Key Security Decisions:
- * - User profiles are publicly readable.
- * - User listing is disallowed.
- * - Write operations on all user-owned data are restricted to the owner.
+ * - User data is strictly segregated by user ID.
+ * - Listing of user subcollections is allowed only by the owner.
+ * - User profiles can only be created by the user themselves, and updated by themselves
+ * - Referral records are created using a cloud function, these are not writeable by the client.
  *
  * Denormalization for Authorization:
- *  - The rules depend on the path to determine the user ID, and thus the owner.
+ * - The rules rely on the `request.auth.uid` to match the `{userId}` in the path.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows read-only access to user profiles, with owner-only writes.
+     * @description Controls access to user profile documents.
      * @path /users/{userId}
-     * @allow (get, list): if true
-     * @allow (create): if request.auth.uid == userId
-     * @allow (update, delete): if request.auth.uid == userId && resource != null
-     * @deny (create): if request.auth == null
-     * @deny (update): if request.auth == null
-     * @deny (delete): if request.auth == null
-     * @principle Public read access, owner-only writes.
+     * @allow (create) - Allow user to create their own profile if the userId matches their auth.uid.
+     * @allow (update) - Allow user to update their own profile if the userId matches their auth.uid.
+     * @allow (get) - Allow user to get their own profile if the userId matches their auth.uid.
+     * @allow (list) - Deny listing all users.
+     * @allow (delete) - Deny deleting a user.
+     * @deny (create) - Deny creating a profile with a mismatched userId.
+     * @deny (update) - Deny updating a profile with a mismatched userId.
+     * @deny (get) - Deny getting a profile with a mismatched userId.
+     * @principle Enforces document ownership for writes; restricts listing of all users.
      */
     match /users/{userId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      allow create: if isOwner(userId) && request.resource.data.email == request.auth.token.email;
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow update: if isOwner(userId);
+      allow delete: if false;
     }
 
     /**
-     * @description Enforces owner-only access to clients.
+     * @description Controls access to client documents for a specific user.
      * @path /users/{userId}/clients/{clientId}
-     * @allow (create): if request.auth.uid == userId
-     * @allow (get, list, update, delete): if request.auth.uid == userId
-     * @deny (create, update, delete): if request.auth == null
-     * @deny (list): if request.auth == null
-     * @principle Owner-only access to clients.
+     * @allow (create) - Allow user to create a client document under their userId.
+     * @allow (get) - Allow user to get a client document under their userId.
+     * @allow (list) - Allow user to list client documents under their userId.
+     * @allow (update) - Allow user to update a client document under their userId if they own it.
+     * @allow (delete) - Allow user to delete a client document under their userId if they own it.
+     * @deny (create) - Deny creating a client document under a different userId.
+     * @deny (update) - Deny updating a client document under a different userId.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId}/clients/{clientId} {
-      allow get, list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      allow create: if isOwner(userId);
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow update: if isOwner(userId) && resource != null;
+      allow delete: if isOwner(userId) && resource != null;
     }
 
     /**
-     * @description Enforces owner-only access to projects.
+     * @description Controls access to project documents for a specific user.
      * @path /users/{userId}/projects/{projectId}
-     * @allow (create): if request.auth.uid == userId
-     * @allow (get, list, update, delete): if request.auth.uid == userId
-     * @deny (create, update, delete): if request.auth == null
-     * @deny (list): if request.auth == null
-     * @principle Owner-only access to projects.
+     * @allow (create) - Allow user to create a project document under their userId.
+     * @allow (get) - Allow user to get a project document under their userId.
+     * @allow (list) - Allow user to list project documents under their userId.
+     * @allow (update) - Allow user to update a project document under their userId if they own it.
+     * @allow (delete) - Allow user to delete a project document under their userId if they own it.
+     * @deny (create) - Deny creating a project document under a different userId.
+     * @deny (update) - Deny updating a project document under a different userId.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId}/projects/{projectId} {
-      allow get, list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      allow create: if isOwner(userId);
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow update: if isOwner(userId) && resource != null;
+      allow delete: if isOwner(userId) && resource != null;
     }
 
     /**
-     * @description Enforces owner-only access to time entries.
+     * @description Controls access to time entry documents for a specific user.
      * @path /users/{userId}/timeEntries/{timeEntryId}
-     * @allow (create): if request.auth.uid == userId
-     * @allow (get, list, update, delete): if request.auth.uid == userId
-     * @deny (create, update, delete): if request.auth == null
-     * @deny (list): if request.auth == null
-     * @principle Owner-only access to time entries.
+     * @allow (create) - Allow user to create a time entry document under their userId.
+     * @allow (get) - Allow user to get a time entry document under their userId.
+     * @allow (list) - Allow user to list time entry documents under their userId.
+     * @allow (update) - Allow user to update a time entry document under their userId if they own it.
+     * @allow (delete) - Allow user to delete a time entry document under their userId if they own it.
+     * @deny (create) - Deny creating a time entry document under a different userId.
+     * @deny (update) - Deny updating a time entry document under a different userId.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId}/timeEntries/{timeEntryId} {
-      allow get, list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      allow create: if isOwner(userId);
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow update: if isOwner(userId) && resource != null;
+      allow delete: if isOwner(userId) && resource != null;
     }
 
     /**
-     * @description Enforces owner-only access to invoices.
+     * @description Controls access to invoice documents for a specific user.
      * @path /users/{userId}/invoices/{invoiceId}
-     * @allow (create): if request.auth.uid == userId
-     * @allow (get, list, update, delete): if request.auth.uid == userId
-     * @deny (create, update, delete): if request.auth == null
-     * @deny (list): if request.auth == null
-     * @principle Owner-only access to invoices.
+     * @allow (create) - Allow user to create an invoice document under their userId.
+     * @allow (get) - Allow user to get an invoice document under their userId.
+     * @allow (list) - Allow user to list invoice documents under their userId.
+     * @allow (update) - Allow user to update an invoice document under their userId if they own it.
+     * @allow (delete) - Allow user to delete an invoice document under their userId if they own it.
+     * @deny (create) - Deny creating an invoice document under a different userId.
+     * @deny (update) - Deny updating an invoice document under a different userId.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId}/invoices/{invoiceId} {
-      allow get, list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      allow create: if isOwner(userId);
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow update: if isOwner(userId) && resource != null;
+      allow delete: if isOwner(userId) && resource != null;
     }
 
     /**
-     * @description Enforces owner-only access to user tokens.
+     * @description Controls access to user token documents.
      * @path /user_tokens/{userId}
-     * @allow (create): if request.auth.uid == userId
-     * @allow (get, list, update, delete): if request.auth.uid == userId
-     * @deny (create, update, delete): if request.auth == null
-     * @deny (list): if request.auth == null
-     * @principle Owner-only access to user tokens.
+     * @allow (create) - Allow user to create their own user token if the userId matches their auth.uid.
+     * @allow (get) - Allow user to get their own user token if the userId matches their auth.uid.
+     * @allow (list) - Deny listing all user tokens.
+     * @allow (update) - Allow user to update their own user token if the userId matches their auth.uid and the document exists.
+     * @allow (delete) - Deny deleting a user token.
+     * @deny (create) - Deny creating a user token with a mismatched userId.
+     * @deny (update) - Deny updating a user token with a mismatched userId.
+     * @principle Enforces document ownership for writes; restricts listing of all users.
      */
     match /user_tokens/{userId} {
-      allow get: if isSignedIn() && isOwner(userId);
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      allow create: if isOwner(userId);
+      allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      allow update: if isOwner(userId) && resource != null;
+      allow delete: if false;
     }
 
        /**
-        * @description Enforces owner-only access to referrals.
+        * @description Controls access to referral documents.
         * @path /referrals/{referralId}
-        * @allow (create): if request.auth.uid == request.resource.data.referrer_user_id
-        * @allow (get, list, update, delete): if request.auth.uid == resource.data.referrer_user_id && resource != null;
-        * @deny (create, update, delete): if request.auth == null
-        * @deny (list): if request.auth == null
-        * @principle Owner-only access to referrals based on referrer_user_id.
+        * @allow (create) - Deny client-side creation. Referrals should be created by trusted server environments.
+        * @allow (get) - Allow public read access to referral documents.
+        * @allow (list) - Deny listing of referral documents.
+        * @allow (update) - Deny client-side updates.
+        * @allow (delete) - Deny client-side deletion.
+        * @principle Restricts write access to server-side only.
         */
-    match /referrals/{referralId} {
-        allow get: if isSignedIn() && isReferrer(resource.data.referrer_user_id);
-        allow list: if false;
-        allow create: if isSignedIn() && request.auth.uid == request.resource.data.referrer_user_id;
-        allow update: if isSignedIn() && isExistingReferrer(resource.data.referrer_user_id);
-        allow delete: if isSignedIn() && isExistingReferrer(resource.data.referrer_user_id);
-    }
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function isReferrer(referrerUserId) {
-        return request.auth.uid == referrerUserId;
-    }
-
-    function isExistingOwner(userId) {
-      return isSignedIn() && isOwner(userId) && resource != null;
-    }
-
-    function isExistingReferrer(referrerUserId) {
-        return isSignedIn() && isReferrer(referrerUserId) && resource != null;
-    }
+       match /referrals/{referralId} {
+          allow create: if false;
+          allow get: if true;
+          allow list: if false;
+          allow update: if false;
+          allow delete: if false;
+       }
   }
 }
