@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import {
   CircleUser,
   PanelLeft,
@@ -33,6 +33,7 @@ import { useAuth } from "./auth/auth-provider"
 import { signOut } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { useToken } from "./token/token-provider"
+import { Package2 } from "lucide-react"
 
 export function AppHeader() {
   const pathname = usePathname()
@@ -71,14 +72,17 @@ export function AppHeader() {
             <span className="sr-only">Toggle Menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="sm:max-w-xs">
-          <SheetHeader className="text-left">
-            <SheetTitle>Menu</SheetTitle>
-            <SheetDescription>
-              Navigate through your workspace.
-            </SheetDescription>
-          </SheetHeader>
-          <AppSidebarNav />
+        <SheetContent side="left" className="sm:max-w-xs bg-sidebar text-sidebar-foreground border-sidebar-border">
+            <nav className="flex flex-col gap-6 text-lg font-medium">
+                 <Link
+                    href="#"
+                    className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
+                >
+                    <Package2 className="h-5 w-5 transition-all group-hover:scale-110" />
+                    <span className="sr-only">GigBillow</span>
+                </Link>
+                <AppSidebarNav isCollapsed={false} />
+            </nav>
         </SheetContent>
       </Sheet>
       <Breadcrumb className="hidden md:flex">
