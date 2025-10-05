@@ -1,10 +1,15 @@
 
+'use client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LifeBuoy, Mail } from 'lucide-react';
+import { LifeBuoy, Mail, BookOpen } from 'lucide-react';
 import Link from 'next/link';
+import { useTour } from '@/components/tour-provider';
 
 export default function SupportPage() {
+    const { setOpen: setTourOpen } = useTour();
+
     return (
         <div className="flex flex-col gap-8 pb-8">
             <h1 className="text-3xl font-bold tracking-tight">Support</h1>
@@ -32,6 +37,21 @@ export default function SupportPage() {
                             </Link>
                         </Button>
                     </div>
+                </CardContent>
+            </Card>
+
+             <Card>
+                <CardHeader>
+                    <CardTitle>Need a Refresher?</CardTitle>
+                    <CardDescription>
+                        Revisit our quick welcome tour to get re-acquainted with the app's features.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button onClick={() => setTourOpen(true)}>
+                        <BookOpen className="mr-2 h-4 w-4" />
+                        Start Welcome Tour
+                    </Button>
                 </CardContent>
             </Card>
 
