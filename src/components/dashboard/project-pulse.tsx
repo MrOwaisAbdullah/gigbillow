@@ -16,7 +16,7 @@ export function ProjectPulse() {
 
     useEffect(() => {
         async function fetchProjectData() {
-            const [projectsResult, timeEntriesResult] = await Promise.all([getProjects('first', null, 9999), getTimeEntries('first', null, 9999)]);
+            const [projectsResult, timeEntriesResult] = await Promise.all([getProjects('first', null, 9999), getTimeEntries(null, 9999)]);
             const projectsData = projectsResult.projects;
             setProjects(projectsData.filter(p => p.status === 'active').slice(0, 3));
             setTimeEntries(timeEntriesResult.entries);
@@ -65,9 +65,9 @@ export function ProjectPulse() {
 
                     return (
                         <div key={project.id}>
-                            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm mb-2">
+                            <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 text-sm mb-2">
                                 <span className="font-semibold truncate ">{project.name}</span>
-                                <div className="flex gap-4 text-muted-foreground flex-shrink-0">
+                                <div className="flex gap-4 text-muted-foreground shrink-0">
                                     <span>{hoursThisWeek.toFixed(1)}h this week</span>
                                     <span className="font-semibold text-foreground">${earnedThisWeek.toFixed(2)}</span>
                                 </div>
