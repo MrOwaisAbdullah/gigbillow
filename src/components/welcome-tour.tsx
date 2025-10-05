@@ -15,8 +15,6 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
   type CarouselApi,
 } from '@/components/ui/carousel';
 import { Button } from '@/components/ui/button';
@@ -118,34 +116,33 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden sm:flex" />
-          <CarouselNext className="hidden sm:flex" />
         </Carousel>
-
-        <div className="flex items-center justify-center gap-2 mt-2">
-            {tourSteps.map((_, i) => (
-                <button
-                    key={i}
-                    onClick={() => api?.scrollTo(i)}
-                    className={`h-2 w-2 rounded-full transition-colors ${
-                    current === i ? 'bg-primary' : 'bg-muted'
-                    }`}
-                    aria-label={`Go to step ${i + 1}`}
-                />
-            ))}
-        </div>
         
-        <DialogFooter>
+        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full">
+          <Button variant="ghost" onClick={handleFinish}>
+            Skip Tour
+          </Button>
+
+          <div className="flex justify-center sm:justify-end items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => api?.scrollPrev()}
+              disabled={current === 0}
+            >
+              Back
+            </Button>
+
             {isLastStep ? (
-                 <Button onClick={handleFinish} className="w-full sm:w-auto">
-                    <Check className="mr-2 h-4 w-4" />
-                    Get Started
-                 </Button>
-            ): (
-                 <Button onClick={() => api?.scrollNext()} className="w-full sm:w-auto">
-                    Next
-                 </Button>
+              <Button onClick={handleFinish}>
+                <Check className="mr-2 h-4 w-4" />
+                Finish
+              </Button>
+            ) : (
+              <Button onClick={() => api?.scrollNext()}>
+                Next
+              </Button>
             )}
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
