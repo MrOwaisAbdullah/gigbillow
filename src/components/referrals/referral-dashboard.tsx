@@ -167,7 +167,7 @@ export function ReferralDashboard() {
                 <div key={milestone.count} className="flex items-center gap-2 text-sm">
                     <span className="font-semibold text-primary">{milestone.count} paid {milestone.count === 1 ? 'referral' : 'referrals'}</span>
                     <span className="text-muted-foreground">→</span>
-                    <span>{milestone.discount}% off next invoice {milestone.discount === 100 && '(FREE month)'}</span>
+                    <span>{milestone.discount}% off next invoice {milestone.discount === 100 && '(1 month of Starter plan)'}</span>
                 </div>
             ))}
         </div>
