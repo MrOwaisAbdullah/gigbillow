@@ -45,7 +45,7 @@ export function ClientsTable() {
         cursor = cursors[currentPage - 2] || null;
     }
 
-    const { clients: clientsData, next, prev } = await getClients(page, cursor, 10);
+    const { clients: clientsData, next } = await getClients(page, cursor, 10);
     setClients(clientsData);
 
     if (page === 'next') {
@@ -61,6 +61,7 @@ export function ClientsTable() {
     }
     setHasNextPage(!!next);
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, cursors]);
 
   useEffect(() => {
