@@ -1,8 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { registerWithEmailAndPassword } from '@/lib/auth';
-import { Loader2 } from 'lucide-react';
+import {
+  registerWithEmailAndPassword,
+  signInWithGoogle,
+} from '@/lib/auth';
+import { Chrome, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/auth/auth-provider';
 import { useEffect, useState } from 'react';
@@ -20,6 +23,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -50,24 +54,44 @@ export default function RegisterPage() {
 
   if (loading || user) {
     return (
-        <div className="flex h-screen w-screen items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p>Loading your workspace...</p>
-            </div>
+      <div className="flex h-screen w-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p>Loading your workspace...</p>
+        </div>
       </div>
     );
   }
 
+  const handleGoogleSignIn = async () => {
+    try {
+      const user = await signInWithGoogle();
+      if (user) {
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Sign In Failed',
+        description: 'Could not sign in with Google. Please try again.',
+      });
+    }
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     try {
-      await registerWithEmailAndPassword(values.name, values.email, values.password);
+      await registerWithEmailAndPassword(
+        values.name,
+        values.email,
+        values.password
+      );
       router.push('/dashboard');
     } catch (error: any) {
       let description = 'An unexpected error occurred. Please try again.';
       if (error.code === 'auth/email-already-in-use') {
-        description = 'This email address is already in use. Please try signing in.';
+        description =
+          'This email address is already in use. Please try signing in.';
       }
       toast({
         variant: 'destructive',
@@ -84,7 +108,9 @@ export default function RegisterPage() {
       <div className="w-full max-w-md space-y-6 text-center">
         <div>
           <Link href="/" className="mb-6 inline-block">
-             <h1 className="text-4xl font-bold tracking-tight text-primary">GigBillow</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-primary">
+              GigBillow
+            </h1>
           </Link>
           <p className="mt-2 text-lg text-muted-foreground">
             Create your account to get started.
@@ -108,7 +134,7 @@ export default function RegisterPage() {
                     </FormItem>
                   )}
                 />
-                 <FormField
+                <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
@@ -132,21 +158,50 @@ export default function RegisterPage() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-              <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
-                {isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full"
+                size="lg"
+              >
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                )}
                 Create Account
               </Button>
             </form>
           </Form>
-           <p className="pt-4 text-sm text-muted-foreground">
-             Already have an account?{' '}
+
+          <div className="relative my-6">
+            <Separator />
+            <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-card px-2 text-sm text-muted-foreground">
+              OR
+            </span>
+          </div>
+
+          <Button
+            onClick={handleGoogleSignIn}
+            variant="outline"
+            className="w-full"
+            size="lg"
+          >
+            <Chrome className="mr-2 h-5 w-5" />
+            Continue with Google
+          </Button>
+
+          <p className="pt-4 text-sm text-muted-foreground">
+            Already have an account?{' '}
             <Link
               href="/login"
               className="font-semibold text-primary underline-offset-4 hover:underline"
@@ -155,22 +210,22 @@ export default function RegisterPage() {
             </Link>
           </p>
         </div>
-         <p className="px-8 text-center text-sm text-muted-foreground">
-            By clicking continue, you agree to our{' '}
-            <a
-                href="#"
-                className="underline underline-offset-4 hover:text-primary"
-            >
-                Terms of Service
-            </a>{' '}
-            and{' '}
-            <a
-                href="#"
-                className="underline underline-offset-4 hover:text-primary"
-            >
-                Privacy Policy
-            </a>
-            .
+        <p className="px-8 text-center text-sm text-muted-foreground">
+          By clicking continue, you agree to our{' '}
+          <a
+            href="#"
+            className="underline underline-offset-4 hover:text-primary"
+          >
+            Terms of Service
+          </a>{' '}
+          and{' '}
+          <a
+            href="#"
+            className="underline underline-offset-4 hover:text-primary"
+          >
+            Privacy Policy
+          </a>
+          .
         </p>
       </div>
     </div>

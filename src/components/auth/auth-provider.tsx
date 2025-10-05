@@ -6,6 +6,8 @@ import { app } from '@/lib/firebase';
 import { usePathname, useRouter } from 'next/navigation';
 import { seedSampleData } from '@/lib/seed';
 import { getClients } from '@/lib/api/clients';
+import { useToast } from '@/hooks/use-toast';
+import { checkAndRefillTokens } from '@/lib/api/tokens';
 
 const AuthContext = createContext<{ user: User | null; loading: boolean }>({
   user: null,
@@ -36,6 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
   
   useEffect(() => {
     // Function to attach the token to API requests
@@ -72,25 +75,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       const isAuthPage = pathname === '/login' || pathname === '/register';
       const isLandingPage = pathname === '/';
+      const isPublicPage = isLandingPage || pathname.startsWith('/share') || pathname === '/proposal-generator';
 
       if (user) {
         setUser(user);
+        const { isNewUser, wasRefilled } = await checkAndRefillTokens(user);
+        if (isNewUser) {
+           toast({ title: '🎉 Welcome to GigBillow!', description: 'You have been credited with 10 free tokens to get you started.' });
+        } else if (wasRefilled) {
+            toast({ title: '🎉 Your monthly credits are here!', description: 'Your 10 free tokens have been refilled.' });
+        }
         await checkAndSeedData(user.uid, user.email || '');
         setLoading(false);
-        if (isAuthPage || isLandingPage) {
-          router.push('/dashboard');
+        if (isAuthPage || (isLandingPage && pathname !== '/proposal-generator')) {
+          const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
+          sessionStorage.removeItem('redirectAfterLogin');
+          router.push(redirectPath);
         }
       } else {
         setUser(null);
         setLoading(false);
-        if (!isAuthPage && !isLandingPage && !pathname.startsWith('/share')) {
-          router.push('/');
+        if (!isPublicPage) {
+          sessionStorage.setItem('redirectAfterLogin', pathname);
+          router.push('/login');
         }
       }
     });
 
     return () => unsubscribe();
-  }, [router, pathname]);
+  }, [router, pathname, toast]);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>

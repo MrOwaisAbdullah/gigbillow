@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Popover,
   PopoverContent,
@@ -44,6 +44,8 @@ import { canAfford, chargeFor } from '@/lib/api/tokens';
 import { useToken } from '@/components/token/token-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { generateProposalPdf } from '@/lib/pdf-utils';
+import { useAuth } from '@/components/auth/auth-provider';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   jobPostText: z
@@ -57,12 +59,15 @@ const formSchema = z.object({
 });
 
 type ProposalFormValues = z.infer<typeof formSchema>;
+const LOCAL_STORAGE_KEY = 'proposalFormData';
 
 export default function ProposalGeneratorPage() {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedProposal, setGeneratedProposal] = useState('');
   const { openDialog } = useToken();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
 
   const form = useForm<ProposalFormValues>({
     resolver: zodResolver(formSchema),
@@ -73,7 +78,39 @@ export default function ProposalGeneratorPage() {
     },
   });
 
+  // Load from local storage
+  useEffect(() => {
+    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        if (parsedData.deadline) {
+          parsedData.deadline = new Date(parsedData.deadline);
+        }
+        form.reset(parsedData);
+      } catch (e) {
+        console.error('Failed to parse proposal form data from storage');
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+      }
+    }
+  }, [form]);
+  
+  // Save to local storage on change
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(value));
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+
   async function onSubmit(values: ProposalFormValues) {
+    if (!user) {
+      sessionStorage.setItem('redirectAfterLogin', '/proposal-generator');
+      router.push('/login');
+      return;
+    }
+
     setIsGenerating(true);
     setGeneratedProposal('');
 
@@ -93,6 +130,7 @@ export default function ProposalGeneratorPage() {
       setGeneratedProposal(result.proposal);
       
       await chargeFor('proposal');
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
 
       toast({
         title: 'Proposal Generated',
@@ -123,6 +161,8 @@ export default function ProposalGeneratorPage() {
     });
     toast({ title: 'Download started!' });
   };
+  
+  const generateButtonText = user ? 'Generate Proposal (-1 Token)' : 'Log In & Generate';
 
   return (
     <div className="flex flex-col gap-8 pb-8">
@@ -255,7 +295,7 @@ export default function ProposalGeneratorPage() {
 
                 <Button
                   type="submit"
-                  disabled={isGenerating}
+                  disabled={isGenerating || authLoading}
                   className="w-full"
                 >
                   {isGenerating ? (
@@ -263,7 +303,7 @@ export default function ProposalGeneratorPage() {
                   ) : (
                     <Sparkles className="mr-2 h-4 w-4" />
                   )}
-                  Generate Proposal (-1 Token)
+                  {generateButtonText}
                 </Button>
               </CardContent>
             </Card>

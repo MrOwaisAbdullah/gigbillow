@@ -13,7 +13,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { app, db } from './firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
@@ -27,7 +27,7 @@ async function initializeUser(user: User) {
     if (!tokenSnap.exists()) {
         await setDoc(tokenRef, {
             balance: 10,
-            last_refill_at: new Date(),
+            last_refill_at: serverTimestamp(),
             rollover_limit: 10,
         });
     }

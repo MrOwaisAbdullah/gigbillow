@@ -1,10 +1,39 @@
 'use client';
 
 import { db } from '@/lib/firebase';
-import { getAuth } from 'firebase/auth';
-import { doc, getDoc, updateDoc, increment, setDoc } from 'firebase/firestore';
+import { getAuth, type User } from 'firebase/auth';
+import { doc, getDoc, updateDoc, increment, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import type { UserToken } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
+import { differenceInDays } from 'date-fns';
+
+
+export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boolean, wasRefilled: boolean }> {
+  const tokenRef = doc(db, 'user_tokens', user.uid);
+  const tokenSnap = await getDoc(tokenRef);
+  
+  if (!tokenSnap.exists()) {
+    await setDoc(tokenRef, {
+      balance: 10,
+      last_refill_at: serverTimestamp(),
+      rollover_limit: 10
+    });
+    return { isNewUser: true, wasRefilled: false };
+  } else {
+    const tokenData = tokenSnap.data() as UserToken;
+    const lastRefill = (tokenData.last_refill_at as Timestamp).toDate();
+    if (differenceInDays(new Date(), lastRefill) >= 30) {
+      await updateDoc(tokenRef, {
+        balance: 10,
+        last_refill_at: serverTimestamp()
+      });
+      return { isNewUser: false, wasRefilled: true };
+    }
+  }
+
+  return { isNewUser: false, wasRefilled: false };
+}
+
 
 export type SpendAction = 'proposal' | 'invoice_pdf' | 'project';
 
@@ -81,7 +110,7 @@ export async function addTokens(amount: number): Promise<{ success: boolean, new
     } else {
         await setDoc(tokenRef, {
             balance: amount,
-            last_refill_at: new Date(),
+            last_refill_at: serverTimestamp(),
             rollover_limit: 0,
         });
     }
