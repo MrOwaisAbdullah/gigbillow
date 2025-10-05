@@ -44,6 +44,13 @@ type ImportWorkLogDialogProps = {
   onOpenChange: (open: boolean) => void;
 }
 
+const sampleWorkLog = `
+Project Name: Mobile App Dev
+Hours Worked: 8.5
+Hourly Rate: 120
+Description: Integrated the new payments API and fixed bugs in the user authentication flow.
+`.trim();
+
 export function ImportWorkLogDialog({ open, onOpenChange }: ImportWorkLogDialogProps) {
   const { toast } = useToast()
   const router = useRouter();
@@ -125,7 +132,17 @@ export function ImportWorkLogDialog({ open, onOpenChange }: ImportWorkLogDialogP
               name="workLogData"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Work Log Data</FormLabel>
+                  <div className="flex justify-between items-center">
+                    <FormLabel>Work Log Data</FormLabel>
+                    <Button
+                        type="button"
+                        variant="link"
+                        className="h-auto p-0"
+                        onClick={() => form.setValue('workLogData', sampleWorkLog)}
+                    >
+                        Use Sample
+                    </Button>
+                  </div>
                   <FormControl>
                     <Textarea
                       placeholder="Paste your raw work log data here..."
@@ -150,5 +167,3 @@ export function ImportWorkLogDialog({ open, onOpenChange }: ImportWorkLogDialogP
     </Dialog>
   )
 }
-
-    
