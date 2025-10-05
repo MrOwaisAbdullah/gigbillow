@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/card';
 import { Check, Zap, FileText, Timer, PenSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 export default function LandingPage() {
   return (
@@ -48,7 +49,7 @@ export default function LandingPage() {
       <main>
         {/* Hero Section */}
         <section className="bg-secondary/30">
-          <div className="container mx-auto px-6 py-20 text-center">
+          <div className="container mx-auto px-6 pt-20 pb-16 text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground">
               Stop Losing Billable Hours
             </h1>
@@ -71,8 +72,23 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* App Screenshot */}
+        <section className="container mx-auto px-6 -mt-12 sm:-mt-16 md:-mt-24 relative z-10">
+          <div className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10">
+            <Image
+              src="https://picsum.photos/seed/dashboard/1200/800"
+              alt="GigBillow application dashboard screenshot"
+              width={1200}
+              height={800}
+              className="rounded-lg w-full"
+              data-ai-hint="app dashboard"
+            />
+          </div>
+        </section>
+
+
         {/* Pain-Points Grid */}
-        <section className="py-16 md:py-20">
+        <section className="py-16 md:py-28">
           <div className="container mx-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
               <div className="p-6 rounded-lg">
