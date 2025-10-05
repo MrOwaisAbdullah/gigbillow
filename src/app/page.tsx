@@ -145,7 +145,7 @@ export default function LandingPage() {
                             alt={`GigBillow application screenshot ${index + 1}`}
                             width={1200}
                             height={800}
-                            className="rounded-lg w-full mt-4"
+                            className="rounded-lg w-full"
                             data-ai-hint={img.hint}
                             priority={index === 0}
                         />
