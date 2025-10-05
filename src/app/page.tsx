@@ -18,6 +18,36 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import Autoplay from "embla-carousel-autoplay"
 import React from 'react';
+import { useAuth } from '@/components/auth/auth-provider';
+import { Loader2 } from 'lucide-react';
+
+function HeaderButtons() {
+    const { user, loading } = useAuth();
+
+    if (loading) {
+        return <Loader2 className="h-5 w-5 animate-spin" />;
+    }
+
+    if (user) {
+        return (
+            <Button asChild>
+                <Link href="/dashboard">Go to Dashboard</Link>
+            </Button>
+        )
+    }
+
+    return (
+        <>
+            <Button asChild variant="ghost">
+                <Link href="/login">Log In</Link>
+            </Button>
+            <Button asChild>
+                <Link href="/register">Start Free Trial</Link>
+            </Button>
+        </>
+    )
+}
+
 
 export default function LandingPage() {
   const carouselImages = [
@@ -57,12 +87,7 @@ export default function LandingPage() {
             </nav>
           </div>
           <div className="flex items-center space-x-2">
-            <Button asChild variant="ghost">
-              <Link href="/login">Log In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/register">Start Free Trial</Link>
-            </Button>
+             <HeaderButtons />
           </div>
         </div>
       </header>
@@ -271,8 +296,7 @@ export default function LandingPage() {
               <Card>
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Booster</CardTitle>
-                  <p className="text-4xl font-extrabold mt-2">$30</p>
-                  <p className="text-muted-foreground">One-time purchase</p>
+                  <p className="text-4xl font-extrabold mt-2">$30</p>                  <p className="text-muted-foreground">One-time purchase</p>
                 </CardHeader>
                 <CardContent className="space-y-4 p-6 pt-0">
                   <ul className="space-y-3 text-muted-foreground">
@@ -323,3 +347,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
