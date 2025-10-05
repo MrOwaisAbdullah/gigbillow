@@ -7,7 +7,7 @@ import { Copy } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth/auth-provider';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { UserProfile, Referral } from '@/lib/types';
 import { getReferrals } from '@/lib/api/referrals';
@@ -21,6 +21,16 @@ const milestones = [
   { count: 3, discount: 50 },
   { count: 5, discount: 100 },
 ];
+
+function generateReferralCode(length: number) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
 
 export function ReferralDashboard() {
   const { user } = useAuth();
@@ -48,16 +58,25 @@ export function ReferralDashboard() {
           throw permissionError;
         });
 
+        let userProfileData: UserProfile;
+
         if (userSnap.exists()) {
-          setProfile(userSnap.data() as UserProfile);
+          const data = userSnap.data() as UserProfile;
+          if (!data.referral_code) {
+            // User exists but has no referral code, let's create one.
+            const newReferralCode = generateReferralCode(6);
+            await updateDoc(userDocRef, { referral_code: newReferralCode });
+            userProfileData = { ...data, referral_code: newReferralCode };
+          } else {
+            userProfileData = data;
+          }
+          setProfile(userProfileData);
         }
 
         const referralData = await getReferrals();
         setReferrals(referralData);
 
       } catch (error) {
-        // Errors are now thrown and emitted within the API calls or the getDoc catch block above.
-        // This catch block is for any other unexpected errors during the process.
         console.error("An unexpected error occurred on the referral dashboard:", error);
         toast({
           variant: 'destructive',
