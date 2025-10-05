@@ -21,12 +21,25 @@ import React from 'react';
 import { useAuth } from '@/components/auth/auth-provider';
 import { Loader2 } from 'lucide-react';
 
-function HeaderButtons() {
+function HeaderButtons({ isHero = false }: { isHero?: boolean }) {
     const { user, loading } = useAuth();
+
+    if (loading) {
+        return (
+            <>
+                <Button variant="ghost" disabled={true}>
+                     <Loader2 className="h-4 w-4 animate-spin" />
+                </Button>
+                <Button disabled={true}>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                </Button>
+            </>
+        )
+    }
 
     if (user) {
         return (
-            <Button asChild>
+            <Button asChild size={isHero ? 'lg' : 'default'}>
                 <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
         )
@@ -34,12 +47,11 @@ function HeaderButtons() {
 
     return (
         <>
-            <Button asChild variant="ghost" disabled={loading}>
+            <Button asChild variant="ghost" size={isHero ? 'lg' : 'default'}>
                 <Link href="/login">Log In</Link>
             </Button>
-            <Button asChild disabled={loading}>
+            <Button asChild size={isHero ? 'lg' : 'default'}>
                 <Link href="/register">
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Start Free Trial
                 </Link>
             </Button>
@@ -104,12 +116,7 @@ export default function LandingPage() {
               required.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
-                <Link href="/register">Start Free Trial</Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/proposal-generator">Try Proposal Generator</Link>
-              </Button>
+                <HeaderButtons isHero={true} />
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
               Free forever with monthly credits. Upgrade only when you scale.
@@ -321,9 +328,7 @@ export default function LandingPage() {
               waiting for you.
             </p>
             <div className="mt-8">
-              <Button size="lg" asChild>
-                <Link href="/register">Start Free Trial</Link>
-              </Button>
+              <HeaderButtons isHero={true} />
             </div>
           </div>
         </section>
@@ -346,3 +351,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
