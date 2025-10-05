@@ -17,9 +17,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { toTitleCase } from '@/lib/utils';
-import { CreditCard, Package2, Loader2 } from 'lucide-react';
+import { CreditCard, Loader2 } from 'lucide-react';
 import type { Invoice, Client, Project } from '@/lib/types';
 import { getPublicInvoiceData } from '@/lib/api/invoices';
+import { Logo } from '@/components/logo';
 
 const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
   paid: 'default',
@@ -87,7 +88,7 @@ export default function PublicInvoicePage() {
     <div className="flex flex-col gap-8 pb-8 items-center">
         <div className="flex w-full max-w-4xl items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2 text-lg font-semibold text-primary">
-                <Package2 className="h-6 w-6" />
+                <Logo className="h-7 w-7 text-primary" />
                 <span>GigBillow</span>
             </div>
             <Badge variant={statusVariantMap[invoice.status]} className="capitalize h-7">{invoice.status}</Badge>

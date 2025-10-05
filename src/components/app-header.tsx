@@ -33,7 +33,7 @@ import { useAuth } from "./auth/auth-provider"
 import { signOut } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { useToken } from "./token/token-provider"
-import { Package2 } from "lucide-react"
+import { Logo } from "./logo"
 
 export function AppHeader() {
   const pathname = usePathname()
@@ -83,7 +83,7 @@ export function AppHeader() {
                     className="group flex h-10 shrink-0 items-center justify-start gap-2 rounded-full text-lg font-semibold text-primary-foreground px-4"
                 >
                     <div className="bg-primary p-2 rounded-full">
-                        <Package2 className="h-5 w-5 transition-all group-hover:scale-110" />
+                        <Logo className="h-5 w-5 transition-all group-hover:scale-110 text-primary-foreground" />
                     </div>
                     <span>GigBillow</span>
                     <span className="sr-only">GigBillow</span>

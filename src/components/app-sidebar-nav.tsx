@@ -8,13 +8,13 @@ import {
   FileText,
   Timer,
   LineChart,
-  Package2,
   PenSquare,
   Gift,
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { usePathname } from 'next/navigation'
+import { Logo } from './logo'
 
 interface AppSidebarNavProps {
   isCollapsed?: boolean
@@ -55,10 +55,10 @@ export function AppSidebarNav({ isCollapsed = false, onLinkClick }: AppSidebarNa
     return (
         <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
             <Link
-                href="#"
+                href="/dashboard"
                 className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
             >
-                <Package2 className="h-4 w-4 transition-all group-hover:scale-110" />
+                <Logo className="h-4 w-4 transition-all group-hover:scale-110 text-primary-foreground" />
                 <span className="sr-only">GigBillow</span>
             </Link>
             {navItems.map(({ href, icon: Icon, label }) =>

@@ -20,6 +20,7 @@ import Image from 'next/image';
 import Autoplay from "embla-carousel-autoplay"
 import React from 'react';
 import { useAuth } from '@/components/auth/auth-provider';
+import { Logo } from '@/components/logo';
 
 
 export default function LandingPage() {
@@ -76,7 +77,7 @@ export default function LandingPage() {
         <div className="container mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <Zap className="h-6 w-6 text-primary" />
+              <Logo className="h-7 w-7 text-primary" />
               <span className="font-bold">GigBillow</span>
             </Link>
             <nav className="ml-6 hidden items-center space-x-6 text-sm font-medium md:flex">
@@ -405,5 +406,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    

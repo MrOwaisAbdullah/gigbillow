@@ -24,6 +24,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { Logo } from '@/components/logo';
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address.'),
@@ -101,7 +102,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-6 text-center">
         <div>
-           <Link href="/" className="mb-6 inline-block">
+           <Link href="/" className="mb-6 inline-flex items-center gap-3">
+             <Logo className="h-10 w-10 text-primary" />
              <h1 className="text-4xl font-bold tracking-tight text-primary">
               GigBillow
             </h1>
