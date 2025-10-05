@@ -132,7 +132,7 @@ export default function LandingPage() {
                     </Button>
                 ) : (
                     <Button asChild size="lg">
-                        <Link href="/register">Start Free Trial</Link>
+                        <Link href="/register">Register</Link>
                     </Button>
                 )}
               <Button asChild size="lg" variant="outline">
@@ -176,27 +176,27 @@ export default function LandingPage() {
         <section className="py-16 md:py-28 bg-secondary/30">
           <div className="container mx-auto px-6">
             <div className="text-center max-w-3xl mx-auto">
-              <h2 className="text-3xl font-bold">Sound familiar?</h2>
+              <h2 className="text-3xl font-bold">Sound Familiar?</h2>
               <p className="text-muted-foreground mt-4 text-lg">Freelancing has its headaches. We're here to help.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-12">
               <div className="p-6 rounded-lg">
                 <Timer className="h-10 w-10 mx-auto text-primary mb-4" />
-                <h3 className="text-xl font-bold">Forgot to log hours?</h3>
+                <h3 className="text-xl font-bold">Forgot To Log Hours?</h3>
                 <p className="text-muted-foreground mt-2">
                   An idle-aware timer that runs safely in the background. Never miss a billable second.
                 </p>
               </div>
               <div className="p-6 rounded-lg">
                 <FileText className="h-10 w-10 mx-auto text-primary mb-4" />
-                <h3 className="text-xl font-bold">Invoices look amateur?</h3>
+                <h3 className="text-xl font-bold">Invoices Look Amateur?</h3>
                 <p className="text-muted-foreground mt-2">
                   Generate a 1-click PDF with your branding and a payment link. Professionalism, sorted.
                 </p>
               </div>
               <div className="p-6 rounded-lg">
                 <PenSquare className="h-10 w-10 mx-auto text-primary mb-4" />
-                <h3 className="text-xl font-bold">Proposals take forever?</h3>
+                <h3 className="text-xl font-bold">Proposals Take Forever?</h3>
                 <p className="text-muted-foreground mt-2">
                   Let AI write a client-winning draft in seconds from any job post. More winning, less writing.
                 </p>
@@ -322,7 +322,7 @@ export default function LandingPage() {
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Rollover up to 150 tokens</li>
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Priority email support</li>
                   </ul>
-                  <Button className="w-full" asChild><Link href="/register">Start Free Trial</Link></Button>
+                  <Button className="w-full" asChild><Link href="/register">Register</Link></Button>
                 </CardContent>
               </Card>
               <Card>
@@ -380,7 +380,7 @@ export default function LandingPage() {
                     </Button>
                 ) : (
                     <Button asChild size="lg">
-                        <Link href="/register">Start Free Trial</Link>
+                        <Link href="/register">Register</Link>
                     </Button>
                 )}
             </div>
