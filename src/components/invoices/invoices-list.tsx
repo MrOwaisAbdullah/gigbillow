@@ -22,11 +22,13 @@ import { getInvoices, deleteInvoice, updateInvoice } from "@/lib/api/invoices"
 import { getClientById } from "@/lib/api/clients"
 import { getProjectById } from "@/lib/api/projects"
 import { useToast } from "@/hooks/use-toast"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import type { Invoice, Client, Project } from "@/lib/types"
 import { format } from "date-fns"
 import { Skeleton } from "../ui/skeleton"
 import Link from "next/link";
+import type { DocumentSnapshot } from "firebase/firestore"
+import { PaginationControls } from "../pagination-controls"
 
 const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
   paid: 'default',
@@ -38,34 +40,62 @@ export function InvoicesList() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [data, setData] = useState<{ [key: string]: Client | Project }>({});
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [cursors, setCursors] = useState<(DocumentSnapshot | null)[]>([null]);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    async function fetchData() {
-        const invoicesData = await getInvoices();
-        setInvoices(invoicesData);
-        if (invoicesData.length > 0) {
-            const clientIds = [...new Set(invoicesData.map(inv => inv.clientId))];
-            const projectIds = [...new Set(invoicesData.map(inv => inv.projectId))];
-            
-            const fetchedData: { [key: string]: Client | Project } = {};
-
-            const clientPromises = clientIds.map(id => getClientById(id));
-            const projectPromises = projectIds.map(id => getProjectById(id));
-
-            const [clients, projects] = await Promise.all([
-                Promise.all(clientPromises),
-                Promise.all(projectPromises),
-            ]);
-            
-            clients.forEach(client => { if(client) fetchedData[client.id] = client; });
-            projects.forEach(project => { if(project) fetchedData[project.id] = project; });
-
-            setData(fetchedData);
-        }
-        setLoading(false);
+  const fetchInvoices = useCallback(async (page: 'first' | 'next' | 'prev') => {
+    setLoading(true);
+    let cursor: DocumentSnapshot | null = null;
+    if (page === 'next') {
+        cursor = cursors[currentPage] || null;
+    } else if (page === 'prev') {
+        cursor = cursors[currentPage - 2] || null;
     }
-    fetchData();
+
+    const { invoices: invoicesData, next } = await getInvoices(page, cursor, 10);
+    setInvoices(invoicesData);
+
+    if (invoicesData.length > 0) {
+        const clientIds = [...new Set(invoicesData.map(inv => inv.clientId))].filter(id => !data[id]);
+        const projectIds = [...new Set(invoicesData.map(inv => inv.projectId))].filter(id => !data[id]);
+        
+        const fetchedData: { [key: string]: Client | Project } = {};
+
+        if (clientIds.length > 0) {
+            const clientPromises = clientIds.map(id => getClientById(id));
+            const clients = await Promise.all(clientPromises);
+            clients.forEach(client => { if(client) fetchedData[client.id] = client; });
+        }
+        if (projectIds.length > 0) {
+            const projectPromises = projectIds.map(id => getProjectById(id));
+            const projects = await Promise.all(projectPromises);
+            projects.forEach(project => { if(project) fetchedData[project.id] = project; });
+        }
+
+        if (Object.keys(fetchedData).length > 0) {
+            setData(prev => ({...prev, ...fetchedData}));
+        }
+    }
+
+    if (page === 'next') {
+        if (!cursors.includes(next)) {
+            setCursors([...cursors, next]);
+        }
+        setCurrentPage(prevPage => prevPage + 1);
+    } else if (page === 'prev') {
+        setCurrentPage(prevPage => Math.max(1, prevPage - 1));
+    } else { // first
+        setCursors([null, next]);
+        setCurrentPage(1);
+    }
+    setHasNextPage(!!next);
+    setLoading(false);
+  }, [currentPage, cursors, data]);
+
+  useEffect(() => {
+    fetchInvoices('first');
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -74,11 +104,11 @@ export function InvoicesList() {
 
     try {
       await deleteInvoice(id);
-      setInvoices(invoices.filter(inv => inv.id !== id));
       toast({
         title: 'Invoice Deleted',
         description: `Invoice "${invoiceToDelete.invoiceNumber}" has been deleted.`,
       });
+      fetchInvoices('first');
     } catch (error) {
        toast({
         variant: 'destructive',
@@ -105,7 +135,7 @@ export function InvoicesList() {
     }
   };
 
-  if (loading) {
+  if (loading && invoices.length === 0) {
      return (
         <div className="rounded-lg border">
             <Table>
@@ -141,6 +171,7 @@ export function InvoicesList() {
   }
 
   return (
+    <>
     <div className="rounded-lg border">
       <Table>
         <TableHeader>
@@ -158,7 +189,20 @@ export function InvoicesList() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {invoices.length > 0 ? (
+          {loading ? (
+             [...Array(5)].map((_, i) => (
+                <TableRow key={i}>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                    <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+                </TableRow>
+            ))
+          ) : invoices.length > 0 ? (
             invoices.map((invoice) => {
               const client = data[invoice.clientId] as Client;
               const project = data[invoice.projectId] as Project;
@@ -206,5 +250,13 @@ export function InvoicesList() {
         </TableBody>
       </Table>
     </div>
+    <PaginationControls
+        onNext={() => fetchInvoices('next')}
+        onPrev={() => fetchInvoices('prev')}
+        hasNextPage={hasNextPage}
+        hasPrevPage={currentPage > 1}
+        currentPage={currentPage}
+      />
+    </>
   )
 }

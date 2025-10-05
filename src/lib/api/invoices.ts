@@ -1,6 +1,6 @@
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, Timestamp, limit, startAfter, DocumentSnapshot } from 'firebase/firestore';
 import type { Invoice, Client, Project } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
@@ -15,12 +15,28 @@ function getCollectionPath(userId?: string) {
 }
 
 
-export async function getInvoices(): Promise<Invoice[]> {
+export async function getInvoices(
+    page: 'first' | 'next' | 'prev' = 'first',
+    cursor: DocumentSnapshot | null = null,
+    pageSize: number = 10
+): Promise<{ invoices: Invoice[], next: DocumentSnapshot | null, prev: DocumentSnapshot | null }> {
   const collectionPath = getCollectionPath();
-  if (!collectionPath) return [];
+  if (!collectionPath) return { invoices: [], next: null, prev: null };
 
   try {
-    const q = query(collection(db, collectionPath), orderBy('issuedDate', 'desc'));
+    const coll = collection(db, collectionPath);
+    let q;
+
+    if (page === 'first') {
+        q = query(coll, orderBy('issuedDate', 'desc'), limit(pageSize));
+    } else if (page === 'next' && cursor) {
+        q = query(coll, orderBy('issuedDate', 'desc'), startAfter(cursor), limit(pageSize));
+    } else if (page === 'prev' && cursor) {
+        q = query(coll, orderBy('issuedDate'), startAfter(cursor), limit(pageSize));
+    } else {
+        q = query(coll, orderBy('issuedDate', 'desc'), limit(pageSize));
+    }
+    
     const querySnapshot = await getDocs(q);
     const invoices = querySnapshot.docs.map(doc => {
       const data = doc.data();
@@ -34,10 +50,29 @@ export async function getInvoices(): Promise<Invoice[]> {
           taxRate: Number(data.taxRate) || 0,
       } as Invoice
     });
-    return invoices;
+
+     if (page === 'prev') {
+        invoices.reverse();
+    }
+
+    const firstVisible = querySnapshot.docs[0];
+    const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+    
+    const hasNextQuery = query(coll, orderBy('issuedDate', 'desc'), startAfter(lastVisible), limit(1));
+    const hasNextSnap = await getDocs(hasNextQuery);
+    
+    const hasPrevQuery = query(coll, orderBy('issuedDate'), startAfter(firstVisible), limit(1));
+    const hasPrevSnap = await getDocs(hasPrevQuery);
+
+    return { 
+        invoices, 
+        next: hasNextSnap.docs.length > 0 ? lastVisible : null,
+        prev: page === 'first' ? null : (hasPrevSnap.docs.length > 0 ? firstVisible : null)
+    };
+
   } catch (error) {
       console.error("Failed to fetch invoices:", error);
-      return [];
+      return { invoices: [], next: null, prev: null };
   }
 }
 

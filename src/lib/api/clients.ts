@@ -1,6 +1,6 @@
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, limit, startAfter, endBefore, DocumentSnapshot } from 'firebase/firestore';
 import type { Client } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
@@ -10,15 +10,52 @@ function getCollectionPath() {
     return userId ? `users/${userId}/clients` : null;
 }
 
-export async function getClients(): Promise<Client[]> {
+export async function getClients(
+    page: 'first' | 'next' | 'prev' = 'first',
+    cursor: DocumentSnapshot | null = null,
+    pageSize: number = 10
+): Promise<{ clients: Client[], next: DocumentSnapshot | null, prev: DocumentSnapshot | null }> {
   const collectionPath = getCollectionPath();
-  if (!collectionPath) return [];
+  if (!collectionPath) return { clients: [], next: null, prev: null };
   try {
-    const querySnapshot = await getDocs(collection(db, collectionPath));
+    const coll = collection(db, collectionPath);
+    let q;
+
+    if (page === 'first') {
+        q = query(coll, orderBy('name'), limit(pageSize));
+    } else if (page === 'next' && cursor) {
+        q = query(coll, orderBy('name'), startAfter(cursor), limit(pageSize));
+    } else if (page === 'prev' && cursor) {
+        q = query(coll, orderBy('name', 'desc'), startAfter(cursor), limit(pageSize));
+    } else {
+        q = query(coll, orderBy('name'), limit(pageSize));
+    }
+    
+    const querySnapshot = await getDocs(q);
     const clients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
-    return clients.reverse(); // Show newest first
+    
+    if (page === 'prev') {
+        clients.reverse();
+    }
+
+    const firstVisible = querySnapshot.docs[0];
+    const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+    // These will be used to determine if 'next' or 'prev' pages exist
+    const hasNextQuery = query(coll, orderBy('name'), startAfter(lastVisible), limit(1));
+    const hasNextSnap = await getDocs(hasNextQuery);
+    
+    const hasPrevQuery = query(coll, orderBy('name', 'desc'), startAfter(firstVisible), limit(1));
+    const hasPrevSnap = await getDocs(hasPrevQuery);
+
+    return { 
+        clients, 
+        next: hasNextSnap.docs.length > 0 ? lastVisible : null,
+        prev: page === 'first' ? null : (hasPrevSnap.docs.length > 0 ? firstVisible : null),
+     };
   } catch (error) {
-    return [];
+    console.error("Error fetching clients:", error);
+    return { clients: [], next: null, prev: null };
   }
 }
 

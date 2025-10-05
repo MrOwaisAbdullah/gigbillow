@@ -23,37 +23,63 @@ import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState, useCallback } from "react"
 import type { Client } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
+import type { DocumentSnapshot } from "firebase/firestore"
+import { PaginationControls } from "../pagination-controls"
 
 export function ClientsTable() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [cursors, setCursors] = useState<(DocumentSnapshot | null)[]>([null]);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
 
-  const fetchClients = useCallback(async () => {
+  const fetchClients = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
-    const clientsData = await getClients();
+    
+    let cursor: DocumentSnapshot | null = null;
+    if (page === 'next') {
+        cursor = cursors[currentPage] || null;
+    } else if (page === 'prev') {
+        cursor = cursors[currentPage - 2] || null;
+    }
+
+    const { clients: clientsData, next, prev } = await getClients(page, cursor, 10);
     setClients(clientsData);
+
+    if (page === 'next') {
+        if (!cursors.includes(next)) {
+            setCursors([...cursors, next]);
+        }
+        setCurrentPage(prevPage => prevPage + 1);
+    } else if (page === 'prev') {
+        setCurrentPage(prevPage => Math.max(1, prevPage - 1));
+    } else { // first
+        setCursors([null, next]);
+        setCurrentPage(1);
+    }
+    setHasNextPage(!!next);
     setLoading(false);
-  }, []);
+  }, [currentPage, cursors]);
 
   useEffect(() => {
-    fetchClients();
-  }, [fetchClients]);
+    fetchClients('first');
+  }, []);
 
   const handleDelete = async (id: string, name: string) => {
     try {
       await deleteClient(id);
-      setClients(clients.filter(client => client.id !== id));
       toast({
         title: 'Client Deleted',
         description: `Client "${name}" has been deleted.`,
       });
+      fetchClients('first');
     } catch (error) {
       // API handles error toast
     }
   };
   
-  if (loading) {
+  if (loading && clients.length === 0) {
     return (
         <div className="rounded-lg border">
             <Table>
@@ -88,6 +114,7 @@ export function ClientsTable() {
   }
 
   return (
+    <>
     <div className="rounded-lg border">
       <Table>
         <TableHeader>
@@ -100,7 +127,24 @@ export function ClientsTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {clients.length > 0 ? (
+          {loading ? (
+             [...Array(5)].map((_, i) => (
+              <TableRow key={i}>
+                  <TableCell>
+                      <div className="flex items-center gap-3">
+                          <Skeleton className="h-9 w-9 rounded-full" />
+                          <Skeleton className="h-5 w-32" />
+                      </div>
+                  </TableCell>
+                  <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                  <TableCell>
+                      <div className="flex justify-end">
+                        <Skeleton className="h-8 w-8" />
+                      </div>
+                  </TableCell>
+              </TableRow>
+          ))
+          ) : clients.length > 0 ? (
             clients.map((client) => (
               <TableRow key={client.id}>
                 <TableCell>
@@ -140,5 +184,13 @@ export function ClientsTable() {
         </TableBody>
       </Table>
     </div>
+     <PaginationControls
+        onNext={() => fetchClients('next')}
+        onPrev={() => fetchClients('prev')}
+        hasNextPage={hasNextPage}
+        hasPrevPage={currentPage > 1}
+        currentPage={currentPage}
+      />
+    </>
   )
 }

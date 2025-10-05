@@ -73,23 +73,39 @@ export async function getTimeEntries(
     }
 }
 
-export async function getTodaysTimeEntries(): Promise<TimeEntry[]> {
+export async function getTodaysTimeEntries(
+    page: 'first' | 'next' | 'prev' = 'first',
+    cursor: DocumentSnapshot | null = null,
+    pageSize: number = 5
+): Promise<{ entries: TimeEntry[], next: DocumentSnapshot | null }> {
     const collectionPath = getCollectionPath();
-    if (!collectionPath) return [];
+    if (!collectionPath) return { entries: [], next: null };
 
     try {
         const todayStart = startOfDay(new Date());
 
-        const q = query(
-            collection(db, collectionPath),
+        const baseQuery = [
             where('startTime', '>=', todayStart),
             orderBy('startTime', 'desc')
-        );
+        ];
+
+        const coll = collection(db, collectionPath);
+        let q;
+        if (cursor && page === 'next') {
+            q = query(coll, ...baseQuery, startAfter(cursor), limit(pageSize));
+        } else {
+            q = query(coll, ...baseQuery, limit(pageSize));
+        }
+
 
         const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(docToTimeEntry);
+        const entries = querySnapshot.docs.map(docToTimeEntry);
+        const next = querySnapshot.docs.length === pageSize ? querySnapshot.docs[querySnapshot.docs.length - 1] : null;
+
+        return { entries, next };
     } catch (e) {
-        return [];
+        console.error("Error fetching today's entries:", e);
+        return { entries: [], next: null };
     }
 }
 

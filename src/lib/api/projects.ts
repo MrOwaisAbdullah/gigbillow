@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, getDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, getDoc, orderBy, limit, startAfter, endBefore, DocumentSnapshot } from 'firebase/firestore';
 import type { Project } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
@@ -12,15 +12,51 @@ function getCollectionPath() {
     return userId ? `users/${userId}/projects` : null;
 }
 
-export async function getProjects(): Promise<Project[]> {
+export async function getProjects(
+    page: 'first' | 'next' | 'prev' = 'first',
+    cursor: DocumentSnapshot | null = null,
+    pageSize: number = 10
+): Promise<{ projects: Project[], next: DocumentSnapshot | null, prev: DocumentSnapshot | null }> {
   const collectionPath = getCollectionPath();
-  if (!collectionPath) return [];
+  if (!collectionPath) return { projects: [], next: null, prev: null };
   try {
-    const querySnapshot = await getDocs(collection(db, collectionPath));
+    const coll = collection(db, collectionPath);
+    let q;
+
+    if (page === 'first') {
+        q = query(coll, orderBy('name'), limit(pageSize));
+    } else if (page === 'next' && cursor) {
+        q = query(coll, orderBy('name'), startAfter(cursor), limit(pageSize));
+    } else if (page === 'prev' && cursor) {
+        q = query(coll, orderBy('name', 'desc'), startAfter(cursor), limit(pageSize));
+    } else {
+        q = query(coll, orderBy('name'), limit(pageSize));
+    }
+    
+    const querySnapshot = await getDocs(q);
     const projects = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
-    return projects.reverse(); // Show newest first
+    
+    if (page === 'prev') {
+        projects.reverse();
+    }
+
+    const firstVisible = querySnapshot.docs[0];
+    const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+    const hasNextQuery = query(coll, orderBy('name'), startAfter(lastVisible), limit(1));
+    const hasNextSnap = await getDocs(hasNextQuery);
+    
+    const hasPrevQuery = query(coll, orderBy('name', 'desc'), startAfter(firstVisible), limit(1));
+    const hasPrevSnap = await getDocs(hasPrevQuery);
+    
+    return { 
+        projects, 
+        next: hasNextSnap.docs.length > 0 ? lastVisible : null,
+        prev: page === 'first' ? null : (hasPrevSnap.docs.length > 0 ? firstVisible : null)
+    };
   } catch(e) {
-    return [];
+    console.error("Error fetching projects:", e);
+    return { projects: [], next: null, prev: null };
   }
 }
 
