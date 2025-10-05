@@ -24,10 +24,6 @@ import { Loader2 } from 'lucide-react';
 function HeaderButtons() {
     const { user, loading } = useAuth();
 
-    if (loading) {
-        return <Loader2 className="h-5 w-5 animate-spin" />;
-    }
-
     if (user) {
         return (
             <Button asChild>
@@ -38,11 +34,14 @@ function HeaderButtons() {
 
     return (
         <>
-            <Button asChild variant="ghost">
+            <Button asChild variant="ghost" disabled={loading}>
                 <Link href="/login">Log In</Link>
             </Button>
-            <Button asChild>
-                <Link href="/register">Start Free Trial</Link>
+            <Button asChild disabled={loading}>
+                <Link href="/register">
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Start Free Trial
+                </Link>
             </Button>
         </>
     )
@@ -347,5 +346,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    

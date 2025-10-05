@@ -74,8 +74,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       
       const isAuthPage = pathname === '/login' || pathname === '/register';
-      const isLandingPage = pathname === '/';
-      const isPublicPage = isLandingPage || pathname.startsWith('/share') || pathname === '/proposal-generator';
+      const isPublicPage = pathname === '/' || pathname.startsWith('/share') || pathname === '/proposal-generator';
 
       if (user) {
         setUser(user);
@@ -87,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         await checkAndSeedData(user.uid, user.email || '');
         setLoading(false);
-        if (isAuthPage || (isLandingPage && pathname !== '/proposal-generator')) {
+        if (isAuthPage) {
           const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
           sessionStorage.removeItem('redirectAfterLogin');
           router.push(redirectPath);
