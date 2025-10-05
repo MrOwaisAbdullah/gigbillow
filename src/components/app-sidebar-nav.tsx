@@ -1,3 +1,4 @@
+
 'use client'
 
 import Link from 'next/link'
@@ -28,10 +29,10 @@ export function AppSidebarNav({ isCollapsed = false, onLinkClick }: AppSidebarNa
   const navItems = [
     { href: '/dashboard', icon: LayoutGrid, label: 'Dashboard' },
     { href: '/proposal-generator', icon: PenSquare, label: 'Proposal Generator' },
+    { href: '/track', icon: Timer, label: 'Time Tracker' },
     { href: '/projects', icon: FolderKanban, label: 'Projects' },
     { href: '/clients', icon: Users, label: 'Clients' },
     { href: '/invoices', icon: FileText, label: 'Invoices' },
-    { href: '/track', icon: Timer, label: 'Time Tracker' },
     { href: '/reports', icon: LineChart, label: 'Reports' },
     { href: '/referrals', icon: Gift, label: 'Referrals' },
     { href: '/settings', icon: Settings, label: 'Settings' },
