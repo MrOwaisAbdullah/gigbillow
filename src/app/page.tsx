@@ -90,24 +90,24 @@ export default function LandingPage() {
             </nav>
           </div>
           <div className="flex items-center space-x-2">
-             {loading ? (
-                <>
-                  <Button variant="ghost" disabled>Log In</Button>
-                  <Button disabled>Register</Button>
-                </>
-             ) : user ? (
-                <Button asChild>
-                    <Link href="/dashboard">Go to Dashboard</Link>
-                </Button>
+            {loading ? (
+              <>
+                <Button variant="ghost" disabled>Log In</Button>
+                <Button disabled>Register</Button>
+              </>
+            ) : user ? (
+              <Button asChild>
+                <Link href="/dashboard">Go to Dashboard</Link>
+              </Button>
             ) : (
-                <>
-                    <Button asChild variant="ghost">
-                        <Link href="/login">Log In</Link>
-                    </Button>
-                    <Button asChild>
-                        <Link href="/register">Start Free Trial</Link>
-                    </Button>
-                </>
+              <>
+                <Button asChild variant="ghost">
+                  <Link href="/login">Log In</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/register">Start Free Trial</Link>
+                </Button>
+              </>
             )}
           </div>
         </div>
