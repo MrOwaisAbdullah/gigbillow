@@ -49,10 +49,13 @@ export function InvoicesList() {
   const fetchInvoices = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
     let cursor: DocumentSnapshot | null = null;
+    const localCursors = cursors;
+    const localCurrentPage = currentPage;
+
     if (page === 'next') {
-        cursor = cursors[currentPage] || null;
+        cursor = localCursors[localCurrentPage] || null;
     } else if (page === 'prev') {
-        cursor = cursors[currentPage - 2] || null;
+        cursor = localCursors[localCurrentPage - 2] || null;
     }
 
     const { invoices: invoicesData, next } = await getInvoices(page, cursor, 10);
@@ -81,8 +84,8 @@ export function InvoicesList() {
     }
 
     if (page === 'next') {
-        if (!cursors.includes(next)) {
-            setCursors([...cursors, next]);
+        if (!localCursors.includes(next)) {
+            setCursors([...localCursors, next]);
         }
         setCurrentPage(prevPage => prevPage + 1);
     } else if (page === 'prev') {
@@ -93,11 +96,13 @@ export function InvoicesList() {
     }
     setHasNextPage(!!next);
     setLoading(false);
-  }, [currentPage, cursors, data]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetchInvoices('first');
-  }, [fetchInvoices]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDelete = async (id: string) => {
     const invoiceToDelete = invoices.find(inv => inv.id === id);
