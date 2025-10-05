@@ -1,4 +1,6 @@
 
+'use client'
+
 import Link from 'next/link';
 import {
   Card,
@@ -6,11 +8,30 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from '@/components/ui/carousel';
 import { Check, Zap, FileText, Timer, PenSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import Autoplay from "embla-carousel-autoplay"
+import React from 'react';
 
 export default function LandingPage() {
+  const carouselImages = [
+    { src: 'https://picsum.photos/seed/dashboard/1200/800', hint: 'app dashboard' },
+    { src: 'https://picsum.photos/seed/invoices/1200/800', hint: 'invoicing app' },
+    { src: 'https://picsum.photos/seed/tracker/1200/800', hint: 'time tracker' },
+    { src: 'https://picsum.photos/seed/proposals/1200/800', hint: 'proposal generator' },
+  ];
+
+  const autoplay = React.useRef(
+    Autoplay({ delay: 3000, stopOnInteraction: true })
+  )
+
+
   return (
     <div className="bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -72,18 +93,30 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* App Screenshot */}
+        {/* App Screenshot Carousel */}
         <section className="container mx-auto px-6 -mt-12 sm:-mt-16 md:-mt-24 relative z-10">
-          <div className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10 mt-4">
-            <Image
-              src="https://picsum.photos/seed/dashboard/1200/800"
-              alt="GigBillow application dashboard screenshot"
-              width={1200}
-              height={800}
-              className="rounded-lg w-full"
-              data-ai-hint="app dashboard"
-            />
-          </div>
+           <Carousel 
+              className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10 mt-4"
+              plugins={[autoplay.current]}
+              onMouseEnter={autoplay.current.stop}
+              onMouseLeave={autoplay.current.reset}
+            >
+              <CarouselContent>
+                {carouselImages.map((img, index) => (
+                    <CarouselItem key={index}>
+                        <Image
+                            src={img.src}
+                            alt={`GigBillow application screenshot ${index + 1}`}
+                            width={1200}
+                            height={800}
+                            className="rounded-lg w-full"
+                            data-ai-hint={img.hint}
+                            priority={index === 0}
+                        />
+                    </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
         </section>
 
 
