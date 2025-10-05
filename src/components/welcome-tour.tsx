@@ -81,7 +81,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="max-w-[95vw] sm:max-w-3xl lg:max-w-5xl">
         <DialogHeader>
           <DialogTitle className="text-2xl">Welcome to GigBillow!</DialogTitle>
           <DialogDescription>
@@ -89,7 +89,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
           </DialogDescription>
         </DialogHeader>
         
-        <Carousel setApi={setApi} className="w-full">
+        <Carousel setApi={setApi}>
           <CarouselContent>
             {tourSteps.map((step, index) => (
               <CarouselItem key={index}>
