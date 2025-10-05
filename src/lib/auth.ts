@@ -29,45 +29,68 @@ function generateReferralCode(length: number) {
 
 
 async function initializeUser(user: User) {
-    const tokenRef = doc(db, 'user_tokens', user.uid);
     const userDocRef = doc(db, 'users', user.uid);
-    
-    // Check if token document exists
-    const tokenSnap = await getDoc(tokenRef);
-    if (!tokenSnap.exists()) {
+    const tokenRef = doc(db, 'user_tokens', user.uid);
+
+    const userSnap = await getDoc(userDocRef);
+
+    if (!userSnap.exists()) {
+        // --- This is a new user ---
+        const referralCode = generateReferralCode(6);
+        await setDoc(userDocRef, {
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            referral_code: referralCode,
+        });
+
         await setDoc(tokenRef, {
             balance: 10,
             last_refill_at: serverTimestamp(),
             rollover_limit: 10,
             is_subscribed: false,
         });
-    }
+        
+        // Handle referral
+        const refCode = localStorage.getItem('referralCode');
+        if (refCode) {
+            // In a real app, this would trigger a backend function.
+            console.log(`New user ${user.uid} was referred by code: ${refCode}`);
+            localStorage.removeItem('referralCode');
+        }
 
-    // Check if user profile document exists
-    const userSnap = await getDoc(userDocRef);
-    if (!userSnap.exists()) {
-      const referralCode = generateReferralCode(6);
-      await setDoc(userDocRef, {
-        displayName: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        referral_code: referralCode,
-      });
+    } else {
+        // --- This is an existing user ---
+        const userData = userSnap.data();
+        const updates: { [key: string]: any } = {};
 
-      // Handle referral
-      const refCode = localStorage.getItem('referralCode');
-      if (refCode) {
-        // In a real app, this would trigger a backend function.
-        console.log(`New user ${user.uid} was referred by code: ${refCode}`);
-        localStorage.removeItem('referralCode');
-      }
+        // Backfill referral code if missing
+        if (!userData.referral_code) {
+            updates.referral_code = generateReferralCode(6);
+        }
 
-    } else if (!userSnap.data().referral_code) {
-      // Backfill referral code for existing users who might not have one.
-      const referralCode = generateReferralCode(6);
-      await updateDoc(userDocRef, {
-        referral_code: referralCode,
-      });
+        // Sync latest profile info from auth provider
+        if (user.displayName && userData.displayName !== user.displayName) {
+            updates.displayName = user.displayName;
+        }
+        if (user.photoURL && userData.photoURL !== user.photoURL) {
+            updates.photoURL = user.photoURL;
+        }
+
+        if (Object.keys(updates).length > 0) {
+            await updateDoc(userDocRef, updates);
+        }
+        
+        // Also ensure token document exists for older users
+        const tokenSnap = await getDoc(tokenRef);
+        if (!tokenSnap.exists()) {
+             await setDoc(tokenRef, {
+                balance: 10,
+                last_refill_at: serverTimestamp(),
+                rollover_limit: 10,
+                is_subscribed: false,
+            });
+        }
     }
 }
 
@@ -93,6 +116,8 @@ export const registerWithEmailAndPassword = async (name: string, email: string, 
         }
         // userCredential.user may not have the updated profile yet, so we re-read from auth.currentUser
         if (auth.currentUser) {
+            // Must reload to get the updated profile from updateProfile call
+            await auth.currentUser.reload();
             await initializeUser(auth.currentUser);
         }
         return userCredential;
