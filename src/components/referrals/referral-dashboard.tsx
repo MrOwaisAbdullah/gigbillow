@@ -32,30 +32,41 @@ export function ReferralDashboard() {
     async function fetchData() {
       if (!user) return;
       
-      const userDocRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userDocRef).catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-          path: userDocRef.path,
-          operation: 'get',
+      setLoading(true);
+      try {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userDocRef).catch((serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'get',
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          throw permissionError;
         });
-        errorEmitter.emit('permission-error', permissionError);
-        throw permissionError;
-      });
 
-      if (userSnap.exists()) {
-        setProfile(userSnap.data() as UserProfile);
+        if (userSnap.exists()) {
+          setProfile(userSnap.data() as UserProfile);
+        }
+
+        const referralData = await getReferrals();
+        setReferrals(referralData);
+
+      } catch (error) {
+        // Errors are now thrown and emitted within the API calls or the getDoc catch block above.
+        // This catch block is for any other unexpected errors during the process.
+        console.error("An unexpected error occurred on the referral dashboard:", error);
+      } finally {
+        setLoading(false);
       }
-
-      const referralData = await getReferrals();
-      setReferrals(referralData);
-
-      setLoading(false);
     }
     fetchData();
   }, [user]);
 
   const copyToClipboard = () => {
-    if (!profile?.referral_code) return;
+    if (!profile?.referral_code) {
+        toast({ variant: 'destructive', title: 'Could not copy link', description: 'Referral code not found.' });
+        return;
+    };
     const referralLink = `${window.location.origin}/?ref=${profile.referral_code}`;
     navigator.clipboard.writeText(referralLink);
     toast({ title: 'Referral link copied!' });
@@ -91,7 +102,7 @@ export function ReferralDashboard() {
   
   const paidReferrals = referrals.filter(r => r.reached_paid).length;
   const nextMilestone = milestones.find(m => m.count > paidReferrals) || milestones[milestones.length - 1];
-  const progressPercent = (paidReferrals / nextMilestone.count) * 100;
+  const progressPercent = nextMilestone.count > 0 ? (paidReferrals / nextMilestone.count) * 100 : 0;
 
   // Determine current discount
   let currentDiscount = 0;

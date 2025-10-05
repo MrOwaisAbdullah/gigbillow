@@ -21,8 +21,8 @@
           "description": "URL of the user's profile picture."
         },
         "referral_code": {
-            "type": "string",
-            "description": "A unique code to refer other users."
+          "type": "string",
+          "description": "A unique code to refer other users."
         }
       }
     },
@@ -115,6 +115,10 @@
     "providers": ["google.com", "password"]
   },
   "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Stores each user's public profile and referral code."
+    },
     "/users/{userId}/clients/{clientId}": {
       "schema": { "$ref": "#/entities/Client" },
       "description": "Stores client information for each user."
@@ -135,7 +139,7 @@
       "schema": { "$ref": "#/entities/UserToken" },
       "description": "Stores token balances for each user."
     },
-    "/users/{userId}/referrals/{referralId}": {
+    "/referrals/{referralId}": {
         "schema": { "$ref": "#/entities/Referral" },
         "description": "Stores referral records for each user."
     }
