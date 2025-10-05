@@ -12,6 +12,8 @@ import type { UserProfile, Referral } from '@/lib/types';
 import { getReferrals } from '@/lib/api/referrals';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { errorEmitter } from '@/lib/error-emitter';
+import { FirestorePermissionError } from '@/lib/errors';
 
 const couponMap: { [key: number]: number } = { 1: 10, 2: 10, 3: 50, 4: 50, 5: 100 };
 const milestones = [
@@ -32,7 +34,15 @@ export function ReferralDashboard() {
       if (!user) return;
       
       const userDocRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userDocRef);
+      const userSnap = await getDoc(userDocRef).catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: userDocRef.path,
+          operation: 'get',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+      });
+
       if (userSnap.exists()) {
         setProfile(userSnap.data() as UserProfile);
       }
