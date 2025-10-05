@@ -26,7 +26,7 @@ export default function NewProjectPage() {
   const { openDialog } = useToken();
 
   const fetchClients = useCallback(async () => {
-    const clientsData = await getClients();
+    const { clients: clientsData } = await getClients('first', null, 9999);
     setClients(clientsData);
     return clientsData;
   }, []);

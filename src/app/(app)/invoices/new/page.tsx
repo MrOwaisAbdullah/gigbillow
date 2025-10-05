@@ -117,13 +117,13 @@ export default function NewInvoicePage() {
   const totalAmount = subTotal + taxAmount;
 
   const fetchClients = useCallback(async () => {
-    const clientsData = await getClients();
+    const { clients: clientsData } = await getClients('first', null, 9999);
     setClients(clientsData);
     return clientsData;
   }, []);
 
   const fetchProjects = useCallback(async () => {
-    const projectsData = await getProjects();
+    const { projects: projectsData } = await getProjects('first', null, 9999);
     setAllProjects(projectsData);
     return projectsData;
   }, []);

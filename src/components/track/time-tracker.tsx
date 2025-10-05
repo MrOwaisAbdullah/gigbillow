@@ -42,14 +42,14 @@ export function TimeTracker() {
   const selectedProject = selectedProjectId ? projects.find(p => p.id === selectedProjectId) : null;
 
   const fetchProjects = useCallback(async () => {
-      const projectsData = await getProjects();
+      const { projects: projectsData } = await getProjects('first', null, 9999);
       const activeProjects = projectsData.filter(p => p.status === 'active');
       setProjects(activeProjects);
       return activeProjects;
   }, []);
 
   const fetchClients = useCallback(async () => {
-    const clientsData = await getClients();
+    const { clients: clientsData } = await getClients('first', null, 9999);
     setClients(clientsData);
   }, []);
   
@@ -258,7 +258,7 @@ export function TimeTracker() {
                     onCreated={handleNewProject}
                     disabled={isRunningOrPaused}
                  >
-                    <ProjectForm clients={clients} onSuccess={() => {}} />
+                    <ProjectForm clients={clients} onSuccess={() => {}} onClientCreated={fetchClients} />
                  </SelectWithCreate>
             </div>
             {timerState !== 'running' ? (

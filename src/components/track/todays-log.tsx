@@ -34,8 +34,7 @@ export function TodaysLog() {
         if (timeEntriesData.length > 0) {
             const projectIds = [...new Set(timeEntriesData.map(e => e.projectId))].filter(id => !projects[id]);
             if (projectIds.length > 0) {
-                 const projectsResult = await getProjects('first', null, 9999);
-                 const projectsData = projectsResult.projects;
+                 const { projects: projectsData } = await getProjects('first', null, 9999);
                  const projectsById = projectsData.reduce((acc, p) => ({ ...acc, [p.id]: p }), {} as { [key: string]: Project });
                  setProjects(prev => ({ ...prev, ...projectsById}));
             }
