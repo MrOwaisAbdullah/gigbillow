@@ -334,7 +334,7 @@ export default function ProposalGeneratorPage() {
                   className="min-h-[300px] text-base"
                 />
               ) : (
-                <div className="flex h-[200px] items-center justify-center rounded-lg border-2 border-dashed text-center text-muted-foreground">
+                <div className="flex h-[200px] items-center justify-center rounded-lg border-2 border-dashed text-center text-muted-foreground p-4">
                   <p className="max-w-xs">
                     Your AI-generated proposal will appear here once you
                     provide job details and click generate.
@@ -344,7 +344,7 @@ export default function ProposalGeneratorPage() {
             </CardContent>
           </Card>
           {generatedProposal && (
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 flex-wrap">
               <Button variant="outline" onClick={handleCopyToClipboard}>
                 <Copy className="mr-2 h-4 w-4" />
                 Copy
@@ -360,3 +360,5 @@ export default function ProposalGeneratorPage() {
     </div>
   );
 }
+
+    

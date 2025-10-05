@@ -73,7 +73,7 @@ export default function LandingPage() {
   return (
     <div className="bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-14 max-w-5xl items-center justify-between px-2">
+        <div className="container mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <Zap className="h-6 w-6 text-primary" />
@@ -116,7 +116,7 @@ export default function LandingPage() {
       <main>
         {/* Hero Section */}
         <section className="bg-secondary/30">
-          <div className="container mx-auto px-6 pt-20 pb-16 text-center">
+          <div className="container mx-auto px-4 pt-20 pb-16 text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground">
               Stop Losing Billable Hours
             </h1>
@@ -146,7 +146,7 @@ export default function LandingPage() {
         </section>
 
         {/* App Screenshot Carousel */}
-        <section className="container mx-auto px-6 -mt-12 sm:-mt-16 md:-mt-24 relative z-10">
+        <section className="container mx-auto px-4 -mt-12 sm:-mt-16 md:-mt-24 relative z-10">
            <Carousel
               className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10 mt-4"
               plugins={[plugin.current]}
@@ -174,7 +174,7 @@ export default function LandingPage() {
 
         {/* Pain-Points Grid */}
         <section className="py-16 md:py-28 bg-secondary/30">
-          <div className="container mx-auto px-6">
+          <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto">
               <h2 className="text-3xl font-bold">Sound Familiar?</h2>
               <p className="text-muted-foreground mt-4 text-lg">Freelancing has its headaches. We're here to help.</p>
@@ -207,7 +207,7 @@ export default function LandingPage() {
 
         {/* Token Credit Block */}
         <section className="py-16 md:py-20">
-          <div className="container mx-auto px-6 text-center">
+          <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold">Simple, Pay-As-You-Grow Credits</h2>
             <p className="text-muted-foreground mt-2">No subscriptions. No hidden fees. Just tokens.</p>
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
@@ -244,7 +244,7 @@ export default function LandingPage() {
 
         {/* Social Proof Strip */}
         <section className="py-12 bg-primary text-primary-foreground">
-          <div className="container mx-auto px-6 text-center">
+          <div className="container mx-auto px-4 text-center">
             <p className="text-lg font-semibold">
               &quot;GigBillow recovered $340 in billable hours my first
               week!&quot;
@@ -260,7 +260,7 @@ export default function LandingPage() {
 
         {/* Feature List */}
         <section id="features" className="py-16 md:py-20 bg-background">
-            <div className="container mx-auto px-6">
+            <div className="container mx-auto px-4">
                 <div className="text-center max-w-3xl mx-auto">
                     <h2 className="text-3xl font-bold">Your complete toolkit for freelance success</h2>
                     <p className="text-muted-foreground mt-4 text-lg">
@@ -289,7 +289,7 @@ export default function LandingPage() {
 
         {/* Pricing Table */}
         <section id="pricing" className="py-16 md:py-20 bg-secondary/30">
-          <div className="container mx-auto px-6">
+          <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">
               Simple Pricing for Every Freelancer
             </h2>
@@ -365,7 +365,7 @@ export default function LandingPage() {
 
         {/* CTA Strip */}
         <section className="py-20">
-          <div className="container mx-auto px-6 text-center">
+          <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold">
               Ready to ditch the spreadsheet?
             </h2>
@@ -405,3 +405,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    

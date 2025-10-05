@@ -133,12 +133,12 @@ export default function InvoiceDetailPage() {
 
       <Card className="max-w-4xl mx-auto w-full">
         <CardHeader>
-           <div className="flex justify-between items-start">
+           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-primary">INVOICE</h2>
                     <p className="text-muted-foreground"># {invoice.invoiceNumber}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right w-full sm:w-auto">
                     <p className="font-semibold">{user?.displayName}</p>
                     <p className="text-sm text-muted-foreground">{user?.email}</p>
                 </div>
@@ -146,13 +146,13 @@ export default function InvoiceDetailPage() {
         </CardHeader>
         <CardContent className="space-y-8">
             <Separator />
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div>
                     <p className="font-semibold text-muted-foreground mb-2">ISSUED TO</p>
                     <p className="font-bold">{client.name}</p>
                     <p className="text-sm text-muted-foreground">{client.email}</p>
                 </div>
-                <div className="text-right space-y-2">
+                <div className="text-left sm:text-right space-y-2">
                     <div>
                         <p className="font-semibold text-muted-foreground">Issue Date</p>
                         <p>{format(new Date(invoice.issuedDate), 'PPP')}</p>
@@ -170,7 +170,7 @@ export default function InvoiceDetailPage() {
               </div>
             )}
             
-            <div>
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -216,20 +216,20 @@ export default function InvoiceDetailPage() {
             )}
 
         </CardContent>
-        <CardFooter className="flex justify-between items-center border-t pt-6">
-          <div className='flex gap-2'>
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center border-t pt-6 gap-4">
+          <div className='flex gap-2 w-full sm:w-auto'>
             {invoice.paymentUrl && (
-                <Button asChild>
+                <Button asChild className="w-full sm:w-auto">
                     <a href={invoice.paymentUrl} target="_blank" rel="noopener noreferrer">
                         <CreditCard className="mr-2" /> Pay Now
                     </a>
                 </Button>
             )}
-            <Button variant="secondary" onClick={handleShare}>
+            <Button variant="secondary" onClick={handleShare} className="w-full sm:w-auto">
                 <Share2 className="mr-2" /> Share
             </Button>
           </div>
-          <Button variant="outline" onClick={handleDownloadPdf}>
+          <Button variant="outline" onClick={handleDownloadPdf} className="w-full sm:w-auto">
             <Download className="mr-2" /> Download PDF
           </Button>
         </CardFooter>
@@ -299,3 +299,5 @@ function InvoiceDetailSkeleton() {
         </div>
     )
 }
+
+    

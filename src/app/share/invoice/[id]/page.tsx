@@ -84,7 +84,7 @@ export default function PublicInvoicePage() {
 
   return (
     <div className="flex flex-col gap-8 pb-8 items-center">
-        <div className="flex w-full max-w-4xl items-center justify-between">
+        <div className="flex w-full max-w-4xl items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2 text-lg font-semibold text-primary">
                 <Package2 className="h-6 w-6" />
                 <span>GigBillow</span>
@@ -95,12 +95,12 @@ export default function PublicInvoicePage() {
 
       <Card className="max-w-4xl mx-auto w-full">
         <CardHeader>
-           <div className="flex justify-between items-start">
+           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-primary">INVOICE</h2>
                     <p className="text-muted-foreground"># {invoice.invoiceNumber}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right w-full sm:w-auto">
                     <p className="font-semibold">{user?.displayName}</p>
                     <p className="text-sm text-muted-foreground">{user?.email}</p>
                 </div>
@@ -108,13 +108,13 @@ export default function PublicInvoicePage() {
         </CardHeader>
         <CardContent className="space-y-8">
             <Separator />
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div>
                     <p className="font-semibold text-muted-foreground mb-2">ISSUED TO</p>
                     <p className="font-bold">{client.name}</p>
                     <p className="text-sm text-muted-foreground">{client.email}</p>
                 </div>
-                <div className="text-right space-y-2">
+                <div className="text-left sm:text-right space-y-2">
                     <div>
                         <p className="font-semibold text-muted-foreground">Issue Date</p>
                         <p>{format(new Date(invoice.issuedDate), 'PPP')}</p>
@@ -132,7 +132,7 @@ export default function PublicInvoicePage() {
               </div>
             )}
             
-            <div>
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -191,3 +191,5 @@ export default function PublicInvoicePage() {
     </div>
   );
 }
+
+    

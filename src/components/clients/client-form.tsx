@@ -110,7 +110,7 @@ export function ClientForm({ onSuccess, onCancel }: ClientFormProps) {
             </FormItem>
           )}
         />
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 flex-wrap">
           {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -121,3 +121,5 @@ export function ClientForm({ onSuccess, onCancel }: ClientFormProps) {
     </Form>
   );
 }
+
+    

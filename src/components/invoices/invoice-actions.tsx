@@ -11,7 +11,7 @@ export function InvoiceActions() {
 
   return (
     <>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
         <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
           Import Work Log
         </Button>
@@ -26,3 +26,5 @@ export function InvoiceActions() {
     </>
   )
 }
+
+    
