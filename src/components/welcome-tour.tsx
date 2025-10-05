@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -22,6 +23,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 import { Check } from 'lucide-react';
+
+type WelcomeTourProps = {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+};
 
 const tourSteps = [
   {
@@ -56,8 +62,7 @@ const tourSteps = [
   },
 ];
 
-export function WelcomeTour() {
-  const [open, setOpen] = useState(true);
+export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
 
@@ -73,11 +78,11 @@ export function WelcomeTour() {
   const isLastStep = current === tourSteps.length - 1;
 
   const handleFinish = () => {
-    setOpen(false);
+    onOpenChange(false);
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl">Welcome to GigBillow!</DialogTitle>

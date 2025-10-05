@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
@@ -11,10 +12,12 @@ import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { WelcomeTour } from '@/components/welcome-tour';
+import { TourProvider, useTour } from '@/components/tour-provider';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const { loading, isNewUser } = useAuth();
   const searchParams = useSearchParams();
+  const { setOpen, isTourOpen } = useTour();
 
   useEffect(() => {
     const refCode = searchParams.get('ref');
@@ -22,6 +25,13 @@ function AppContent({ children }: { children: React.ReactNode }) {
       localStorage.setItem('referralCode', refCode);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (isNewUser) {
+      setOpen(true);
+    }
+  }, [isNewUser, setOpen]);
+
 
   if (loading) {
     return (
@@ -45,7 +55,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       <FloatingTrackerButton />
-      {isNewUser && <WelcomeTour />}
+      <WelcomeTour open={isTourOpen} onOpenChange={setOpen} />
     </div>
   );
 }
@@ -55,7 +65,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <TokenProvider>
-        <AppContent>{children}</AppContent>
+        <TourProvider>
+          <AppContent>{children}</AppContent>
+        </TourProvider>
       </TokenProvider>
     </AuthProvider>
   );
