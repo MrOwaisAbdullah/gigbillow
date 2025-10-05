@@ -71,6 +71,17 @@ export function ReferralDashboard() {
             userProfileData = data;
           }
           setProfile(userProfileData);
+        } else {
+          // This case is unlikely if auth.ts is working, but as a fallback, create the profile.
+           const newReferralCode = generateReferralCode(6);
+           userProfileData = {
+               displayName: user.displayName || 'New User',
+               email: user.email || '',
+               photoURL: user.photoURL || '',
+               referral_code: newReferralCode,
+           };
+           await updateDoc(userDocRef, userProfileData);
+           setProfile(userProfileData);
         }
 
         const referralData = await getReferrals();
