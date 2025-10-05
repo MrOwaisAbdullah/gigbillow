@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import {
   CircleUser,
   PanelLeft,
@@ -74,6 +74,9 @@ export function AppHeader() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="sm:max-w-xs bg-sidebar text-sidebar-foreground border-sidebar-border p-0">
+          <SheetHeader>
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            </SheetHeader>
             <div className="flex flex-col gap-6 pt-6">
                  <Link
                     href="#"
