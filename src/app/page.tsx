@@ -74,7 +74,7 @@ export default function LandingPage() {
 
         {/* App Screenshot */}
         <section className="container mx-auto px-6 -mt-12 sm:-mt-16 md:-mt-24 relative z-10">
-          <div className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10">
+          <div className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10 mt-4">
             <Image
               src="https://picsum.photos/seed/dashboard/1200/800"
               alt="GigBillow application dashboard screenshot"
