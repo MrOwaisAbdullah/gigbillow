@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -92,9 +93,10 @@
       "properties": {
         "balance": { "type": "number" },
         "last_refill_at": { "type": "string", "format": "date-time" },
-        "rollover_limit": { "type": "number" }
+        "rollover_limit": { "type": "number" },
+        "is_subscribed": { "type": "boolean", "default": false }
       },
-      "required": ["balance"]
+      "required": ["balance", "is_subscribed"]
     },
     "Referral": {
         "title": "Referral",

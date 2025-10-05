@@ -44,6 +44,7 @@ export type UserToken = {
     balance: number;
     last_refill_at: Date;
     rollover_limit: number;
+    is_subscribed: boolean;
 };
 
 export type TokenPack = {

@@ -5,7 +5,7 @@ import { getAuth, type User } from 'firebase/auth';
 import { doc, getDoc, updateDoc, increment, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import type { UserToken } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
-import { differenceInDays } from 'date-fns';
+import { differenceInDays, isAfter } from 'date-fns';
 
 
 export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boolean, wasRefilled: boolean }> {
@@ -16,19 +16,38 @@ export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boo
     await setDoc(tokenRef, {
       balance: 10,
       last_refill_at: serverTimestamp(),
-      rollover_limit: 10
+      rollover_limit: 10,
+      is_subscribed: false,
     });
     return { isNewUser: true, wasRefilled: false };
-  } else {
-    const tokenData = tokenSnap.data() as UserToken;
-    const lastRefill = (tokenData.last_refill_at as Timestamp).toDate();
-    if (differenceInDays(new Date(), lastRefill) >= 30) {
+  } 
+  
+  const tokenData = tokenSnap.data() as UserToken;
+  const lastRefill = (tokenData.last_refill_at as Timestamp).toDate();
+  const nextRefillDate = new Date(lastRefill.getTime());
+  nextRefillDate.setDate(nextRefillDate.getDate() + 30);
+
+  if (isAfter(new Date(), nextRefillDate)) {
+    if (tokenData.is_subscribed) {
+      // Handle rollover for subscribed users
+      const currentBalance = tokenData.balance;
+      const rolloverAmount = Math.min(currentBalance, tokenData.rollover_limit);
+      const newBalance = rolloverAmount + 150; // Starter pack amount
+       await updateDoc(tokenRef, {
+        balance: newBalance,
+        last_refill_at: serverTimestamp()
+      });
+      toast({ title: '🎉 Subscription Tokens Added!', description: `Your 150 tokens have been added. ${rolloverAmount} unused tokens were rolled over.` });
+
+    } else {
+      // Handle reset for free users
       await updateDoc(tokenRef, {
         balance: 10,
         last_refill_at: serverTimestamp()
       });
-      return { isNewUser: false, wasRefilled: true };
+       toast({ title: '🎉 Your monthly credits are here!', description: 'Your 10 free tokens have been refilled.' });
     }
+     return { isNewUser: false, wasRefilled: true };
   }
 
   return { isNewUser: false, wasRefilled: false };
@@ -105,13 +124,17 @@ export async function addTokens(amount: number): Promise<{ success: boolean, new
 
     if (tokenSnap.exists()) {
         await updateDoc(tokenRef, {
-            balance: increment(amount)
+            balance: increment(amount),
+            // Simulate upgrading to a subscription plan by setting these fields
+            is_subscribed: true,
+            rollover_limit: 150,
         });
     } else {
         await setDoc(tokenRef, {
             balance: amount,
             last_refill_at: serverTimestamp(),
-            rollover_limit: 0,
+            rollover_limit: 150,
+            is_subscribed: true,
         });
     }
 
