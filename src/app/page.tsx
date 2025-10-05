@@ -27,8 +27,8 @@ export default function LandingPage() {
     { src: 'https://picsum.photos/seed/proposals/1200/800', hint: 'proposal generator' },
   ];
 
-  const autoplay = React.useRef(
-    Autoplay({ delay: 3000, stopOnInteraction: true })
+  const plugin = React.useRef(
+    Autoplay({ delay: 2000, stopOnInteraction: true })
   )
 
 
@@ -97,9 +97,9 @@ export default function LandingPage() {
         <section className="container mx-auto px-6 -mt-12 sm:-mt-16 md:-mt-24 relative z-10">
            <Carousel 
               className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10 mt-4"
-              plugins={[autoplay.current]}
-              onMouseEnter={autoplay.current.stop}
-              onMouseLeave={autoplay.current.reset}
+              plugins={[plugin.current]}
+              onMouseEnter={plugin.current.stop}
+              onMouseLeave={plugin.current.reset}
             >
               <CarouselContent>
                 {carouselImages.map((img, index) => (
