@@ -35,7 +35,7 @@ export function AppSidebarNav({ isCollapsed = false }: AppSidebarNavProps) {
   ]
 
   const linkClasses = (href: string) => cn(
-    "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8",
+    "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground md:h-8 md:w-8",
     {
       'bg-accent text-accent-foreground': pathname.startsWith(href) && href !== '/',
       'bg-accent text-accent-foreground': pathname === '/' && href === '/dashboard'
