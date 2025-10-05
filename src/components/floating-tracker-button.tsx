@@ -28,10 +28,10 @@ export function FloatingTrackerButton() {
     <Link href="/track" passHref>
       <Button
         size="icon"
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+        className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90"
         aria-label="Start tracking time"
       >
-        <Timer className="h-8 w-8" strokeWidth={2.25} />
+        <Timer className="h-7 w-7" strokeWidth={2.25} />
       </Button>
     </Link>
   );
