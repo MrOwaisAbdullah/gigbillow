@@ -66,10 +66,12 @@ export function ProjectPulse() {
 
                     return (
                         <div key={project.id}>
-                            <div className="grid grid-cols-3 items-center gap-4 text-sm mb-2">
-                                <span className="font-semibold truncate col-span-3 sm:col-span-1">{project.name}</span>
-                                <span className="text-muted-foreground text-right sm:text-left">{hoursThisWeek.toFixed(1)}h this week</span>
-                                <span className="font-semibold text-right sm:text-left">${earnedThisWeek.toFixed(2)}</span>
+                            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm mb-2">
+                                <span className="font-semibold truncate ">{project.name}</span>
+                                <div className="flex gap-4 text-muted-foreground">
+                                    <span>{hoursThisWeek.toFixed(1)}h this week</span>
+                                    <span className="font-semibold text-foreground">${earnedThisWeek.toFixed(2)}</span>
+                                </div>
                             </div>
                             <Progress value={progress} className="h-2" />
                         </div>
