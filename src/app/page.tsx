@@ -30,7 +30,7 @@ function HeaderButtons({ isHero = false }: { isHero?: boolean }) {
         return (
             <>
                 <Button variant="ghost" size={buttonSize} disabled={true}>
-                     <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                 </Button>
                 <Button size={buttonSize} disabled={true}>
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -129,7 +129,7 @@ export default function LandingPage() {
         {/* App Screenshot Carousel */}
         <section className="container mx-auto px-6 -mt-12 sm:-mt-16 md:-mt-24 relative z-10">
            <Carousel 
-              className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10 mt-4"
+              className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10"
               plugins={[plugin.current]}
               onMouseEnter={plugin.current.stop}
               onMouseLeave={plugin.current.reset}
@@ -142,7 +142,7 @@ export default function LandingPage() {
                             alt={`GigBillow application screenshot ${index + 1}`}
                             width={1200}
                             height={800}
-                            className="rounded-lg w-full"
+                            className="rounded-lg w-full mt-4"
                             data-ai-hint={img.hint}
                             priority={index === 0}
                         />
@@ -353,3 +353,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
