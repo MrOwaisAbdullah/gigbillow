@@ -14,7 +14,7 @@ import {
   CarouselContent,
   CarouselItem,
 } from '@/components/ui/carousel';
-import { Check, Zap, FileText, Timer, PenSquare, Cog, FileClock } from 'lucide-react';
+import { Check, Zap, FileText, Timer, PenSquare, Cog, FileClock, LineChart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import Autoplay from "embla-carousel-autoplay"
@@ -62,6 +62,11 @@ export default function LandingPage() {
         title: 'Simple project management', 
         description: 'Keep track of clients, projects, rates, and statuses all in one place.' 
     },
+    { 
+        icon: LineChart,
+        title: 'Insightful reports',
+        description: 'Visualize your revenue, track hours per project, and understand your business performance at a glance.'
+    },
   ];
 
 
@@ -90,12 +95,7 @@ export default function LandingPage() {
             </nav>
           </div>
           <div className="flex items-center space-x-2">
-            {loading ? (
-              <>
-                <Button variant="ghost" disabled>Log In</Button>
-                <Button disabled>Register</Button>
-              </>
-            ) : user ? (
+            {user ? (
               <Button asChild>
                 <Link href="/dashboard">Go to Dashboard</Link>
               </Button>
@@ -105,7 +105,7 @@ export default function LandingPage() {
                   <Link href="/login">Log In</Link>
                 </Button>
                 <Button asChild>
-                  <Link href="/register">Start Free Trial</Link>
+                  <Link href="/register">Register</Link>
                 </Button>
               </>
             )}
