@@ -15,7 +15,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { errorEmitter } from '@/lib/error-emitter';
 import { FirestorePermissionError } from '@/lib/errors';
 
-const couponMap: { [key: number]: number } = { 1: 10, 2: 10, 3: 50, 4: 50, 5: 100 };
 const milestones = [
   { count: 1, discount: 10 },
   { count: 3, discount: 50 },
@@ -91,9 +90,18 @@ export function ReferralDashboard() {
   }
   
   const paidReferrals = referrals.filter(r => r.reached_paid).length;
-  const currentDiscount = couponMap[Math.min(paidReferrals, 5)] || 0;
   const nextMilestone = milestones.find(m => m.count > paidReferrals) || milestones[milestones.length - 1];
   const progressPercent = (paidReferrals / nextMilestone.count) * 100;
+
+  // Determine current discount
+  let currentDiscount = 0;
+  for (let i = milestones.length - 1; i >= 0; i--) {
+      if (paidReferrals >= milestones[i].count) {
+          currentDiscount = milestones[i].discount;
+          break;
+      }
+  }
+
 
   return (
     <Card>
