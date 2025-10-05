@@ -14,6 +14,7 @@ export function FloatingTrackerButton() {
     '/clients/new',
     '/projects/new',
     '/settings',
+    '/proposal-generator'
   ];
 
   const shouldHide = hiddenPaths.includes(pathname) || pathname.startsWith('/invoices/');
