@@ -5,6 +5,8 @@ import { getAuth } from 'firebase/auth';
 import { collection, getDocs, query, where, serverTimestamp, addDoc, doc } from 'firebase/firestore';
 import type { Referral } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/lib/error-emitter';
+import { FirestorePermissionError } from '@/lib/errors';
 
 function getCollectionPath() {
     const auth = getAuth();
@@ -21,22 +23,26 @@ export async function getReferrals(): Promise<Referral[]> {
   const collectionPath = getCollectionPath();
   if (!collectionPath) return [];
 
-  try {
-    const q = query(collection(db, collectionPath), where('referrer_user_id', '==', userId));
-    const querySnapshot = await getDocs(q);
-    const referrals = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            ...data,
-            created_at: data.created_at.toDate(),
-        } as Referral
+  const q = query(collection(db, collectionPath), where('referrer_user_id', '==', userId));
+  
+  const querySnapshot = await getDocs(q).catch((serverError) => {
+    const permissionError = new FirestorePermissionError({
+        path: collectionPath,
+        operation: 'list',
     });
-    return referrals;
-  } catch (error) {
-    console.error("Failed to fetch referrals:", error);
-    return [];
-  }
+    errorEmitter.emit('permission-error', permissionError);
+    throw permissionError;
+  });
+
+  const referrals = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+          id: doc.id,
+          ...data,
+          created_at: data.created_at.toDate(),
+      } as Referral
+  });
+  return referrals;
 }
 
 // This function would be called from a secure backend (e.g., Cloud Function)
