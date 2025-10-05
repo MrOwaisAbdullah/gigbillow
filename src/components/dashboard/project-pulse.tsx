@@ -65,9 +65,9 @@ export function ProjectPulse() {
 
                     return (
                         <div key={project.id}>
-                            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm mb-2">
-                                <span className="font-semibold truncate flex-grow min-w-[120px]">{project.name}</span>
-                                <div className="flex gap-4 text-muted-foreground shrink-0">
+                            <div className="mb-2 space-y-1 text-sm">
+                                <p className="font-semibold">{project.name}</p>
+                                <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 text-muted-foreground">
                                     <span>{hoursThisWeek.toFixed(1)}h this week</span>
                                     <span className="font-semibold text-foreground">${earnedThisWeek.toFixed(2)}</span>
                                 </div>
