@@ -61,7 +61,6 @@ export function ClientsTable() {
     }
     setHasNextPage(!!next);
     setLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, cursors]);
 
   useEffect(() => {
