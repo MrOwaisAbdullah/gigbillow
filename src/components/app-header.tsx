@@ -40,6 +40,7 @@ export function AppHeader() {
   const segments = pathname.split('/').filter(Boolean)
   const { user } = useAuth();
   const { tokens, totalTokens, loading: tokensLoading, openDialog } = useToken();
+  const [isSheetOpen, setIsSheetOpen] = React.useState(false);
 
   const breadcrumbItems = segments.map((segment, index) => {
     // Exclude 'app' from breadcrumbs
@@ -65,7 +66,7 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-      <Sheet>
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger asChild>
           <Button size="icon" variant="outline" className="sm:hidden">
             <PanelLeft className="h-5 w-5" />
@@ -84,7 +85,7 @@ export function AppHeader() {
                     <span>GigBillow</span>
                     <span className="sr-only">GigBillow</span>
                 </Link>
-                <AppSidebarNav isCollapsed={false} />
+                <AppSidebarNav isCollapsed={false} onLinkClick={() => setIsSheetOpen(false)} />
             </div>
         </SheetContent>
       </Sheet>

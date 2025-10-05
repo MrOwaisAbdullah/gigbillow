@@ -18,9 +18,10 @@ import { usePathname } from 'next/navigation'
 
 interface AppSidebarNavProps {
   isCollapsed?: boolean
+  onLinkClick?: () => void;
 }
 
-export function AppSidebarNav({ isCollapsed = false }: AppSidebarNavProps) {
+export function AppSidebarNav({ isCollapsed = false, onLinkClick }: AppSidebarNavProps) {
   const pathname = usePathname()
 
   const navItems = [
@@ -83,6 +84,7 @@ export function AppSidebarNav({ isCollapsed = false }: AppSidebarNavProps) {
                 key={href}
                 href={href}
                 className={mobileLinkClasses(href)}
+                onClick={onLinkClick}
             >
                 <Icon className="h-5 w-5" />
                 {label}
