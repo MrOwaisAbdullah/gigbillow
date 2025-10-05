@@ -64,7 +64,7 @@ export function ClientsTable() {
 
   useEffect(() => {
     fetchClients('first');
-  }, []);
+  }, [fetchClients]);
 
   const handleDelete = async (id: string, name: string) => {
     try {
@@ -81,7 +81,7 @@ export function ClientsTable() {
   
   if (loading && clients.length === 0) {
     return (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border overflow-x-auto">
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -115,7 +115,7 @@ export function ClientsTable() {
 
   return (
     <>
-    <div className="rounded-lg border">
+    <div className="rounded-lg border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>

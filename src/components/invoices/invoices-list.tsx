@@ -96,7 +96,7 @@ export function InvoicesList() {
 
   useEffect(() => {
     fetchInvoices('first');
-  }, []);
+  }, [fetchInvoices]);
 
   const handleDelete = async (id: string) => {
     const invoiceToDelete = invoices.find(inv => inv.id === id);
@@ -137,7 +137,7 @@ export function InvoicesList() {
 
   if (loading && invoices.length === 0) {
      return (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border overflow-x-auto">
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -172,7 +172,7 @@ export function InvoicesList() {
 
   return (
     <>
-    <div className="rounded-lg border">
+    <div className="rounded-lg border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>

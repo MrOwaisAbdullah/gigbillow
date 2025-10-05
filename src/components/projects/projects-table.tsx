@@ -84,7 +84,7 @@ export function ProjectsTable() {
 
   useEffect(() => {
     fetchProjects('first');
-  }, []);
+  }, [fetchProjects]);
 
   const handleDelete = async (id: string) => {
     const projectToDelete = projects.find(p => p.id === id);
@@ -108,7 +108,7 @@ export function ProjectsTable() {
   
   if (loading && projects.length === 0) {
     return (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border overflow-x-auto">
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -142,7 +142,7 @@ export function ProjectsTable() {
 
   return (
     <>
-    <div className="rounded-lg border">
+    <div className="rounded-lg border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>

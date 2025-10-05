@@ -54,7 +54,7 @@ export function InvoicesTable() {
 
   if (loading) {
      return (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border overflow-x-auto">
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -84,7 +84,7 @@ export function InvoicesTable() {
   }
 
   return (
-    <div className="rounded-lg border">
+    <div className="rounded-lg border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
