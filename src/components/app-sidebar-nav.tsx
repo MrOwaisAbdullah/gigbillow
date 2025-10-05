@@ -44,9 +44,9 @@ export function AppSidebarNav({ isCollapsed = false }: AppSidebarNavProps) {
   )
 
   const mobileLinkClasses = (href: string) => cn(
-    "flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground",
+    "flex items-center gap-4 rounded-lg px-3 py-3 text-sidebar-foreground/70 transition-all duration-200 ease-in-out hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:scale-105",
      {
-      'text-foreground': pathname.startsWith(href)
+      'bg-sidebar-accent text-sidebar-accent-foreground scale-105 font-semibold': (pathname.startsWith(href) && href !== '/dashboard') || (pathname === '/dashboard' && href === '/dashboard')
     }
   )
 
@@ -77,14 +77,14 @@ export function AppSidebarNav({ isCollapsed = false }: AppSidebarNavProps) {
 
   // Mobile / un-collapsed view
   return (
-     <nav className="grid items-start gap-2 px-2 text-sm font-medium">
+     <nav className="grid items-start gap-3 px-4 text-base font-medium">
         {navItems.map(({ href, icon: Icon, label }) => (
             <Link
                 key={href}
                 href={href}
                 className={mobileLinkClasses(href)}
             >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-5 w-5" />
                 {label}
             </Link>
         ))}

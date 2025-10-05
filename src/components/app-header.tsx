@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import {
   CircleUser,
   PanelLeft,
@@ -72,17 +72,20 @@ export function AppHeader() {
             <span className="sr-only">Toggle Menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="sm:max-w-xs bg-sidebar text-sidebar-foreground border-sidebar-border">
-            <nav className="flex flex-col gap-6 text-lg font-medium">
+        <SheetContent side="left" className="sm:max-w-xs bg-sidebar text-sidebar-foreground border-sidebar-border p-0">
+            <div className="flex flex-col gap-6 pt-6">
                  <Link
                     href="#"
-                    className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
+                    className="group flex h-10 shrink-0 items-center justify-start gap-2 rounded-full text-lg font-semibold text-primary-foreground px-4"
                 >
-                    <Package2 className="h-5 w-5 transition-all group-hover:scale-110" />
+                    <div className="bg-primary p-2 rounded-full">
+                        <Package2 className="h-5 w-5 transition-all group-hover:scale-110" />
+                    </div>
+                    <span>GigBillow</span>
                     <span className="sr-only">GigBillow</span>
                 </Link>
                 <AppSidebarNav isCollapsed={false} />
-            </nav>
+            </div>
         </SheetContent>
       </Sheet>
       <Breadcrumb className="hidden md:flex">
