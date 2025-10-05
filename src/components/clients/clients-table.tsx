@@ -50,11 +50,11 @@ export function ClientsTable() {
 
     if (page === 'next') {
         if (!cursors.includes(next)) {
-            setCursors([...cursors, next]);
+            setCursors(c => [...c, next]);
         }
-        setCurrentPage(prevPage => prevPage + 1);
+        setCurrentPage(p => p + 1);
     } else if (page === 'prev') {
-        setCurrentPage(prevPage => Math.max(1, prevPage - 1));
+        setCurrentPage(p => Math.max(1, p - 1));
     } else { // first
         setCursors([null, next]);
         setCurrentPage(1);
@@ -65,7 +65,8 @@ export function ClientsTable() {
 
   useEffect(() => {
     fetchClients('first');
-  }, [fetchClients]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDelete = async (id: string, name: string) => {
     try {
