@@ -65,7 +65,7 @@ export function ProjectPulse() {
 
                     return (
                         <div key={project.id}>
-                            <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-x-4 gap-y-1 text-sm mb-2">
+                            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm mb-2">
                                 <span className="font-semibold truncate ">{project.name}</span>
                                 <div className="flex gap-4 text-muted-foreground flex-shrink-0">
                                     <span>{hoursThisWeek.toFixed(1)}h this week</span>
