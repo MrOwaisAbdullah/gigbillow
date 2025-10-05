@@ -138,7 +138,7 @@ export function AppHeader() {
             <Link href="/support">Support</Link>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setTourOpen(true)}>
-            Show Welcome Tour
+            Welcome Tour
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()}>Logout</DropdownMenuItem>
