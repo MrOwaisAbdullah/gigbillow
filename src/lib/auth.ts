@@ -39,6 +39,7 @@ async function initializeUser(user: User) {
             balance: 10,
             last_refill_at: serverTimestamp(),
             rollover_limit: 10,
+            is_subscribed: false,
         });
     }
 
@@ -56,17 +57,13 @@ async function initializeUser(user: User) {
       // Handle referral
       const refCode = localStorage.getItem('referralCode');
       if (refCode) {
-        // Here you would typically call a server-side function
-        // to create the referral record, since we can't trust the client.
-        // For this example, we'll log it.
+        // In a real app, this would trigger a backend function.
         console.log(`New user ${user.uid} was referred by code: ${refCode}`);
-        // In a real app, you'd do something like:
-        // await createReferral({ referrerCode: refCode, newUserId: user.uid });
         localStorage.removeItem('referralCode');
       }
 
     } else if (!userSnap.data().referral_code) {
-      // Backfill referral code for existing users
+      // Backfill referral code for existing users who might not have one.
       const referralCode = generateReferralCode(6);
       await updateDoc(userDocRef, {
         referral_code: referralCode,
@@ -90,10 +87,14 @@ export const signInWithGoogle = async () => {
 export const registerWithEmailAndPassword = async (name: string, email: string, password: string): Promise<UserCredential> => {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // await updateProfile before initializeUser to ensure displayName is set
         if (auth.currentUser) {
             await updateProfile(auth.currentUser, { displayName: name });
         }
-        await initializeUser(userCredential.user);
+        // userCredential.user may not have the updated profile yet, so we re-read from auth.currentUser
+        if (auth.currentUser) {
+            await initializeUser(auth.currentUser);
+        }
         return userCredential;
     } catch (error) {
         console.error("Error registering with email and password: ", error);

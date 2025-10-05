@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -30,7 +31,10 @@ export function ReferralDashboard() {
   
   useEffect(() => {
     async function fetchData() {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       
       setLoading(true);
       try {
@@ -55,19 +59,24 @@ export function ReferralDashboard() {
         // Errors are now thrown and emitted within the API calls or the getDoc catch block above.
         // This catch block is for any other unexpected errors during the process.
         console.error("An unexpected error occurred on the referral dashboard:", error);
+        toast({
+          variant: 'destructive',
+          title: 'Error loading data',
+          description: 'Could not load your referral information. Please try again later.'
+        });
       } finally {
         setLoading(false);
       }
     }
     fetchData();
-  }, [user]);
+  }, [user, toast]);
 
   const copyToClipboard = () => {
     if (!profile?.referral_code) {
         toast({ variant: 'destructive', title: 'Could not copy link', description: 'Referral code not found.' });
         return;
     };
-    const referralLink = `${window.location.origin}/?ref=${profile.referral_code}`;
+    const referralLink = `${window.location.origin}/register?ref=${profile.referral_code}`;
     navigator.clipboard.writeText(referralLink);
     toast({ title: 'Referral link copied!' });
   };
@@ -102,7 +111,7 @@ export function ReferralDashboard() {
   
   const paidReferrals = referrals.filter(r => r.reached_paid).length;
   const nextMilestone = milestones.find(m => m.count > paidReferrals) || milestones[milestones.length - 1];
-  const progressPercent = nextMilestone.count > 0 ? (paidReferrals / nextMilestone.count) * 100 : 0;
+  const progressPercent = nextMilestone && nextMilestone.count > 0 ? (paidReferrals / nextMilestone.count) * 100 : 0;
 
   // Determine current discount
   let currentDiscount = 0;
@@ -125,10 +134,10 @@ export function ReferralDashboard() {
           <div className="flex items-center gap-2">
             <input
               readOnly
-              value={`${window.location.origin}/?ref=${profile?.referral_code || ''}`}
+              value={`${window.location.origin}/register?ref=${profile?.referral_code || ''}`}
               className="w-full rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground"
             />
-            <Button onClick={copyToClipboard} variant="outline" size="icon">
+            <Button onClick={copyToClipboard} variant="outline" size="icon" disabled={!profile?.referral_code}>
               <Copy className="h-4 w-4" />
             </Button>
           </div>
@@ -152,7 +161,7 @@ export function ReferralDashboard() {
                         <div className="absolute h-2 rounded-full bg-primary" style={{width: `${progressPercent}%`}}></div>
                     </div>
                 </div>
-                <span className="text-sm font-bold">{paidReferrals}/{nextMilestone.count}</span>
+                {nextMilestone && <span className="text-sm font-bold">{paidReferrals}/{nextMilestone.count}</span>}
             </div>
         </div>
 
