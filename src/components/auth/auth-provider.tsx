@@ -42,35 +42,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
   
   useEffect(() => {
-    // Function to attach the token to API requests
-    const originalFetch = window.fetch;
-    window.fetch = async function(...args) {
-        const [url, config] = args;
-
-        // We only want to add the token to our own API routes
-        const isApiRequest = typeof url === 'string' && url.startsWith('/api/');
-
-        if (isApiRequest) {
-            const auth = getAuth(app);
-            const user = auth.currentUser;
-            if (user) {
-                const token = await getIdToken(user);
-                const headers = new Headers(config?.headers);
-                headers.set('Authorization', `Bearer ${token}`);
-                args[1] = { ...config, headers };
-            }
-        }
-
-        return originalFetch.apply(this, args);
-    };
-
-    // Cleanup function to restore original fetch
-    return () => {
-        window.fetch = originalFetch;
-    };
-  }, []);
-
-  useEffect(() => {
     const auth = getAuth(app);
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       
