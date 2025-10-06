@@ -401,6 +401,17 @@ export default function LandingPage() {
           <p className="text-sm">
             © 2024 GigBillow. All rights reserved.
           </p>
+           <p className="text-sm mt-2">
+            Made with ❤️ by{' '}
+            <a
+              href="https://owaisabdullah.dev/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Owais Abdullah
+            </a>
+          </p>
         </div>
       </footer>
     </div>

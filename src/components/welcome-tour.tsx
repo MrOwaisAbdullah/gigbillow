@@ -80,8 +80,9 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
   }
 
   return (
+    <div className='max-w-[100vw] sm:max-w-[95vw] md:max-w-xl lg:max-w-5xl mx-auto p-4'>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-3xl lg:max-w-5xl">
+      <DialogContent className="sm:max-w-[90vw] mx-auto p-2 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl">Welcome to GigBillow!</DialogTitle>
           <DialogDescription>
@@ -89,12 +90,11 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
           </DialogDescription>
         </DialogHeader>
         
-        <Carousel setApi={setApi}>
-          <CarouselContent>
+        <Carousel setApi={setApi} className="max-w-[95vw] sm:max-w-[90vw]   mx-auto">
+          <CarouselContent className="max-h-[90vh] sm:max-w-[80vw]">
             {tourSteps.map((step, index) => (
               <CarouselItem key={index}>
-                <div className="p-1">
-                  <Card>
+                  <Card className='p-1'>
                     <CardContent className="flex flex-col lg:flex-row items-center justify-center p-4 gap-6">
                         <div className="w-full lg:w-1/2 flex-shrink-0">
                            <Image
@@ -112,7 +112,6 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
                         </div>
                     </CardContent>
                   </Card>
-                </div>
               </CarouselItem>
             ))}
           </CarouselContent>
@@ -146,5 +145,6 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </div>
   );
 }
