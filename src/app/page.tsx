@@ -187,7 +187,7 @@ export default function LandingPage() {
         {/* App Screenshot Carousel */}
         <section className="container mx-auto px-4 relative z-10 -mt-16">
            <Carousel
-              className="bg-white dark:bg-card p-2 rounded-xl shadow-2xl ring-1 ring-black/10 mt-4"
+              className="bg-white dark:bg-card p-2 rounded-xl shadow-2xl ring-1 ring-black/10"
               plugins={[plugin.current]}
               onMouseEnter={plugin.current.stop}
               onMouseLeave={plugin.current.reset}
@@ -212,7 +212,7 @@ export default function LandingPage() {
 
 
         {/* Pain-Points Grid */}
-        <section className="py-16 md:py-28 bg-secondary/30">
+        <section className="py-16 md:py-28 bg-background dark:bg-transparent">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto">
               <h2 className="text-3xl font-bold">Sound Familiar?</h2>
@@ -245,7 +245,7 @@ export default function LandingPage() {
         </section>
 
         {/* Token Credit Block */}
-        <section className="py-16 md:py-20">
+        <section className="py-16 md:py-20 dark:bg-secondary/30">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold">Simple, Pay-As-You-Grow Credits</h2>
             <p className="text-muted-foreground mt-2">No subscriptions. No hidden fees. Just tokens.</p>
