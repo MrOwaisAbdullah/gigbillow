@@ -212,7 +212,7 @@ export default function ProposalGeneratorPage() {
                         <Textarea
                           placeholder="e.g., 5-page responsive website, new brand logo, 3 blog posts..."
                           {...field}
-                          className="min-h-[60px]"
+                          className="min-h-[100px]"
                         />
                       </FormControl>
                       <FormDescription>
@@ -362,5 +362,3 @@ export default function ProposalGeneratorPage() {
     </div>
   );
 }
-
-    
