@@ -251,7 +251,7 @@ export default function LandingPage() {
                 <Link href="#pricing">View Pricing</Link>
               </Button>
             </div>
-            <div className="w-full max-w-2xl mx-auto pt-8">
+            <div className="w-full max-w-4xl mx-auto pt-8">
               <Carousel
                   plugins={[heroCarouselPlugin.current]}
                   className="w-full"
@@ -261,13 +261,13 @@ export default function LandingPage() {
                 <CarouselContent>
                   {carouselImages.map((image, index) => (
                     <CarouselItem key={index}>
-                      <Card>
+                      <Card className='border-none shadow-none'>
                         <CardContent className="flex aspect-video items-center justify-center p-0">
                            <Image
                               src={image.src}
                               alt={`App Screenshot ${index + 1}`}
-                              width={600}
-                              height={400}
+                              width={1200}
+                              height={800}
                               className="rounded-lg object-cover"
                               data-ai-hint={image.hint}
                             />
@@ -437,9 +437,15 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="mx-auto w-full max-w-sm space-y-2">
-              <Button asChild size="lg">
-                <Link href="/register">Get Started Now</Link>
-              </Button>
+                 {loading ? null : user ? (
+                    <Button asChild size="lg">
+                        <Link href="/dashboard">Go to Dashboard</Link>
+                    </Button>
+                 ) : (
+                    <Button asChild size="lg">
+                        <Link href="/register">Get Started Now</Link>
+                    </Button>
+                )}
             </div>
           </div>
         </section>
