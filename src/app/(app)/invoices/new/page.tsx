@@ -132,15 +132,7 @@ export default function NewInvoicePage() {
   const totalAmount = grandSubTotal + taxAmount;
   
   const includesExpenses = selectedExpenseIds.length > 0;
-  const submitButtonText = useMemo(() => {
-    const pdfCost = 1;
-    const expenseCost = includesExpenses ? 1 : 0;
-    const totalCost = pdfCost + expenseCost;
-    if (totalCost > 1) {
-        return `Create & Download PDF (-${totalCost} Tokens)`;
-    }
-    return `Create & Download PDF (-${pdfCost} Token)`;
-  }, [includesExpenses]);
+  const submitButtonText = "Create & Download PDF (-1 Token)";
 
   const fetchClients = useCallback(async () => {
     const { clients: clientsData } = await getClients('first', null, 9999);
@@ -253,7 +245,7 @@ export default function NewInvoicePage() {
   async function onSubmit(values: InvoiceFormValues) {
     setIsSubmitting(true);
     
-    const cost = 1 + (includesExpenses ? 1 : 0);
+    const cost = 1;
     const hasEnoughTokens = await canAfford('invoice_pdf', cost);
     if (!hasEnoughTokens) {
         openDialog();
@@ -499,7 +491,7 @@ export default function NewInvoicePage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Uninvoiced Expenses</CardTitle>
-                    <CardDescription>Select expenses to add to this invoice. This will cost 1 token.</CardDescription>
+                    <CardDescription>Select expenses to add to this invoice.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <FormField

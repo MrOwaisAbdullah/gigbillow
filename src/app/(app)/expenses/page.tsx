@@ -48,7 +48,7 @@ export default function ExpensesPage() {
         </Button>
       </div>
       <p className="text-sm text-muted-foreground -mt-4">
-        Track expenses for free. Including them on an invoice costs 1 token.
+        Track and manage your billable and non-billable expenses.
       </p>
       <ExpensesTable allProjects={projects}/>
        <ExpenseDialog
