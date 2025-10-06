@@ -2,85 +2,44 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getInvoices } from '@/lib/api/invoices';
-import { getTimeEntries } from '@/lib/api/time-entries';
-import { getExpenses } from '@/lib/api/expenses';
-import { useEffect, useState } from "react";
-import { subDays, isThisWeek, startOfMonth } from 'date-fns';
 import { TrendingUp, AlertCircle, Clock, Receipt } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
-export function SummaryStats() {
-  const [stats, setStats] = useState({
-    outstandingRevenue: 0,
-    incomeLast30d: 0,
-    hoursThisWeek: 0,
-    expensesThisMonth: 0,
-  });
-  const [loading, setLoading] = useState(true);
+type Stats = {
+  outstandingRevenue: number;
+  incomeLast30d: number;
+  hoursThisWeek: number;
+  expensesThisMonth: number;
+};
 
-  useEffect(() => {
-    async function fetchStats() {
-      const [invoicesResult, timeEntriesResult, expensesResult] = await Promise.all([
-        getInvoices('first', null, 9999), 
-        getTimeEntries(null, 9999),
-        getExpenses('first', null, 9999)
-      ]);
-      const invoicesData = invoicesResult.invoices;
-      const timeEntriesData = timeEntriesResult.entries;
-      const expensesData = expensesResult.expenses;
-      
-      const thirtyDaysAgo = subDays(new Date(), 30);
-      const startOfCurrentMonth = startOfMonth(new Date());
+type SummaryStatsProps = {
+  stats: Stats | null;
+  loading: boolean;
+};
 
-      const outstandingRevenue = invoicesData
-        .filter((inv) => inv.status === 'unpaid' || inv.status === 'overdue')
-        .reduce((acc, inv) => acc + inv.amount, 0);
-
-      const incomeLast30d = invoicesData
-        .filter(
-          (inv) =>
-            inv.status === 'paid' &&
-            new Date(inv.issuedDate) >= thirtyDaysAgo
-        )
-        .reduce((acc, inv) => acc + inv.amount, 0);
-
-      const hoursThisWeek = timeEntriesData
-        .filter((entry) => isThisWeek(new Date(entry.startTime), { weekStartsOn: 1 }))
-        .reduce((acc, entry) => acc + entry.hours, 0);
-      
-      const expensesThisMonth = expensesData
-        .filter(exp => new Date(exp.date) >= startOfCurrentMonth)
-        .reduce((acc, exp) => acc + exp.amount, 0);
-
-      setStats({ outstandingRevenue, incomeLast30d, hoursThisWeek, expensesThisMonth });
-      setLoading(false);
-    }
-    fetchStats();
-  }, []);
-  
+export function SummaryStats({ stats, loading }: SummaryStatsProps) {
   const statCards = [
     {
       title: 'Outstanding Revenue',
-      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(stats.outstandingRevenue),
+      value: stats ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(stats.outstandingRevenue) : '$0.00',
       icon: AlertCircle,
       description: 'Total from unpaid invoices',
     },
     {
       title: 'Income (Last 30d)',
-      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(stats.incomeLast30d),
+      value: stats ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(stats.incomeLast30d) : '$0.00',
       icon: TrendingUp,
       description: 'Based on paid invoices',
     },
     {
       title: 'Hours This Week',
-      value: `${stats.hoursThisWeek.toFixed(1)}h`,
+      value: stats ? `${stats.hoursThisWeek.toFixed(1)}h` : '0.0h',
       icon: Clock,
       description: 'Total billable hours tracked',
     },
     {
       title: 'Expenses (This Month)',
-      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(stats.expensesThisMonth),
+      value: stats ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(stats.expensesThisMonth) : '$0.00',
       icon: Receipt,
       description: 'Total expenses logged',
     },

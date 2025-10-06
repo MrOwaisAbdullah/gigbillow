@@ -8,28 +8,70 @@ import { HoursChart } from '@/components/reports/hours-chart';
 import { getInvoices } from '@/lib/api/invoices';
 import { getProjects } from '@/lib/api/projects';
 import { getTimeEntries } from '@/lib/api/time-entries';
-import { subMonths, format, startOfMonth } from 'date-fns';
+import { getExpenses } from '@/lib/api/expenses';
+import { subDays, subMonths, format, startOfMonth, isThisWeek } from 'date-fns';
 import { generateReportPdf, generateReportCsv } from '@/lib/pdf-utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SummaryStats } from '@/components/dashboard/summary-stats';
+import { useAuth } from '@/components/auth/auth-provider';
+
+type Stats = {
+  outstandingRevenue: number;
+  incomeLast30d: number;
+  hoursThisWeek: number;
+  expensesThisMonth: number;
+};
 
 export default function ReportsPage() {
+  const { user } = useAuth();
+  const [stats, setStats] = useState<Stats | null>(null);
   const [revenueData, setRevenueData] = useState<{name: string, total: number}[]>([]);
   const [hoursData, setHoursData] = useState<{name: string, value: number}[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchAllChartData() {
+    async function fetchAllReportData() {
       setLoading(true);
 
-      const [invoicesResult, projectsResult, timeEntriesResult] = await Promise.all([
+      const [invoicesResult, projectsResult, timeEntriesResult, expensesResult] = await Promise.all([
         getInvoices('first', null, 9999),
         getProjects('first', null, 9999),
-        getTimeEntries(null, 9999)
+        getTimeEntries(null, 9999),
+        getExpenses('first', null, 9999)
       ]);
+      const invoicesData = invoicesResult.invoices;
+      const projectsData = projectsResult.projects;
+      const timeEntriesData = timeEntriesResult.entries;
+      const expensesData = expensesResult.expenses;
+
+      // Process Stats
+      const thirtyDaysAgo = subDays(new Date(), 30);
+      const startOfCurrentMonth = startOfMonth(new Date());
+
+      const outstandingRevenue = invoicesData
+        .filter((inv) => inv.status === 'unpaid' || inv.status === 'overdue')
+        .reduce((acc, inv) => acc + inv.amount, 0);
+
+      const incomeLast30d = invoicesData
+        .filter(
+          (inv) =>
+            inv.status === 'paid' &&
+            new Date(inv.issuedDate) >= thirtyDaysAgo
+        )
+        .reduce((acc, inv) => acc + inv.amount, 0);
+
+      const hoursThisWeek = timeEntriesData
+        .filter((entry) => isThisWeek(new Date(entry.startTime), { weekStartsOn: 1 }))
+        .reduce((acc, entry) => acc + entry.hours, 0);
+      
+      const expensesThisMonth = expensesData
+        .filter(exp => new Date(exp.date) >= startOfCurrentMonth)
+        .reduce((acc, exp) => acc + exp.amount, 0);
+
+      setStats({ outstandingRevenue, incomeLast30d, hoursThisWeek, expensesThisMonth });
 
       // Process revenue data
-      const paidInvoices = invoicesResult.invoices.filter(inv => inv.status === 'paid');
+      const paidInvoices = invoicesData.filter(inv => inv.status === 'paid');
       const now = new Date();
       const monthlyRevenue = Array.from({ length: 12 }).map((_, i) => {
         const monthDate = subMonths(now, 11 - i);
@@ -51,10 +93,9 @@ export default function ReportsPage() {
       setRevenueData(Object.values(revenueMap).map(({key, ...rest}) => rest));
 
       // Process hours data
-      const startOfCurrentMonth = startOfMonth(new Date());
-      const monthlyEntries = timeEntriesResult.entries.filter(e => new Date(e.startTime) >= startOfCurrentMonth);
+      const monthlyEntries = timeEntriesData.filter(e => new Date(e.startTime) >= startOfCurrentMonth);
       const hoursByProject = monthlyEntries.reduce((acc, entry) => {
-        const project = projectsResult.projects.find(p => p.id === entry.projectId);
+        const project = projectsData.find(p => p.id === entry.projectId);
         if (project) {
           acc[project.name] = (acc[project.name] || 0) + entry.hours;
         }
@@ -64,15 +105,17 @@ export default function ReportsPage() {
 
       setLoading(false);
     }
-    fetchAllChartData();
+    fetchAllReportData();
   }, []);
 
   const handleExportPdf = () => {
-    generateReportPdf({ revenueData, hoursData });
+    if (!stats || !user) return;
+    generateReportPdf({ stats, revenueData, hoursData, user });
   };
 
   const handleExportCsv = () => {
-    generateReportCsv({ revenueData, hoursData });
+    if (!stats) return;
+    generateReportCsv({ stats, revenueData, hoursData });
   };
 
   return (
@@ -89,7 +132,7 @@ export default function ReportsPage() {
         </div>
       </div>
       
-      <SummaryStats />
+      <SummaryStats stats={stats} loading={loading} />
 
       {loading ? (
         <div className="grid gap-8 md:grid-cols-2">

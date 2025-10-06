@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
-import type { Invoice, Client } from './types';
+import type { Invoice, Client, User } from './types';
 import { toTitleCase } from './utils';
 
 // HSL to RGB conversion
@@ -301,21 +301,57 @@ export function generateProposalPdf({ proposalText, clientName, removeWatermark 
             }
         });
     };
-
-    generatePdf('Project-Proposal', 'Project Proposal', removeWatermark, addContent);
+    const fileName = `Project-Proposal-${format(new Date(), 'yyyy-MM-dd')}`;
+    generatePdf(fileName, 'Project Proposal', removeWatermark, addContent);
 }
 
 // --- REPORT PDF ---
+type ReportStats = {
+  outstandingRevenue: number;
+  incomeLast30d: number;
+  hoursThisWeek: number;
+  expensesThisMonth: number;
+}
 type ReportData = {
+  stats: ReportStats;
   revenueData: { name: string; total: number }[];
   hoursData: { name: string; value: number }[];
+  user: { displayName?: string | null };
 };
 
-export function generateReportPdf({ revenueData, hoursData }: ReportData) {
+export function generateReportPdf({ stats, revenueData, hoursData, user }: ReportData) {
   const doc = new jsPDF('p', 'pt', 'a4');
   let y = pageMargin + 40;
-
+  const fileName = `GigBillow-Report-${format(new Date(), 'yyyy-MM-dd')}`;
+  
   addHeader(doc, 'Reports Summary');
+  
+  doc.setFontSize(10);
+  doc.setTextColor(...gray);
+  doc.text(`Report for: ${user.displayName || 'User'}`, pageMargin, y);
+  doc.text(`Generated on: ${format(new Date(), 'PPP')}`, doc.internal.pageSize.getWidth() - pageMargin, y, { align: 'right'});
+  y += 30;
+
+  // Key Metrics
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Key Metrics', pageMargin, y);
+  y+=10;
+   (doc as any).autoTable({
+    startY: y,
+    body: [
+        ['Outstanding Revenue', `$${stats.outstandingRevenue.toFixed(2)}`],
+        ['Income (Last 30d)', `$${stats.incomeLast30d.toFixed(2)}`],
+        ['Hours This Week', `${stats.hoursThisWeek.toFixed(1)}h`],
+        ['Expenses (This Month)', `$${stats.expensesThisMonth.toFixed(2)}`],
+    ],
+    theme: 'grid',
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: primaryRgb },
+    columnStyles: { 0: { fontStyle: 'bold' } },
+  });
+  y = (doc as any).lastAutoTable.finalY + 30;
+
 
   // Revenue Report
   doc.setFontSize(16);
@@ -327,6 +363,7 @@ export function generateReportPdf({ revenueData, hoursData }: ReportData) {
     head: [['Month', 'Total Revenue']],
     body: revenueData.map(d => [d.name, `$${d.total.toFixed(2)}`]),
     headStyles: { fillColor: primaryRgb },
+    styles: { fontSize: 10 },
   });
   y = (doc as any).lastAutoTable.finalY + 30;
 
@@ -340,19 +377,21 @@ export function generateReportPdf({ revenueData, hoursData }: ReportData) {
     head: [['Project', 'Hours Logged']],
     body: hoursData.map(d => [d.name, `${d.value.toFixed(2)}h`]),
     headStyles: { fillColor: primaryRgb },
+    styles: { fontSize: 10 },
   });
 
   addWatermark(doc);
-  doc.save('Reports-Summary.pdf');
+  doc.save(`${fileName}.pdf`);
 }
 
 // --- CSV EXPORT ---
-function convertToCSV(data: any[], headers: string[]): string {
+function convertToCSV(data: any[]): string {
+  if (data.length === 0) return '';
+  const headers = Object.keys(data[0]);
   const headerRow = headers.join(',') + '\n';
   const bodyRows = data.map(row => 
     headers.map(header => {
-      const key = header.toLowerCase().replace(/ /g, '_');
-      let value = row[key];
+      let value = row[header];
       if (typeof value === 'string' && value.includes(',')) {
         return `"${value}"`;
       }
@@ -363,7 +402,7 @@ function convertToCSV(data: any[], headers: string[]): string {
 }
 
 function downloadCSV(csvString: string, fileName: string) {
-  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([`\uFEFF${csvString}`], { type: 'text/csv;charset=utf-8;' }); // Add BOM for Excel
   const link = document.createElement('a');
   if (link.download !== undefined) {
     const url = URL.createObjectURL(blob);
@@ -376,14 +415,32 @@ function downloadCSV(csvString: string, fileName: string) {
   }
 }
 
-export function generateReportCsv({ revenueData, hoursData }: ReportData) {
+type CsvReportData = {
+  stats: ReportStats;
+  revenueData: { name: string; total: number }[];
+  hoursData: { name: string; value: number }[];
+};
+
+export function generateReportCsv({ stats, revenueData, hoursData }: CsvReportData) {
     let csvContent = '';
+    
+    csvContent += 'Key Metrics\n';
+    const statsData = [
+        { metric: 'Outstanding Revenue', value: stats.outstandingRevenue.toFixed(2) },
+        { metric: 'Income (Last 30d)', value: stats.incomeLast30d.toFixed(2) },
+        { metric: 'Hours This Week', value: stats.hoursThisWeek.toFixed(1) },
+        { metric: 'Expenses (This Month)', value: stats.expensesThisMonth.toFixed(2) },
+    ];
+    csvContent += convertToCSV(statsData);
+    csvContent += '\n\n'; 
 
     csvContent += 'Revenue Report (Last 12 Months)\n';
-    csvContent += convertToCSV(revenueData.map(d => ({ month: d.name, total_revenue: d.total })), ['Month', 'Total Revenue']);
+    csvContent += convertToCSV(revenueData.map(d => ({ month: d.name, total_revenue: d.total.toFixed(2) })));
     csvContent += '\n\n'; 
+    
     csvContent += 'Hours by Project (This Month)\n';
-    csvContent += convertToCSV(hoursData.map(d => ({ project: d.name, hours_logged: d.value.toFixed(2) })), ['Project', 'Hours Logged']);
+    csvContent += convertToCSV(hoursData.map(d => ({ project: d.name, hours_logged: d.value.toFixed(2) })));
 
-    downloadCSV(csvContent, 'combined_report.csv');
+    const fileName = `GigBillow-Report-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    downloadCSV(csvContent, fileName);
 }
