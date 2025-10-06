@@ -45,7 +45,7 @@ function addHeader(doc: jsPDF, title: string) {
     doc.text(title, pageMargin, pageMargin, { align: 'left' });
 }
 
-function addFooter(doc: jsPDF) {
+function addWatermark(doc: jsPDF) {
     const pageCount = (doc as any).internal.getNumberOfPages();
     doc.setFontSize(8);
     doc.setTextColor(...gray);
@@ -57,13 +57,15 @@ function addFooter(doc: jsPDF) {
     }
 }
 
-function generatePdf(fileName: string, title: string, addContent: (doc: jsPDF) => void) {
+function generatePdf(fileName: string, title: string, removeWatermark: boolean, addContent: (doc: jsPDF) => void) {
     const doc = new jsPDF('p', 'pt', 'a4');
     doc.setFont('helvetica');
 
     addHeader(doc, title);
     addContent(doc);
-    addFooter(doc);
+    if (!removeWatermark) {
+        addWatermark(doc);
+    }
     doc.save(`${fileName}.pdf`);
 }
 
@@ -73,9 +75,10 @@ type GenerateInvoicePdfProps = {
     invoice: Invoice;
     client: Client;
     user: { displayName?: string | null; email?: string | null };
+    removeWatermark?: boolean;
 };
 
-export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdfProps) {
+export function generateInvoicePdf({ invoice, client, user, removeWatermark = false }: GenerateInvoicePdfProps) {
     const addContent = (doc: jsPDF) => {
         let y = pageMargin + 60;
         const sectionGap = 20;
@@ -235,16 +238,17 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         }
     };
     
-    generatePdf(invoice.invoiceNumber, 'INVOICE', addContent);
+    generatePdf(invoice.invoiceNumber, 'INVOICE', removeWatermark, addContent);
 }
 
 // --- PROPOSAL PDF ---
 type GenerateProposalPdfProps = {
     proposalText: string;
     clientName?: string;
+    removeWatermark?: boolean;
 };
 
-export function generateProposalPdf({ proposalText, clientName }: GenerateProposalPdfProps) {
+export function generateProposalPdf({ proposalText, clientName, removeWatermark = false }: GenerateProposalPdfProps) {
     const addContent = (doc: jsPDF) => {
         let y = pageMargin + 80;
 
@@ -279,7 +283,5 @@ export function generateProposalPdf({ proposalText, clientName }: GeneratePropos
         });
     };
 
-    generatePdf('Project-Proposal', 'Project Proposal', addContent);
+    generatePdf('Project-Proposal', 'Project Proposal', removeWatermark, addContent);
 }
-
-    

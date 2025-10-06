@@ -54,7 +54,7 @@ export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boo
 }
 
 
-export type SpendAction = 'proposal' | 'invoice_pdf' | 'project' | 'import_work_log' | 'invoice_expense';
+export type SpendAction = 'proposal' | 'invoice_pdf' | 'project' | 'import_work_log' | 'invoice_expense' | 'remove_watermark';
 
 const TOKEN_COSTS: Record<SpendAction, number> = {
     proposal: 1,
@@ -62,6 +62,7 @@ const TOKEN_COSTS: Record<SpendAction, number> = {
     project: 1,
     import_work_log: 1,
     invoice_expense: 1,
+    remove_watermark: 3,
 };
 
 async function spendToken(userId: string, cost: number): Promise<{ success: boolean, newBalance?: number }> {
@@ -155,5 +156,3 @@ export async function addTokens(amount: number): Promise<{ success: boolean, new
 
     return { success: true, newBalance };
 }
-
-    
