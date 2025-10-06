@@ -207,14 +207,20 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
-             <Button asChild size="lg" className="flex-1">
+              {user ? (
+                  <Button asChild size="lg" className="flex-1">
+                    <Link href="/dashboard">Go to Dashboard</Link>
+                  </Button>
+              ) : (
+                  <Button asChild size="lg" className="flex-1">
+                    <Link href="/register">Get Started Free</Link>
+                  </Button>
+              )}
+              <Button asChild variant="outline" size="lg" className="flex-1">
                 <Link href="/proposal-generator">Generate a Proposal</Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="flex-1">
-                <Link href="#pricing">View Pricing</Link>
-              </Button>
             </div>
-            <div className="w-full max-w-5xl mx-auto pt-8">
+            <div className="w-full max-w-4xl mx-auto pt-8">
               <div className="rounded-lg border p-2">
                 <Carousel
                     plugins={[heroCarouselPlugin.current]}
@@ -226,7 +232,7 @@ export default function LandingPage() {
                     {carouselImages.map((image, index) => (
                       <CarouselItem key={index}>
                         <Card className='border-none shadow-none'>
-                          <CardContent className="flex aspect-[16/9] items-center justify-center p-0">
+                          <CardContent className="flex aspect-[21/9] items-center justify-center p-0">
                             <Image
                                 src={image.src}
                                 alt={`App Screenshot ${index + 1}`}
@@ -420,7 +426,7 @@ export default function LandingPage() {
         </section>
 
         <section className="w-full py-12 md:py-24 lg:py-32">
-           <div className="container mx-auto max-w-5xl px-4 md:px-6">
+           <div className="container mx-auto max-w-3xl px-4 md:px-6">
              <div className="mx-auto flex max-w-3xl flex-col items-center justify-center space-y-4 text-center">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Frequently Asked Questions</h2>
              </div>
@@ -478,5 +484,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
 
     
