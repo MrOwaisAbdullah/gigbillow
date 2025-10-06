@@ -80,6 +80,7 @@
         },
         "subTotal": { "type": "number" },
         "taxRate": { "type": "number" },
+        "discount": { "type": "number" },
         "paymentUrl": { "type": "string", "format": "uri" },
         "notes": { "type": "string" },
         "enhancedSummary": { "type": "string" },

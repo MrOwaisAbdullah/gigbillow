@@ -73,6 +73,7 @@ const formSchema = z.object({
   }),
   lineItems: z.array(lineItemSchema).min(1, 'At least one line item is required.'),
   taxRate: z.coerce.number().min(0).max(100).default(0),
+  discount: z.coerce.number().min(0).default(0),
   paymentUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   notes: z.string().optional(),
   subTotal: z.coerce.number().min(0).default(0),
@@ -105,6 +106,7 @@ export default function NewInvoicePage() {
       dueDate: addDays(new Date(), 30),
       lineItems: [{ description: '' }],
       taxRate: 0,
+      discount: 0,
       paymentUrl: '',
       notes: '',
       subTotal: 0,
@@ -119,6 +121,7 @@ export default function NewInvoicePage() {
   });
   
   const taxRate = form.watch('taxRate');
+  const discount = form.watch('discount');
   const projectId = form.watch('projectId');
   const clientId = form.watch('clientId');
   const subTotal = form.watch('subTotal');
@@ -132,8 +135,9 @@ export default function NewInvoicePage() {
   }, [selectedExpenseIds, uninvoicedExpenses]);
 
   const grandSubTotal = subTotal + expensesTotal;
-  const taxAmount = (grandSubTotal * taxRate) / 100;
-  const totalAmount = grandSubTotal + taxAmount;
+  const discountedSubTotal = grandSubTotal - discount;
+  const taxAmount = (discountedSubTotal * taxRate) / 100;
+  const totalAmount = discountedSubTotal + taxAmount;
   
   const includesExpenses = selectedExpenseIds.length > 0;
   
@@ -276,6 +280,7 @@ export default function NewInvoicePage() {
             status: 'unpaid' as const,
             subTotal: grandSubTotal,
             expensesTotal: expensesTotal,
+            discount: values.discount || 0,
         };
         
         delete (invoiceToCreate as any).selectedExpenseIds;
@@ -309,7 +314,7 @@ export default function NewInvoicePage() {
             dueDate: format(values.dueDate, 'PPP')
         });
 
-        const updatedInvoiceData = { ...newInvoice, enhancedSummary: enhancementResult.summary };
+        const updatedInvoiceData = { ...newInvoice, enhancedSummary: enhancementResult.summary, discount: values.discount || 0 };
         await updateInvoice(newInvoice.id, { enhancedSummary: enhancementResult.summary });
 
         generateInvoicePdf({
@@ -536,7 +541,7 @@ export default function NewInvoicePage() {
                                                         />
                                                     </FormControl>
                                                     <FormLabel className="font-normal flex-grow flex justify-between">
-                                                        <span>{expense.description} ({format(expense.date, "MMM d")})</span>
+                                                        <span>{expense.description} ({format(new Date(expense.date), "MMM d")})</span>
                                                         <span>${expense.amount.toFixed(2)}</span>
                                                     </FormLabel>
                                                 </FormItem>
@@ -629,6 +634,22 @@ export default function NewInvoicePage() {
                         <span>Sub-total</span>
                         <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(grandSubTotal)}</span>
                     </div>
+
+                    <FormField
+                      control={form.control}
+                      name="discount"
+                      render={({ field }) => (
+                        <FormItem className="flex justify-between items-center">
+                            <FormLabel>Discount</FormLabel>
+                            <FormControl>
+                               <div className="flex items-center gap-2">
+                                 <span>$</span>
+                                 <Input type="number" {...field} className="w-32 h-8 text-right" />
+                               </div>
+                            </FormControl>
+                        </FormItem>
+                      )}
+                    />
 
                      <div className="flex justify-between items-center">
                         <span>Tax</span>

@@ -114,11 +114,13 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  const subTotal = Number(invoice.subTotal) || 0;
-  const taxRate = Number(invoice.taxRate) || 0;
-  const amount = Number(invoice.amount) || 0;
-  const expensesTotal = Number(invoice.expensesTotal) || 0;
-  const taxAmount = (subTotal * taxRate) / 100;
+  const subTotal = invoice.subTotal;
+  const discount = invoice.discount || 0;
+  const discountedSubTotal = subTotal - discount;
+  const taxRate = invoice.taxRate || 0;
+  const taxAmount = (discountedSubTotal * taxRate) / 100;
+  const totalAmount = invoice.amount;
+  const expensesTotal = invoice.expensesTotal || 0;
   const servicesTotal = subTotal - expensesTotal;
 
 
@@ -211,6 +213,12 @@ export default function InvoiceDetailPage() {
                         <span className="text-muted-foreground">Subtotal</span>
                         <span>${subTotal.toFixed(2)}</span>
                     </div>
+                     {discount > 0 && (
+                        <div className="flex justify-between text-muted-foreground">
+                            <span>Discount</span>
+                            <span>-${discount.toFixed(2)}</span>
+                        </div>
+                    )}
                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Tax ({taxRate}%)</span>
                         <span>${taxAmount.toFixed(2)}</span>
@@ -218,7 +226,7 @@ export default function InvoiceDetailPage() {
                     <Separator />
                      <div className="flex justify-between font-bold text-lg">
                         <span>Total Amount</span>
-                        <span>${amount.toFixed(2)}</span>
+                        <span>${totalAmount.toFixed(2)}</span>
                     </div>
                 </div>
             </div>

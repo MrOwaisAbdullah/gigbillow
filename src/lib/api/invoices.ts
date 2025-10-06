@@ -48,6 +48,7 @@ export async function getInvoices(
           amount: Number(data.amount) || 0,
           subTotal: Number(data.subTotal) || 0,
           taxRate: Number(data.taxRate) || 0,
+          discount: Number(data.discount) || 0,
           expensesTotal: Number(data.expensesTotal) || 0,
       } as Invoice
     });
@@ -114,6 +115,7 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
                 amount: Number(data.amount) || 0,
                 subTotal: Number(data.subTotal) || 0,
                 taxRate: Number(data.taxRate) || 0,
+                discount: Number(data.discount) || 0,
                 expensesTotal: Number(data.expensesTotal) || 0,
             } as Invoice;
         } else {

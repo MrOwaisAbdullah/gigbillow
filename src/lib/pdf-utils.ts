@@ -191,21 +191,28 @@ export function generateInvoicePdf({ invoice, client, user, removeWatermark = fa
         doc.line(totalsX - 20, y, doc.internal.pageSize.getWidth() - pageMargin, y);
         y += itemGap + 2;
         
-        const servicesTotal = invoice.subTotal - (invoice.expensesTotal || 0);
-        const taxAmount = (invoice.subTotal * invoice.taxRate) / 100;
+        const subTotal = Number(invoice.subTotal) || 0;
+        const expensesTotal = Number(invoice.expensesTotal) || 0;
+        const servicesTotal = subTotal - expensesTotal;
+        const discount = Number(invoice.discount) || 0;
+        const discountedSubTotal = subTotal - discount;
+        const taxRate = Number(invoice.taxRate) || 0;
+        const taxAmount = (discountedSubTotal * taxRate) / 100;
+        const totalAmount = Number(invoice.amount) || 0;
 
         const totals = [
-            { label: 'Services', value: `$${servicesTotal.toFixed(2)}`},
-            ...(invoice.expensesTotal && invoice.expensesTotal > 0 ? [{ label: 'Expenses', value: `$${invoice.expensesTotal.toFixed(2)}` }] : []),
-            { label: 'Sub-total', value: `$${invoice.subTotal.toFixed(2)}` },
-            { label: `Tax (${invoice.taxRate}%)`, value: `$${taxAmount.toFixed(2)}` },
-            { label: 'Total', value: `$${invoice.amount.toFixed(2)}`, bold: true },
+            ...(servicesTotal > 0 && expensesTotal > 0 ? [{ label: 'Services', value: `$${servicesTotal.toFixed(2)}` }] : []),
+            ...(expensesTotal > 0 ? [{ label: 'Expenses', value: `$${expensesTotal.toFixed(2)}` }] : []),
+            { label: 'Sub-total', value: `$${subTotal.toFixed(2)}` },
+            ...(discount > 0 ? [{ label: 'Discount', value: `-$${discount.toFixed(2)}`, color: gray }] : []),
+            { label: `Tax (${taxRate}%)`, value: `$${taxAmount.toFixed(2)}` },
+            { label: 'Total', value: `$${totalAmount.toFixed(2)}`, bold: true },
         ];
 
         doc.setFontSize(10);
         totals.forEach(t => {
             doc.setFont('helvetica', t.bold ? 'bold' : 'normal');
-            doc.setTextColor(...(t.bold ? black : gray));
+            doc.setTextColor(...(t.color || (t.bold ? black : gray)));
             doc.text(t.label, totalsX, y, { align: 'left' });
             doc.text(t.value, doc.internal.pageSize.getWidth() - pageMargin, y, { align: 'right' });
             y += itemGap + (t.bold ? 4 : 2);

@@ -35,6 +35,7 @@ export type Invoice = {
   lineItems: { description: string }[];
   subTotal: number;
   taxRate: number;
+  discount: number;
   paymentUrl?: string;
   notes?: string;
   enhancedSummary?: string;
