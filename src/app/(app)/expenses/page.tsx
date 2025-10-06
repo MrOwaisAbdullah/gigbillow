@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function ExpensesPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     async function fetchProjects() {
@@ -41,17 +42,24 @@ export default function ExpensesPage() {
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Expenses</h1>
-        <ExpenseDialog projects={projects} trigger={
-          <Button>
+        <Button onClick={() => setIsDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             New Expense
-          </Button>
-        } />
+        </Button>
       </div>
       <p className="text-sm text-muted-foreground -mt-4">
         Track expenses for free. Including them on an invoice costs 1 token.
       </p>
       <ExpensesTable allProjects={projects}/>
+       <ExpenseDialog
+        projects={projects}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSuccess={() => {
+          setIsDialogOpen(false);
+          // The table will refetch on its own, but we could pass a callback if needed
+        }}
+      />
     </div>
   )
 }

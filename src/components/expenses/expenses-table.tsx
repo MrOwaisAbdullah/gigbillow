@@ -39,20 +39,20 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [cursors, setCursors] = useState<(DocumentSnapshot | null)[]>([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const fetchExpensesCallback = useCallback(async (
+  const fetchExpenses = useCallback(async (
     page: 'first' | 'next' | 'prev',
-    currentCursors: (DocumentSnapshot | null)[],
-    currentPageNum: number
   ) => {
     setLoading(true);
     let cursor: DocumentSnapshot | null = null;
   
     if (page === 'next') {
-      cursor = currentCursors[currentPageNum] || null;
+      cursor = cursors[currentPage] || null;
     } else if (page === 'prev') {
-      cursor = currentCursors[currentPageNum - 2] || null;
+      cursor = cursors[currentPage - 2] || null;
     }
   
     const { expenses: expensesData, next } = await getExpenses(page, cursor, 10);
@@ -63,7 +63,7 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
       setCursors([null, next]);
       setCurrentPage(1);
     } else if (page === 'next') {
-      if (!currentCursors.includes(next)) {
+      if (!cursors.includes(next)) {
         setCursors(prev => [...prev, next]);
       }
       setCurrentPage(prevPage => prevPage + 1);
@@ -72,15 +72,22 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
     }
   
     setLoading(false);
-  }, []);
+  }, [currentPage, cursors]);
   
   useEffect(() => {
-    fetchExpensesCallback('first', [null], 1);
-  }, [fetchExpensesCallback]);
+    fetchExpenses('first');
+  }, [fetchExpenses]);
 
-  const handleUpdate = () => {
-    fetchExpensesCallback('first', [null], 1);
+  const handleSuccess = () => {
+    fetchExpenses('first');
+    setIsDialogOpen(false);
+    setSelectedExpense(null);
   }
+
+  const handleEdit = (expense: Expense) => {
+    setSelectedExpense(expense);
+    setIsDialogOpen(true);
+  };
   
   if (loading && expenses.length === 0) {
     return (
@@ -157,17 +164,19 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
                        {expense.invoiceId ? (
                          <Badge>Invoiced</Badge>
                        ) : (
-                        <ExpenseDialog
-                          projects={allProjects}
-                          expense={expense}
-                          onSuccess={handleUpdate}
-                          trigger={
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Toggle menu</span>
-                            </Button>
-                          }
-                        />
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Toggle menu</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => handleEdit(expense)}>Edit</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEdit(expense)}>Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                        )}
                     </TableCell>
                   </TableRow>
@@ -184,11 +193,19 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
         </Table>
       </div>
       <PaginationControls
-        onNext={() => fetchExpensesCallback('next', cursors, currentPage)}
-        onPrev={() => fetchExpensesCallback('prev', cursors, currentPage)}
+        onNext={() => fetchExpenses('next')}
+        onPrev={() => fetchExpenses('prev')}
         hasNextPage={hasNextPage}
         hasPrevPage={currentPage > 1}
         currentPage={currentPage}
+      />
+      <ExpenseDialog
+        projects={allProjects}
+        expense={selectedExpense || undefined}
+        onSuccess={handleSuccess}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onClose={() => setSelectedExpense(null)}
       />
     </>
   )

@@ -31,18 +31,20 @@ import {
 type ExpenseDialogProps = {
   projects: Project[];
   expense?: Expense;
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
   onSuccess?: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onClose?: () => void;
 };
 
-export function ExpenseDialog({ projects, expense, trigger, onSuccess }: ExpenseDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function ExpenseDialog({ projects, expense, trigger, onSuccess, open, onOpenChange, onClose }: ExpenseDialogProps) {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
   const handleSuccess = () => {
-    setIsOpen(false);
+    onOpenChange(false);
     if (onSuccess) {
       onSuccess();
     }
@@ -55,7 +57,7 @@ export function ExpenseDialog({ projects, expense, trigger, onSuccess }: Expense
       await deleteExpense(expense.id);
       toast({ title: 'Expense Deleted' });
       setIsAlertOpen(false);
-      setIsOpen(false);
+      onOpenChange(false);
       if (onSuccess) onSuccess();
     } catch (error) {
       // API handles toast
@@ -64,28 +66,39 @@ export function ExpenseDialog({ projects, expense, trigger, onSuccess }: Expense
     }
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    onOpenChange(isOpen);
+    if (!isOpen && onClose) {
+      onClose();
+    }
+  }
+
+  const dialogContent = (
+      <DialogContent className="sm:max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle>{expense ? 'Edit Expense' : 'Add New Expense'}</DialogTitle>
+          <DialogDescription>
+            {expense ? 'Update the details of your expense.' : 'Track a new expense to keep your records up to date.'}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <ExpenseForm projects={projects} expense={expense} onSuccess={handleSuccess} />
+        </div>
+        {expense && (
+          <DialogFooter className="justify-start border-t pt-4">
+            <Button variant="destructive" onClick={() => setIsAlertOpen(true)}>
+              Delete Expense
+            </Button>
+          </DialogFooter>
+        )}
+      </DialogContent>
+  );
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
-        <DialogContent className="sm:max-w-[480px]">
-          <DialogHeader>
-            <DialogTitle>{expense ? 'Edit Expense' : 'Add New Expense'}</DialogTitle>
-            <DialogDescription>
-              {expense ? 'Update the details of your expense.' : 'Track a new expense to keep your records up to date.'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <ExpenseForm projects={projects} expense={expense} onSuccess={handleSuccess} />
-          </div>
-          {expense && (
-            <DialogFooter className="justify-start border-t pt-4">
-              <Button variant="destructive" onClick={() => setIsAlertOpen(true)}>
-                Delete Expense
-              </Button>
-            </DialogFooter>
-          )}
-        </DialogContent>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+        {dialogContent}
       </Dialog>
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
           <AlertDialogContent>
