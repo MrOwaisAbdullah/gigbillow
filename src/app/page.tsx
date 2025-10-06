@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import Link from 'next/link';
@@ -280,15 +281,15 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto mt-12 grid max-w-5xl items-start gap-8 sm:grid-cols-1 md:grid-cols-3">
-              <Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-12">
+              <Card className="flex flex-col">
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Free</CardTitle>
                   <p className="text-4xl font-extrabold mt-2">$0</p>
                   <p className="text-muted-foreground">No card required</p>
                 </CardHeader>
-                <CardContent className="space-y-4 p-6 pt-0">
-                  <ul className="space-y-3 text-muted-foreground">
+                <CardContent className="flex flex-col flex-grow space-y-4 p-6 pt-0">
+                  <ul className="space-y-3 text-muted-foreground flex-grow">
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Unlimited Time Tracking</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Unlimited Projects & Clients</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Unlimited Expense Entries</li>
@@ -299,15 +300,15 @@ export default function LandingPage() {
                   <Button variant="outline" className="w-full" asChild><Link href="/register">Get Started</Link></Button>
                 </CardContent>
               </Card>
-              <Card className="border-primary border-2 relative">
+              <Card className="border-primary border-2 relative flex flex-col">
                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap">Most Popular</div>
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Standard Pack</CardTitle>
                   <p className="text-4xl font-extrabold mt-2">$15</p>
                   <p className="text-muted-foreground">One-time purchase</p>
                 </CardHeader>
-                <CardContent className="space-y-4 p-6 pt-0">
-                   <ul className="space-y-3 text-muted-foreground">
+                <CardContent className="flex flex-col flex-grow space-y-4 p-6 pt-0">
+                   <ul className="space-y-3 text-muted-foreground flex-grow">
                     <li className="font-semibold text-foreground">Everything in Free, plus...</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 200 tokens</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Branded PDFs (with your logo) at no extra token cost</li>
@@ -317,14 +318,14 @@ export default function LandingPage() {
                   <Button className="w-full" asChild><Link href="/register">Buy Standard Pack</Link></Button>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="flex flex-col">
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Mini Pack</CardTitle>
                   <p className="text-4xl font-extrabold mt-2">$5</p>
                   <p className="text-muted-foreground">One-time purchase</p>
                 </CardHeader>
-                <CardContent className="space-y-4 p-6 pt-0">
-                  <ul className="space-y-3 text-muted-foreground">
+                <CardContent className="flex flex-col flex-grow space-y-4 p-6 pt-0">
+                  <ul className="space-y-3 text-muted-foreground flex-grow">
                     <li className="font-semibold text-foreground">Everything in Free, plus...</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 50 tokens</li>
                      <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 1 month</li>
@@ -474,3 +475,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
