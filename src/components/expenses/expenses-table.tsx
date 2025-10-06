@@ -41,7 +41,7 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
 
-  const fetchExpenses = async (
+  const fetchExpenses = useCallback(async (
     page: 'first' | 'next' | 'prev',
     currentCursors: (DocumentSnapshot | null)[],
     currentPageNum: number
@@ -72,11 +72,11 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
     }
   
     setLoading(false);
-  };
+  }, []);
   
   useEffect(() => {
     fetchExpenses('first', [null], 1);
-  }, []);
+  }, [fetchExpenses]);
 
   const handleUpdate = () => {
     fetchExpenses('first', [null], 1);
@@ -144,7 +144,11 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
                 const project = allProjects.find(p => p.id === expense.projectId);
                 return (
                   <TableRow key={expense.id}>
-                    <TableCell className="font-medium">{expense.description}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="max-w-xs truncate" title={expense.description}>
+                        {expense.description}
+                      </div>
+                    </TableCell>
                     <TableCell>{project?.name || <span className="text-muted-foreground">N/A</span>}</TableCell>
                     <TableCell><Badge variant="outline">{expense.category}</Badge></TableCell>
                     <TableCell>{format(new Date(expense.date), 'PPP')}</TableCell>
