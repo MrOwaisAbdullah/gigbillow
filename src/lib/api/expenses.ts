@@ -19,6 +19,7 @@ import {
   DocumentSnapshot,
   getDoc,
   writeBatch,
+  endBefore,
 } from 'firebase/firestore';
 import type { Expense } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
@@ -87,7 +88,14 @@ export async function getUninvoicedExpensesByProject(projectId: string): Promise
     where('invoiceId', '==', null)
   );
 
-  const querySnapshot = await getDocs(q);
+  const querySnapshot = await getDocs(q).catch((serverError) => {
+    const permissionError = new FirestorePermissionError({
+        path: collectionPath,
+        operation: 'list',
+    });
+    errorEmitter.emit('permission-error', permissionError);
+    throw permissionError;
+  });
   return querySnapshot.docs.map(docToExpense);
 }
 
@@ -155,7 +163,18 @@ export async function markExpensesAsInvoiced(expenseIds: string[], invoiceId: st
     const batch = writeBatch(db);
     expenseIds.forEach(expenseId => {
         const docRef = doc(db, collectionPath, expenseId);
-        batch.update(docRef, { invoiceId: invoiceId });
+        batch.update(docRef, { invoiceId: invoiceId, includeOnInvoice: true });
     });
-    await batch.commit();
+    await batch.commit().catch((serverError) => {
+        // This is a simplification. A real app might need more granular error handling per-document.
+        const permissionError = new FirestorePermissionError({
+            path: collectionPath,
+            operation: 'update',
+            requestResourceData: { invoiceId: invoiceId, includeOnInvoice: true }
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+    });
 }
+
+    

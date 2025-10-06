@@ -184,15 +184,19 @@ export function generateInvoicePdf({ invoice, client, user }: GenerateInvoicePdf
         y += itemGap;
 
         // --- Totals ---
-        const totalsX = doc.internal.pageSize.getWidth() - pageMargin - 160;
+        const totalsX = doc.internal.pageSize.getWidth() - pageMargin - 200;
         doc.line(totalsX - 20, y, doc.internal.pageSize.getWidth() - pageMargin, y);
         y += itemGap + 2;
-
+        
+        const servicesTotal = invoice.subTotal - (invoice.expensesTotal || 0);
         const taxAmount = (invoice.subTotal * invoice.taxRate) / 100;
+
         const totals = [
+            { label: 'Services', value: `$${servicesTotal.toFixed(2)}`},
+            ...(invoice.expensesTotal && invoice.expensesTotal > 0 ? [{ label: 'Expenses', value: `$${invoice.expensesTotal.toFixed(2)}` }] : []),
             { label: 'Sub-total', value: `$${invoice.subTotal.toFixed(2)}` },
             { label: `Tax (${invoice.taxRate}%)`, value: `$${taxAmount.toFixed(2)}` },
-            { label: 'Total', value: `$${invoice.amount}`, bold: true },
+            { label: 'Total', value: `$${invoice.amount.toFixed(2)}`, bold: true },
         ];
 
         doc.setFontSize(10);
@@ -277,3 +281,5 @@ export function generateProposalPdf({ proposalText, clientName }: GeneratePropos
 
     generatePdf('Project-Proposal', 'Project Proposal', addContent);
 }
+
+    

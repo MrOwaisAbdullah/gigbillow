@@ -54,13 +54,14 @@ export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boo
 }
 
 
-export type SpendAction = 'proposal' | 'invoice_pdf' | 'project' | 'import_work_log';
+export type SpendAction = 'proposal' | 'invoice_pdf' | 'project' | 'import_work_log' | 'invoice_expense';
 
 const TOKEN_COSTS: Record<SpendAction, number> = {
     proposal: 1,
     invoice_pdf: 1,
     project: 1,
     import_work_log: 1,
+    invoice_expense: 1,
 };
 
 async function spendToken(userId: string, cost: number): Promise<{ success: boolean, newBalance?: number }> {
@@ -79,19 +80,19 @@ async function spendToken(userId: string, cost: number): Promise<{ success: bool
     return { success: true, newBalance };
 }
 
-export async function canAfford(action: SpendAction): Promise<boolean> {
+export async function canAfford(action: SpendAction, quantity: number = 1): Promise<boolean> {
     const auth = getAuth();
     const userId = auth.currentUser?.uid;
     if (!userId) return false;
 
-    const cost = TOKEN_COSTS[action];
+    const cost = TOKEN_COSTS[action] * quantity;
     const tokenRef = doc(db, 'user_tokens', userId);
     const tokenSnap = await getDoc(tokenRef);
     
     return tokenSnap.exists() && (tokenSnap.data() as UserToken).balance >= cost;
 }
 
-export async function chargeFor(action: SpendAction): Promise<{ success: boolean, newBalance?: number }> {
+export async function chargeFor(action: SpendAction, quantity: number = 1): Promise<{ success: boolean, newBalance?: number }> {
     const auth = getAuth();
     const userId = auth.currentUser?.uid;
     if (!userId) {
@@ -99,12 +100,16 @@ export async function chargeFor(action: SpendAction): Promise<{ success: boolean
         return { success: false };
     }
 
-    const cost = TOKEN_COSTS[action];
+    const cost = TOKEN_COSTS[action] * quantity;
+    if (cost === 0) {
+        return { success: true };
+    }
+    
     const result = await spendToken(userId, cost);
     
     if (result.success) {
         toast({
-            title: `⚡ ${cost} token used`,
+            title: `⚡ ${cost} token${cost > 1 ? 's' : ''} used`,
             description: `${result.newBalance} tokens remaining.`
         });
     }
@@ -150,3 +155,5 @@ export async function addTokens(amount: number): Promise<{ success: boolean, new
 
     return { success: true, newBalance };
 }
+
+    

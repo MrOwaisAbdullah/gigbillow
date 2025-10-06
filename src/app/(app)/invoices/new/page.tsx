@@ -35,13 +35,14 @@ import { ArrowLeft, CalendarIcon, Loader2, PlusCircle, Trash2 } from 'lucide-rea
 import { getClients } from '@/lib/api/clients';
 import { getProjects } from '@/lib/api/projects';
 import { getTimeEntriesByProject } from '@/lib/api/time-entries';
+import { getUninvoicedExpensesByProject, markExpensesAsInvoiced } from '@/lib/api/expenses';
 import { createInvoice, updateInvoice } from '@/lib/api/invoices';
 import { enhanceInvoice } from '@/ai/flows/enhance-invoice';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
-import type { Client, Project } from '@/lib/types';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import type { Client, Project, Expense } from '@/lib/types';
 import { SelectWithCreate } from '@/components/select-with-create';
 import { ClientForm } from '@/components/clients/client-form';
 import { ProjectForm } from '@/components/projects/project-form';
@@ -49,6 +50,8 @@ import { useAuth } from '@/components/auth/auth-provider';
 import { canAfford, chargeFor } from '@/lib/api/tokens';
 import { useToken } from '@/components/token/token-provider';
 import { generateInvoicePdf } from '@/lib/pdf-utils';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
 
 
 const lineItemSchema = z.object({
@@ -72,6 +75,7 @@ const formSchema = z.object({
   paymentUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   notes: z.string().optional(),
   subTotal: z.coerce.number().min(0).default(0),
+  selectedExpenseIds: z.array(z.string()).optional(),
 });
 
 export type InvoiceFormValues = z.infer<typeof formSchema>;
@@ -86,6 +90,8 @@ export default function NewInvoicePage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [uninvoicedExpenses, setUninvoicedExpenses] = useState<Expense[]>([]);
+  const [selectedExpenses, setSelectedExpenses] = useState<Expense[]>([]);
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
@@ -100,6 +106,7 @@ export default function NewInvoicePage() {
       paymentUrl: '',
       notes: '',
       subTotal: 0,
+      selectedExpenseIds: [],
     },
   });
 
@@ -112,9 +119,28 @@ export default function NewInvoicePage() {
   const projectId = form.watch('projectId');
   const clientId = form.watch('clientId');
   const subTotal = form.watch('subTotal');
+  const selectedExpenseIds = form.watch('selectedExpenseIds') || [];
   
-  const taxAmount = (subTotal * taxRate) / 100;
-  const totalAmount = subTotal + taxAmount;
+  const expensesTotal = useMemo(() => {
+    return uninvoicedExpenses
+      .filter(exp => selectedExpenseIds.includes(exp.id))
+      .reduce((acc, exp) => acc + exp.amount, 0);
+  }, [selectedExpenseIds, uninvoicedExpenses]);
+
+  const grandSubTotal = subTotal + expensesTotal;
+  const taxAmount = (grandSubTotal * taxRate) / 100;
+  const totalAmount = grandSubTotal + taxAmount;
+  
+  const includesExpenses = selectedExpenseIds.length > 0;
+  const submitButtonText = useMemo(() => {
+    const pdfCost = 1;
+    const expenseCost = includesExpenses ? 1 : 0;
+    const totalCost = pdfCost + expenseCost;
+    if (totalCost > 1) {
+        return `Create & Download PDF (-${totalCost} Tokens)`;
+    }
+    return `Create & Download PDF (-${pdfCost} Token)`;
+  }, [includesExpenses]);
 
   const fetchClients = useCallback(async () => {
     const { clients: clientsData } = await getClients('first', null, 9999);
@@ -139,6 +165,8 @@ export default function NewInvoicePage() {
       const clientProjects = allProjects.filter(p => p.clientId === clientId);
       setProjects(clientProjects);
       form.setValue('projectId', ''); // Reset project when client changes
+      setUninvoicedExpenses([]);
+      form.setValue('selectedExpenseIds', []);
     } else {
       setProjects([]);
     }
@@ -169,24 +197,32 @@ export default function NewInvoicePage() {
   }, [searchParams, form, allProjects, clients]);
   
   useEffect(() => {
-    if (projectId) {
-      async function fetchProjectDetails() {
-        const project = allProjects.find(p => p.id === projectId);
-        if (!project || !project.rate) return;
-        
-        const projectTimeEntries = await getTimeEntriesByProject(projectId);
-        if (!projectTimeEntries) return;
-        const totalHours = projectTimeEntries.reduce((acc, entry) => acc + entry.hours, 0);
-
-        if (totalHours > 0) {
-          form.setValue('lineItems', [{
-            description: `Work performed on project: ${project.name}`,
-          }]);
-          form.setValue('subTotal', parseFloat((totalHours * project.rate).toFixed(2)));
+    async function fetchProjectData() {
+        if (!projectId) {
+            setUninvoicedExpenses([]);
+            form.setValue('selectedExpenseIds', []);
+            return;
         }
-      }
-      fetchProjectDetails();
+        
+        // Auto-fill time entries
+        const project = allProjects.find(p => p.id === projectId);
+        if (project && project.rate) {
+          const projectTimeEntries = await getTimeEntriesByProject(projectId);
+          const totalHours = projectTimeEntries.reduce((acc, entry) => acc + entry.hours, 0);
+          if (totalHours > 0) {
+            form.setValue('lineItems', [{
+              description: `Work performed on project: ${project.name}`,
+            }]);
+            form.setValue('subTotal', parseFloat((totalHours * project.rate).toFixed(2)));
+          }
+        }
+        
+        // Fetch uninvoiced expenses
+        const expenses = await getUninvoicedExpensesByProject(projectId);
+        setUninvoicedExpenses(expenses);
+        form.setValue('selectedExpenseIds', []);
     }
+    fetchProjectData();
   }, [projectId, form, allProjects]);
 
   const handleNewClient = async () => {
@@ -217,7 +253,8 @@ export default function NewInvoicePage() {
   async function onSubmit(values: InvoiceFormValues) {
     setIsSubmitting(true);
     
-    const hasEnoughTokens = await canAfford('invoice_pdf');
+    const cost = 1 + (includesExpenses ? 1 : 0);
+    const hasEnoughTokens = await canAfford('invoice_pdf', cost);
     if (!hasEnoughTokens) {
         openDialog();
         setIsSubmitting(false);
@@ -225,13 +262,28 @@ export default function NewInvoicePage() {
     }
 
     try {
+        let finalLineItems = [...values.lineItems];
+        if (includesExpenses) {
+            finalLineItems.push({ description: 'Reimbursable Expenses' });
+        }
+
         const invoiceToCreate = {
             ...values,
+            lineItems: finalLineItems,
             amount: totalAmount,
             status: 'unpaid' as const,
+            subTotal: grandSubTotal,
+            expensesTotal: expensesTotal,
         };
+        
+        delete (invoiceToCreate as any).selectedExpenseIds;
+
 
         const newInvoice = await createInvoice(invoiceToCreate);
+        
+        if (includesExpenses && newInvoice.id) {
+            await markExpensesAsInvoiced(selectedExpenseIds, newInvoice.id);
+        }
 
         const client = clients.find(c => c.id === values.clientId);
 
@@ -249,7 +301,7 @@ export default function NewInvoicePage() {
         const enhancementResult = await enhanceInvoice({
             clientName: client.name,
             userName: user.displayName || 'Freelancer',
-            lineItems: values.lineItems,
+            lineItems: finalLineItems,
             totalAmount: Number(totalAmount),
             dueDate: format(values.dueDate, 'PPP')
         });
@@ -263,7 +315,7 @@ export default function NewInvoicePage() {
           user: { displayName: user.displayName, email: user.email },
         });
         
-        await chargeFor('invoice_pdf');
+        await chargeFor('invoice_pdf', cost);
 
         toast({
             title: 'Invoice Created & Downloaded',
@@ -500,7 +552,7 @@ export default function NewInvoicePage() {
                       name="subTotal"
                       render={({ field }) => (
                         <FormItem className="flex justify-between items-center">
-                            <FormLabel>Sub-total</FormLabel>
+                            <FormLabel>Services Sub-total</FormLabel>
                             <FormControl>
                                <div className="flex items-center gap-2">
                                  <span>$</span>
@@ -510,6 +562,18 @@ export default function NewInvoicePage() {
                         </FormItem>
                       )}
                     />
+                     <div className="flex justify-between items-center">
+                        <FormLabel>Expenses</FormLabel>
+                        <span className="text-sm font-medium">${expensesTotal.toFixed(2)}</span>
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex justify-between font-semibold">
+                        <span>Sub-total</span>
+                        <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(grandSubTotal)}</span>
+                    </div>
+
                      <div className="flex justify-between items-center">
                         <span>Tax</span>
                         <div className="flex items-center gap-2">
@@ -527,13 +591,63 @@ export default function NewInvoicePage() {
                             <span>%</span>
                         </div>
                     </div>
-                    <div className="flex justify-between font-semibold">
+                    <div className="flex justify-between font-bold text-lg">
                         <span>Total</span>
                         <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalAmount)}</span>
                     </div>
                 </div>
             </CardFooter>
           </Card>
+          
+          {uninvoicedExpenses.length > 0 && (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Uninvoiced Expenses</CardTitle>
+                    <CardDescription>Select expenses to add to this invoice. This will cost 1 token.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <FormField
+                        control={form.control}
+                        name="selectedExpenseIds"
+                        render={() => (
+                            <FormItem className="space-y-3">
+                                {uninvoicedExpenses.map(expense => (
+                                    <FormField
+                                        key={expense.id}
+                                        control={form.control}
+                                        name="selectedExpenseIds"
+                                        render={({ field }) => {
+                                            return (
+                                                <FormItem
+                                                    key={expense.id}
+                                                    className="flex flex-row items-center space-x-3 space-y-0 p-3 bg-muted/50 rounded-md"
+                                                >
+                                                    <FormControl>
+                                                        <Checkbox
+                                                            checked={field.value?.includes(expense.id)}
+                                                            onCheckedChange={checked => {
+                                                                return checked
+                                                                ? field.onChange([...(field.value || []), expense.id])
+                                                                : field.onChange(field.value?.filter(value => value !== expense.id))
+                                                            }}
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal flex-grow flex justify-between">
+                                                        <span>{expense.description} ({format(expense.date, "MMM d")})</span>
+                                                        <span>${expense.amount.toFixed(2)}</span>
+                                                    </FormLabel>
+                                                </FormItem>
+                                            )
+                                        }}
+                                    />
+                                ))}
+                            </FormItem>
+                        )}
+                    />
+                </CardContent>
+            </Card>
+          )}
+
 
            <Card>
             <CardHeader>
@@ -584,7 +698,7 @@ export default function NewInvoicePage() {
             </Button>
             <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create & Download PDF (-1 Token)
+            {submitButtonText}
             </Button>
           </div>
         </form>
@@ -592,3 +706,5 @@ export default function NewInvoicePage() {
     </div>
   );
 }
+
+    
