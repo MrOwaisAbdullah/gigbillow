@@ -25,6 +25,8 @@ import {
   CircleUser,
   PanelLeft,
   Zap,
+  Moon,
+  Sun,
 } from "lucide-react"
 import { usePathname } from 'next/navigation'
 import React from "react"
@@ -35,14 +37,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { useToken } from "./token/token-provider"
 import { Logo } from "./logo"
 import { useTour } from "./tour-provider"
+import { useTheme } from "@/hooks/use-theme"
 
 export function AppHeader() {
   const pathname = usePathname()
   const segments = pathname.split('/').filter(Boolean)
   const { user } = useAuth();
   const { tokens, totalTokens, loading: tokensLoading, openDialog } = useToken();
-  const [isSheetOpen, setIsSheetOpen] = React.useState(false);
+  const [isSheetOpen, React.useState(false);
   const { setOpen: setTourOpen } = useTour();
+  const { toggleTheme, theme } = useTheme();
 
   const breadcrumbItems = segments.map((segment, index) => {
     // Exclude 'app' from breadcrumbs
@@ -139,6 +143,10 @@ export function AppHeader() {
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setTourOpen(true)}>
             Welcome Tour
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={toggleTheme}>
+            {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+            Toggle Theme
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()}>Logout</DropdownMenuItem>

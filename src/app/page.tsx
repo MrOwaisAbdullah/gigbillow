@@ -14,17 +14,19 @@ import {
   CarouselContent,
   CarouselItem,
 } from '@/components/ui/carousel';
-import { Check, Zap, FileText, Timer, PenSquare, Cog, FileClock, LineChart } from 'lucide-react';
+import { Check, Zap, FileText, Timer, PenSquare, Cog, FileClock, LineChart, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import Autoplay from "embla-carousel-autoplay"
 import React from 'react';
 import { useAuth } from '@/components/auth/auth-provider';
 import { Logo } from '@/components/logo';
+import { useTheme } from '@/hooks/use-theme';
 
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const carouselImages = [
     { src: 'https://picsum.photos/seed/dashboard/1200/800', hint: 'app dashboard' },
@@ -96,6 +98,11 @@ export default function LandingPage() {
             </nav>
           </div>
           <div className="flex items-center space-x-2">
+            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
             {user ? (
               <Button asChild>
                 <Link href="/dashboard">Go to Dashboard</Link>
