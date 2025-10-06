@@ -140,10 +140,6 @@ export default function LandingPage() {
     {
       question: "Is my client and financial data secure?",
       answer: "Yes. All your data is stored securely. We use industry-standard security practices to ensure your data is safe, and we never share your client or financial information with third parties."
-    },
-    {
-      question: "What is your refund policy?",
-      answer: "If you don’t use a single token within 7 days of purchase, email us for a full refund – no questions asked."
     }
   ];
 
@@ -282,7 +278,8 @@ export default function LandingPage() {
         {/* Pain-Points Grid */}
         <section className="py-16 md:py-28 bg-secondary/30">
           <div className="container mx-auto px-4">
-            <div className="text-center max-w-3xl mx-auto">
+            <div className="text-center max-w-3xl mx-auto space-y-4">
+              <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Why It Matters</div>
               <h2 className="text-3xl font-bold">Sound Familiar?</h2>
               <p className="text-muted-foreground mt-4 text-lg">Freelancing has its headaches. We're here to help.</p>
             </div>
@@ -314,7 +311,8 @@ export default function LandingPage() {
 
         {/* Token Credit Block */}
         <section className="py-16 md:py-20">
-          <div className="container mx-auto px-4 text-center">
+          <div className="container mx-auto px-4 text-center space-y-4">
+            <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Our Model</div>
             <h2 className="text-3xl font-bold">Simple, Pay-As-You-Grow Credits</h2>
             <p className="text-muted-foreground mt-2">No subscriptions. No hidden fees. Just tokens.</p>
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
@@ -445,6 +443,7 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 md:px-6">
               <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
                   <div className="space-y-2">
+                       <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Social Proof</div>
                        <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Average 4.8 rating in beta testing</h2>
                        <div className="flex justify-center text-yellow-400">
                           <Star className="w-8 h-8 fill-current" />
@@ -499,6 +498,7 @@ export default function LandingPage() {
         <section className="w-full py-12 md:py-24 lg:py-32">
            <div className="container mx-auto max-w-3xl px-4 md:px-6">
              <div className="mx-auto flex max-w-3xl flex-col items-center justify-center space-y-4 text-center">
+                <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Got Questions?</div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Frequently Asked Questions</h2>
              </div>
              <Accordion type="single" collapsible className="w-full max-w-3xl mx-auto mt-12">
@@ -512,13 +512,22 @@ export default function LandingPage() {
                   </AccordionContent>
                 </AccordionItem>
               ))}
+               <AccordionItem value="item-final">
+                  <AccordionTrigger className="text-lg text-left hover:text-primary">
+                    What is your refund policy?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-base text-muted-foreground">
+                    If you don’t use a single token within 7 days of purchase, email us for a full refund – no questions asked.
+                  </AccordionContent>
+                </AccordionItem>
             </Accordion>
            </div>
         </section>
 
         <section className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30">
           <div className="container mx-auto px-4 md:px-6">
-            <div className="mx-auto max-w-4xl text-center">
+            <div className="mx-auto max-w-4xl text-center space-y-4">
+                <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Your Trust</div>
                 <h3 className="text-2xl font-bold text-primary">Money-Back Guarantee</h3>
                 <p className="mt-4 text-lg text-muted-foreground">
                     If you don’t use a single token within 7 days of purchase, email us for a full refund – no questions asked.
@@ -572,6 +581,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
 
