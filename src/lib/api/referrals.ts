@@ -1,3 +1,4 @@
+
 'use client';
 
 import { db } from '@/lib/firebase';
@@ -9,9 +10,7 @@ import { errorEmitter } from '@/lib/error-emitter';
 import { FirestorePermissionError } from '@/lib/errors';
 
 function getCollectionPath() {
-    const auth = getAuth();
-    const userId = auth.currentUser?.uid;
-    return userId ? `referrals` : null; // Referrals are stored in a root collection
+    return 'referrals'; // Referrals are stored in a root collection
 }
 
 // Fetches referrals *made by* the current user.
