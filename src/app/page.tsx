@@ -168,8 +168,8 @@ export default function LandingPage() {
                             src={img.src}
                             alt={`GigBillow application screenshot ${index + 1}`}
                             width={1200}
-                            height={800}
-                            className="rounded-lg w-full"
+                            height={675}
+                            className="rounded-lg w-full aspect-video object-cover"
                             data-ai-hint={img.hint}
                             priority={index === 0}
                         />
