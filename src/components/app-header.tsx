@@ -75,14 +75,12 @@ export function AppHeader() {
             <span className="sr-only">Toggle Menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="sm:max-w-xs bg-sidebar text-sidebar-foreground border-sidebar-border p-0">
-          <SheetHeader>
+        <SheetContent side="left" className="sm:max-w-xs bg-sidebar text-sidebar-foreground border-sidebar-border p-0 flex flex-col">
+          <SheetHeader className="p-4 border-b border-sidebar-border">
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-            </SheetHeader>
-            <div className="flex flex-col gap-6 pt-6 overflow-y-auto">
                  <Link
                     href="#"
-                    className="group flex h-10 shrink-0 items-center justify-start gap-2 rounded-full text-lg font-semibold text-primary-foreground px-4"
+                    className="group flex h-10 shrink-0 items-center justify-start gap-2 rounded-full text-lg font-semibold text-primary-foreground"
                 >
                     <div className="bg-primary p-2 rounded-full">
                         <Logo className="h-5 w-5 transition-all group-hover:scale-110" />
@@ -90,6 +88,8 @@ export function AppHeader() {
                     <span>GigBillow</span>
                     <span className="sr-only">GigBillow</span>
                 </Link>
+            </SheetHeader>
+            <div className="flex-1 overflow-y-auto">
                 <AppSidebarNav isCollapsed={false} onLinkClick={() => setIsSheetOpen(false)} />
             </div>
         </SheetContent>
