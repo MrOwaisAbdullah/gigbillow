@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import Link from 'next/link';
@@ -34,7 +35,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { toggleTheme } = useTheme();
 
   const carouselImages = [
     { src: 'https://picsum.photos/seed/dashboard/1200/800', hint: 'app dashboard' },
@@ -149,8 +150,8 @@ export default function LandingPage() {
       features: [
         '500 Tokens',
         '12-month validity',
+        'Early access to new beta features',
         'Priority email support',
-        'Early access to new beta features'
       ],
       buttonText: 'Buy Agency Pack',
       buttonVariant: 'outline' as const,
@@ -196,7 +197,7 @@ export default function LandingPage() {
   return (
     <div className="flex min-h-[100dvh] flex-col bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
+        <div className="container mx-auto flex h-14 items-center">
           <Link href="#" className="mr-6 flex items-center gap-2" prefetch={false}>
             <Logo className="h-8 w-8 text-primary" />
             <span className="font-bold text-lg text-primary">GigBillow</span>
@@ -234,7 +235,7 @@ export default function LandingPage() {
 
       <main className="flex-1">
         <section className="relative w-full py-12 md:py-24 lg:py-32">
-          <div className="container grid max-w-5xl items-center gap-8 px-4 md:px-6 lg:grid-cols-2 lg:gap-12">
+          <div className="container mx-auto grid max-w-5xl items-center gap-8 px-4 md:px-6 lg:grid-cols-2 lg:gap-12">
             <div className="space-y-4">
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
                 Track time, write proposals, and get paid.
@@ -282,7 +283,7 @@ export default function LandingPage() {
         </section>
 
         <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="mx-auto grid max-w-5xl items-center gap-6 lg:grid-cols-2 lg:gap-12">
               <div className="space-y-4">
                 <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Key Features</div>
@@ -308,8 +309,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-       <section id="pricing" className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
+       <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 dark:bg-secondary/30">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Pricing</div>
@@ -355,7 +356,7 @@ export default function LandingPage() {
         </section>
 
         <section className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-4 md:px-6">
               <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
                   <div className="space-y-2">
                        <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Average 4.8 rating in beta testing</h2>
@@ -378,7 +379,7 @@ export default function LandingPage() {
                 <CarouselContent>
                   {testimonials.map((testimonial, index) => (
                     <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                      <Card className="h-full">
+                      <Card className="h-full bg-background">
                         <CardContent className="p-6 flex flex-col justify-between h-full">
                           <div className="space-y-4">
                             <div className="flex text-yellow-400">
@@ -410,7 +411,7 @@ export default function LandingPage() {
         </section>
 
         <section className="w-full py-12 md:py-24 lg:py-32">
-           <div className="container max-w-5xl px-4 md:px-6">
+           <div className="container mx-auto max-w-5xl px-4 md:px-6">
              <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Frequently Asked Questions</h2>
              </div>
@@ -429,7 +430,7 @@ export default function LandingPage() {
 
 
         <section className="w-full py-12 md:py-24 lg:py-32 border-t">
-          <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
+          <div className="container mx-auto grid items-center justify-center gap-4 px-4 text-center md:px-6">
             <div className="space-y-3">
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">Ready to streamline your freelance life?</h2>
               <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
@@ -445,7 +446,7 @@ export default function LandingPage() {
         </section>
       </main>
       <footer className="w-full shrink-0 border-t">
-         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
             <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} GigBillow. All rights reserved.</p>
             <nav className="flex gap-4 sm:gap-6">
               <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
@@ -460,5 +461,6 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
