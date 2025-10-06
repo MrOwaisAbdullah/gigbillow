@@ -137,7 +137,7 @@ export default function ReportsPage() {
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button variant="outline" onClick={() => handleExport(generateReportPdf)} disabled={loading || isExporting}>
               {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />} 
               Export PDF (-1 Token)
