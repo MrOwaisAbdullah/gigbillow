@@ -7,7 +7,7 @@ import { SummaryStats } from '@/components/dashboard/summary-stats';
 
 export default function DashboardPage() {
   return (
-    <div className="flex flex-col gap-8 overflow-x-hidden">
+    <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
       </div>
@@ -17,11 +17,11 @@ export default function DashboardPage() {
       </div>
       
       <div className="grid gap-8 lg:grid-cols-2">
+        <TodaysPulse />
         <QuickActions />
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <TodaysPulse />
         <ProjectPulse />
       </div>
       
