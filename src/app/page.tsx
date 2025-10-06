@@ -129,6 +129,19 @@ export default function LandingPage() {
       popular: false
     },
     {
+      name: 'Mini Pack',
+      price: '$5',
+      description: 'A small pack for light usage.',
+      features: [
+        '50 Tokens',
+        '1-month validity',
+        'Priority email support',
+      ],
+      buttonText: 'Buy Mini Pack',
+      buttonVariant: 'outline' as const,
+      popular: false,
+    },
+    {
       name: 'Standard Pack',
       price: '$15',
       description: 'For growing freelancers who need more power.',
@@ -244,39 +257,47 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
+             {loading ? null : user ? (
+              <Button asChild size="lg" className="flex-1">
+                <Link href="/dashboard">Go to Dashboard</Link>
+              </Button>
+             ) : (
               <Button asChild size="lg" className="flex-1">
                 <Link href="/register">Get Started for Free</Link>
               </Button>
+             )}
               <Button asChild variant="outline" size="lg" className="flex-1">
                 <Link href="#pricing">View Pricing</Link>
               </Button>
             </div>
-            <div className="w-full max-w-4xl mx-auto pt-8">
-              <Carousel
-                  plugins={[heroCarouselPlugin.current]}
-                  className="w-full"
-                  onMouseEnter={heroCarouselPlugin.current.stop}
-                  onMouseLeave={heroCarouselPlugin.current.reset}
-                >
-                <CarouselContent>
-                  {carouselImages.map((image, index) => (
-                    <CarouselItem key={index}>
-                      <Card className='border-none shadow-none'>
-                        <CardContent className="flex aspect-video items-center justify-center p-0">
-                           <Image
-                              src={image.src}
-                              alt={`App Screenshot ${index + 1}`}
-                              width={1200}
-                              height={800}
-                              className="rounded-lg object-cover"
-                              data-ai-hint={image.hint}
-                            />
-                        </CardContent>
-                      </Card>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-              </Carousel>
+            <div className="w-full max-w-3xl mx-auto pt-8">
+              <div className="rounded-lg border p-2">
+                <Carousel
+                    plugins={[heroCarouselPlugin.current]}
+                    className="w-full"
+                    onMouseEnter={heroCarouselPlugin.current.stop}
+                    onMouseLeave={heroCarouselPlugin.current.reset}
+                  >
+                  <CarouselContent>
+                    {carouselImages.map((image, index) => (
+                      <CarouselItem key={index}>
+                        <Card className='border-none shadow-none'>
+                          <CardContent className="flex aspect-video items-center justify-center p-0">
+                            <Image
+                                src={image.src}
+                                alt={`App Screenshot ${index + 1}`}
+                                width={1200}
+                                height={800}
+                                className="rounded-lg object-cover w-full h-full"
+                                data-ai-hint={image.hint}
+                              />
+                          </CardContent>
+                        </Card>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
+              </div>
             </div>
           </div>
         </section>
@@ -319,7 +340,7 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto mt-12 grid max-w-5xl items-start gap-8 sm:grid-cols-1 md:grid-cols-3">
+            <div className="mx-auto mt-12 grid max-w-7xl items-start gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
               {pricingTiers.map((tier) => (
                 <Card key={tier.name} className={tier.popular ? 'border-primary border-2 shadow-lg -translate-y-4' : ''}>
                    {tier.popular && (
@@ -329,11 +350,11 @@ export default function LandingPage() {
                     )}
                   <CardHeader className="p-6">
                     <CardTitle className="text-2xl font-bold">{tier.name}</CardTitle>
-                    <p className="text-muted-foreground">{tier.description}</p>
+                    <p className="text-muted-foreground h-10">{tier.description}</p>
                   </CardHeader>
                   <CardContent className="space-y-6 p-6 pt-0">
                     <div className="text-4xl font-bold">{tier.price}</div>
-                    <ul className="space-y-3 text-sm">
+                    <ul className="space-y-3 text-sm min-h-[140px]">
                       {tier.features.map((feature, i) => (
                          <li key={i} className="flex items-center gap-2">
                           <Check className="h-5 w-5 text-primary" />
@@ -417,7 +438,9 @@ export default function LandingPage() {
              <Accordion type="single" collapsible className="w-full max-w-3xl mx-auto mt-12">
               {faqs.map((faq, i) => (
                 <AccordionItem key={i} value={`item-${i}`}>
-                  <AccordionTrigger className="text-lg text-left">{faq.question}</AccordionTrigger>
+                  <AccordionTrigger className="text-lg text-left hover:text-primary">
+                    {faq.question}
+                  </AccordionTrigger>
                   <AccordionContent className="text-base text-muted-foreground">
                     {faq.answer}
                   </AccordionContent>
