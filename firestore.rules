@@ -1,50 +1,40 @@
 /**
- * @file Firestore Security Rules
- * @description This ruleset enforces a strict user-ownership model for most data,
- *              allowing users to only access and modify their own resources.
+ * @fileoverview Firestore Security Rules for the application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for most data, ensuring that users can only access their own resources.
  *
  * Data Structure:
- * - /users/{userId}: User profiles, accessible only by the user themselves.
- * - /users/{userId}/clients/{clientId}: Clients owned by a specific user.
- * - /users/{userId}/projects/{projectId}: Projects owned by a specific user.
- * - /users/{userId}/timeEntries/{timeEntryId}: Time entries owned by a specific user.
- * - /users/{userId}/invoices/{invoiceId}: Invoices owned by a specific user.
- * - /user_tokens/{userId}: User token balance, accessible only by the user themselves.
- * - /referrals/{referralId}: Referral records.
+ * All personal data is nested under /users/{userId}. User tokens and referrals are stored in top-level collections, secured by user ID.
  *
  * Key Security Decisions:
- * - Users can only read and write their own profiles.
- * - Clients, projects, time entries, and invoices are all strictly user-owned.
- * - User tokens are only accessible by the user themselves.
- * - Listing of user subcollections is allowed only for the owner.
- * - Referral records can be created by any authenticated user, but only the record itself can be read or updated.
+ * - Users can only list expenses that they own.
+ * - Users can only create their own user document.
  *
  * Denormalization for Authorization:
- *  - User ownership is enforced by matching the {userId} path segment with the
- *    requesting user's authentication UID.  No additional data denormalization
- *    is required, as the path itself serves as the source of truth.
+ *  - No denormalization is needed, as the rules use the path to enforce ownership.
+ *
+ * Structural Segregation:
+ *  - Private user data is stored under the `/users/{userId}` collection.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profile documents.
+     * @description Grants access to a user's profile if the requesting user is the profile owner.
      * @path /users/{userId}
-     * @allow (get, update, delete) User with ID 'user123' can access their own profile.
-     * @allow (create) User with ID 'user123' can create their own profile if it doesn't exist.
-     * @deny (get, update, delete) User with ID 'user456' cannot access 'user123' profile.
-     * @principle Enforces document ownership for user profiles.
+     * @allow (create) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can create document with id "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @deny (create) User with uid "OTHER_USER_ID" cannot create document with id "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (get) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can get their own profile document.
+     * @deny (get) User with uid "OTHER_USER_ID" cannot get the profile document of "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (update) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can update their own profile document.
+     * @deny (update) User with uid "OTHER_USER_ID" cannot update the profile document of "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (delete) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can delete their own profile document.
+     * @deny (delete) User with uid "OTHER_USER_ID" cannot delete the profile document of "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-          return isOwner(userId) && resource != null;
-      }
-
       allow get: if isOwner(userId);
       allow list: if false;
       allow create: if isOwner(userId);
@@ -53,21 +43,21 @@ service cloud.firestore {
     }
 
     /**
-     * @description Controls access to client documents under a user.
+     * @description Grants access to a user's clients subcollection only to the owner.
      * @path /users/{userId}/clients/{clientId}
-     * @allow (get, list, create, update, delete) User with ID 'user123' can manage their clients.
-     * @deny (get, list, create, update, delete) User with ID 'user456' cannot manage 'user123' clients.
-     * @principle Enforces user-ownership for clients.
+     * @allow (create) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can create a client document under their user ID.
+     * @deny (create) User with uid "OTHER_USER_ID" cannot create a client document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (get) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can get a client document under their user ID.
+     * @deny (get) User with uid "OTHER_USER_ID" cannot get a client document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (list) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can list client documents under their user ID.
+     * @deny (list) User with uid "OTHER_USER_ID" cannot list client documents under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (update) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can update a client document under their user ID.
+     * @deny (update) User with uid "OTHER_USER_ID" cannot update a client document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (delete) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can delete a client document under their user ID.
+     * @deny (delete) User with uid "OTHER_USER_ID" cannot delete a client document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @principle Restricts access to a user's own data tree.
      */
     match /users/{userId}/clients/{clientId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-          return isOwner(userId) && resource != null;
-      }
-
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
       allow create: if isOwner(userId);
@@ -76,21 +66,21 @@ service cloud.firestore {
     }
 
     /**
-     * @description Controls access to project documents under a user.
+     * @description Grants access to a user's projects subcollection only to the owner.
      * @path /users/{userId}/projects/{projectId}
-     * @allow (get, list, create, update, delete) User with ID 'user123' can manage their projects.
-     * @deny (get, list, create, update, delete) User with ID 'user456' cannot manage 'user123' projects.
-     * @principle Enforces user-ownership for projects.
+     * @allow (create) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can create a project document under their user ID.
+     * @deny (create) User with uid "OTHER_USER_ID" cannot create a project document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (get) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can get a project document under their user ID.
+     * @deny (get) User with uid "OTHER_USER_ID" cannot get a project document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (list) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can list project documents under their user ID.
+     * @deny (list) User with uid "OTHER_USER_ID" cannot list project documents under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (update) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can update a project document under their user ID.
+     * @deny (update) User with uid "OTHER_USER_ID" cannot update a project document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (delete) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can delete a project document under their user ID.
+     * @deny (delete) User with uid "OTHER_USER_ID" cannot delete a project document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @principle Restricts access to a user's own data tree.
      */
     match /users/{userId}/projects/{projectId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-          return isOwner(userId) && resource != null;
-      }
-
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
       allow create: if isOwner(userId);
@@ -99,21 +89,21 @@ service cloud.firestore {
     }
 
     /**
-     * @description Controls access to time entry documents under a user.
+     * @description Grants access to a user's time entries subcollection only to the owner.
      * @path /users/{userId}/timeEntries/{timeEntryId}
-     * @allow (get, list, create, update, delete) User with ID 'user123' can manage their time entries.
-     * @deny (get, list, create, update, delete) User with ID 'user456' cannot manage 'user123' time entries.
-     * @principle Enforces user-ownership for time entries.
+     * @allow (create) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can create a time entry document under their user ID.
+     * @deny (create) User with uid "OTHER_USER_ID" cannot create a time entry document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (get) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can get a time entry document under their user ID.
+     * @deny (get) User with uid "OTHER_USER_ID" cannot get a time entry document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (list) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can list time entry documents under their user ID.
+     * @deny (list) User with uid "OTHER_USER_ID" cannot list time entry documents under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (update) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can update a time entry document under their user ID.
+     * @deny (update) User with uid "OTHER_USER_ID" cannot update a time entry document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (delete) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can delete a time entry document under their user ID.
+     * @deny (delete) User with uid "OTHER_USER_ID" cannot delete a time entry document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @principle Restricts access to a user's own data tree.
      */
     match /users/{userId}/timeEntries/{timeEntryId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-          return isOwner(userId) && resource != null;
-      }
-
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
       allow create: if isOwner(userId);
@@ -122,21 +112,21 @@ service cloud.firestore {
     }
 
     /**
-     * @description Controls access to invoice documents under a user.
+     * @description Grants access to a user's invoices subcollection only to the owner.
      * @path /users/{userId}/invoices/{invoiceId}
-     * @allow (get, list, create, update, delete) User with ID 'user123' can manage their invoices.
-     * @deny (get, list, create, update, delete) User with ID 'user456' cannot manage 'user123' invoices.
-     * @principle Enforces user-ownership for invoices.
+     * @allow (create) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can create a invoice document under their user ID.
+     * @deny (create) User with uid "OTHER_USER_ID" cannot create a invoice document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (get) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can get a invoice document under their user ID.
+     * @deny (get) User with uid "OTHER_USER_ID" cannot get a invoice document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (list) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can list invoice documents under their user ID.
+     * @deny (list) User with uid "OTHER_USER_ID" cannot list invoice documents under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (update) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can update a invoice document under their user ID.
+     * @deny (update) User with uid "OTHER_USER_ID" cannot update a invoice document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (delete) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can delete a invoice document under their user ID.
+     * @deny (delete) User with uid "OTHER_USER_ID" cannot delete a invoice document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @principle Restricts access to a user's own data tree.
      */
     match /users/{userId}/invoices/{invoiceId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-          return isOwner(userId) && resource != null;
-      }
-
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
       allow create: if isOwner(userId);
@@ -145,49 +135,78 @@ service cloud.firestore {
     }
 
     /**
-     * @description Controls access to user token documents.
+     * @description Grants access to a user's expenses subcollection only to the owner.
+     * @path /users/{userId}/expenses/{expenseId}
+     * @allow (create) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can create a expense document under their user ID.
+     * @deny (create) User with uid "OTHER_USER_ID" cannot create a expense document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (get) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can get a expense document under their user ID.
+     * @deny (get) User with uid "OTHER_USER_ID" cannot get a expense document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (list) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can list expense documents under their user ID.
+     * @deny (list) User with uid "OTHER_USER_ID" cannot list expense documents under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (update) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can update a expense document under their user ID.
+     * @deny (update) User with uid "OTHER_USER_ID" cannot update a expense document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (delete) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can delete a expense document under their user ID.
+     * @deny (delete) User with uid "OTHER_USER_ID" cannot delete a expense document under user ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @principle Restricts access to a user's own data tree.
+     */
+    match /users/{userId}/expenses/{expenseId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Grants access to a user's token document only to the owner.
      * @path /user_tokens/{userId}
-     * @allow (get, update, delete) User with ID 'user123' can access their own token balance.
-     * @deny (get, update, delete) User with ID 'user456' cannot access 'user123' token balance.
-     * @principle Enforces document ownership for user tokens.
+     * @allow (create) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can create a user token document with their ID.
+     * @deny (create) User with uid "OTHER_USER_ID" cannot create a user token document with ID "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (get) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can get their own user token document.
+     * @deny (get) User with uid "OTHER_USER_ID" cannot get the user token document of "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (list) Listing is not allowed.
+     * @deny (update) User with uid "OTHER_USER_ID" cannot update the user token document of "R7Hkky6alfgBwiofMmCVHo8HtLI3".
+     * @allow (update) User with uid "R7Hkky6alfgBwiofMmCVHo8HtLI3" can update their own user token document.
+     * @deny (delete) Deletion is not allowed.
+     * @principle Restricts access to a user's own data tree.
      */
     match /user_tokens/{userId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-          return isOwner(userId) && resource != null;
-      }
-
       allow get: if isOwner(userId);
       allow list: if false;
       allow create: if isOwner(userId);
       allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow delete: if false;
     }
 
-      /**
-       * @description Controls access to referral documents.
-       * @path /referrals/{referralId}
-       * @allow (create) Any authenticated user can create a referral record.
-       * @allow (get, update, delete) Only the referrer user can get, update, or delete the referral record.
-       * @deny (get, update, delete) Another user cannot access or modify the referral record.
-       * @principle Allows authenticated users to create referral records, but restricts access to only the referrer.
-       */
-      match /referrals/{referralId} {
-          function isSignedIn() {
-              return request.auth != null;
-          }
+        /**
+     * @description Grants access to a referral document.
+     * @path /referrals/{referralId}
+     * @allow (create) Any signed-in user can create a referral document.
+     * @deny (create) A non-signed in user cannot create referral document.
+     * @allow (get) Any signed-in user can read a referral document.
+     * @deny (get) A non-signed in user cannot read referral document.
+     * @allow (list) Listing is not allowed.
+     * @deny (update) No one can update referral document.
+     * @deny (delete) No one can delete referral document.
+     */
+    match /referrals/{referralId} {
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isSignedIn();
+      allow update: if false;
+      allow delete: if false;
+    }
 
-          // Allow any signed-in user to create a referral record.
-          allow create: if isSignedIn();
+    function isSignedIn() {
+      return request.auth != null;
+    }
 
-          // Only the user who created the referral record can access it.
-          allow get: if request.auth != null && request.auth.uid == resource.data.referrer_user_id;
-          allow list: if false;
-          allow update: if request.auth != null && request.auth.uid == resource.data.referrer_user_id && resource != null;
-          allow delete: if request.auth != null && request.auth.uid == resource.data.referrer_user_id && resource != null;
-      }
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+    }
   }
 }
