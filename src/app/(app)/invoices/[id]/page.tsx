@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Download, CreditCard, Share2, Copy } from 'lucide-react';
+import { ArrowLeft, Download, CreditCard, Share2, Copy, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getInvoiceById } from '@/lib/api/invoices';
+import { getInvoiceById, updateInvoice } from '@/lib/api/invoices';
 import { getClientById } from '@/lib/api/clients';
 import { getProjectById } from '@/lib/api/projects';
 import { generateInvoicePdf } from '@/lib/pdf-utils';
@@ -73,6 +73,24 @@ export default function InvoiceDetailPage() {
 
     fetchInvoiceDetails();
   }, [id, router]);
+
+  const handleMarkAsPaid = async () => {
+    if (!invoice) return;
+    try {
+      await updateInvoice(invoice.id, { status: 'paid' });
+      setInvoice({ ...invoice, status: 'paid' });
+      toast({
+        title: 'Invoice Updated',
+        description: 'Invoice has been marked as paid.',
+      });
+    } catch (error) {
+       toast({
+        variant: 'destructive',
+        title: 'Failed to update invoice',
+        description: 'Please try again later.',
+      });
+    }
+  };
   
   const handleDownloadPdf = () => {
     if (invoice && client && user) {
@@ -246,12 +264,11 @@ export default function InvoiceDetailPage() {
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row justify-between items-center border-t pt-6 gap-4">
           <div className='flex gap-2 w-full sm:w-auto'>
-            {invoice.paymentUrl && (
-                <Button asChild className="w-full sm:w-auto">
-                    <a href={invoice.paymentUrl} target="_blank" rel="noopener noreferrer">
-                        <CreditCard className="mr-2" /> Pay Now
-                    </a>
-                </Button>
+            {invoice.status !== 'paid' && (
+              <Button onClick={handleMarkAsPaid} className="w-full sm:w-auto">
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Mark as Paid
+              </Button>
             )}
             <Button variant="secondary" onClick={handleShare} className="w-full sm:w-auto">
                 <Share2 className="mr-2" /> Share
@@ -327,5 +344,7 @@ function InvoiceDetailSkeleton() {
         </div>
     )
 }
+
+    
 
     
