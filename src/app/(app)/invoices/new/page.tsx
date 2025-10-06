@@ -94,8 +94,7 @@ export default function NewInvoicePage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [uninvoicedExpenses, setUninvoicedExpenses] = useState<Expense[]>([]);
-  const [selectedExpenses, setSelectedExpenses] = useState<Expense[]>([]);
-
+  
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -120,29 +119,26 @@ export default function NewInvoicePage() {
     name: 'lineItems',
   });
   
-  const taxRate = form.watch('taxRate');
-  const discount = form.watch('discount');
-  const projectId = form.watch('projectId');
-  const clientId = form.watch('clientId');
-  const subTotal = form.watch('subTotal');
-  const selectedExpenseIds = form.watch('selectedExpenseIds') || [];
-  const removeWatermark = form.watch('removeWatermark');
+  const watchedValues = form.watch();
   
   const expensesTotal = useMemo(() => {
     return uninvoicedExpenses
-      .filter(exp => selectedExpenseIds.includes(exp.id))
+      .filter(exp => watchedValues.selectedExpenseIds?.includes(exp.id))
       .reduce((acc, exp) => acc + exp.amount, 0);
-  }, [selectedExpenseIds, uninvoicedExpenses]);
+  }, [watchedValues.selectedExpenseIds, uninvoicedExpenses]);
 
-  const grandSubTotal = subTotal + expensesTotal;
-  const discountedSubTotal = grandSubTotal - discount;
-  const taxAmount = (discountedSubTotal * taxRate) / 100;
+  const servicesSubTotal = watchedValues.subTotal || 0;
+  const grandSubTotal = servicesSubTotal + expensesTotal;
+  const discountAmount = watchedValues.discount || 0;
+  const discountedSubTotal = grandSubTotal - discountAmount;
+  const taxRateValue = watchedValues.taxRate || 0;
+  const taxAmount = (discountedSubTotal * taxRateValue) / 100;
   const totalAmount = discountedSubTotal + taxAmount;
   
-  const includesExpenses = selectedExpenseIds.length > 0;
+  const includesExpenses = watchedValues.selectedExpenseIds && watchedValues.selectedExpenseIds.length > 0;
   
   const pdfCost = 1;
-  const watermarkCost = removeWatermark ? 3 : 0;
+  const watermarkCost = watchedValues.removeWatermark ? 3 : 0;
   const totalCost = pdfCost + watermarkCost;
   const submitButtonText = `Create & Download PDF (-${totalCost} Token${totalCost > 1 ? 's' : ''})`;
   const canAffordWatermarkRemoval = tokens >= 3;
@@ -166,8 +162,8 @@ export default function NewInvoicePage() {
   }, [fetchClients, fetchProjects]);
   
   useEffect(() => {
-    if (clientId) {
-      const clientProjects = allProjects.filter(p => p.clientId === clientId);
+    if (watchedValues.clientId) {
+      const clientProjects = allProjects.filter(p => p.clientId === watchedValues.clientId);
       setProjects(clientProjects);
       form.setValue('projectId', ''); // Reset project when client changes
       setUninvoicedExpenses([]);
@@ -175,7 +171,7 @@ export default function NewInvoicePage() {
     } else {
       setProjects([]);
     }
-  }, [clientId, allProjects, form]);
+  }, [watchedValues.clientId, allProjects, form]);
 
   useEffect(() => {
     const projectName = searchParams.get('projectName');
@@ -203,16 +199,16 @@ export default function NewInvoicePage() {
   
   useEffect(() => {
     async function fetchProjectData() {
-        if (!projectId) {
+        if (!watchedValues.projectId) {
             setUninvoicedExpenses([]);
             form.setValue('selectedExpenseIds', []);
             return;
         }
         
         // Auto-fill time entries
-        const project = allProjects.find(p => p.id === projectId);
+        const project = allProjects.find(p => p.id === watchedValues.projectId);
         if (project && project.rate) {
-          const projectTimeEntries = await getTimeEntriesByProject(projectId);
+          const projectTimeEntries = await getTimeEntriesByProject(watchedValues.projectId);
           const totalHours = projectTimeEntries.reduce((acc, entry) => acc + entry.hours, 0);
           if (totalHours > 0) {
             form.setValue('lineItems', [{
@@ -223,12 +219,12 @@ export default function NewInvoicePage() {
         }
         
         // Fetch uninvoiced expenses
-        const expenses = await getUninvoicedExpensesByProject(projectId);
+        const expenses = await getUninvoicedExpensesByProject(watchedValues.projectId);
         setUninvoicedExpenses(expenses);
         form.setValue('selectedExpenseIds', []);
     }
     fetchProjectData();
-  }, [projectId, form, allProjects]);
+  }, [watchedValues.projectId, form, allProjects]);
 
   const handleNewClient = async () => {
     const updatedClients = await fetchClients();
@@ -246,7 +242,7 @@ export default function NewInvoicePage() {
     }
 
     const updatedProjects = await fetchProjects();
-    const filteredProjects = updatedProjects.filter(p => p.clientId === clientId);
+    const filteredProjects = updatedProjects.filter(p => p.clientId === watchedValues.clientId);
     setProjects(filteredProjects);
     const newProject = filteredProjects[filteredProjects.length - 1];
     if (newProject) {
@@ -270,12 +266,15 @@ export default function NewInvoicePage() {
     try {
         let finalLineItems = [...values.lineItems];
         if (includesExpenses) {
-            finalLineItems.push({ description: 'Reimbursable Expenses' });
+            const expenseLineItems = uninvoicedExpenses
+                .filter(exp => watchedValues.selectedExpenseIds?.includes(exp.id))
+                .map(exp => ({ description: `Expense: ${exp.description}` }));
+            finalLineItems = [...finalLineItems, ...expenseLineItems];
         }
 
         const invoiceToCreate = {
             ...values,
-            lineItems: finalLineItems,
+            lineItems: values.lineItems, // Save only main line items, not expense ones
             amount: totalAmount,
             status: 'unpaid' as const,
             subTotal: grandSubTotal,
@@ -290,7 +289,7 @@ export default function NewInvoicePage() {
         const newInvoice = await createInvoice(invoiceToCreate);
         
         if (includesExpenses && newInvoice.id) {
-            await markExpensesAsInvoiced(selectedExpenseIds, newInvoice.id);
+            await markExpensesAsInvoiced(watchedValues.selectedExpenseIds || [], newInvoice.id);
         }
 
         const client = clients.find(c => c.id === values.clientId);
@@ -309,7 +308,7 @@ export default function NewInvoicePage() {
         const enhancementResult = await enhanceInvoice({
             clientName: client.name,
             userName: user.displayName || 'Freelancer',
-            lineItems: finalLineItems,
+            lineItems: finalLineItems, // Pass all line items to AI
             totalAmount: Number(totalAmount),
             dueDate: format(values.dueDate, 'PPP')
         });
@@ -494,9 +493,9 @@ export default function NewInvoicePage() {
                         dialogTitle="Create New Project"
                         dialogDescription="Add a new project for the selected client. This will use 1 token."
                         onCreated={handleNewProject}
-                        disabled={!clientId}
+                        disabled={!watchedValues.clientId}
                       >
-                         <ProjectForm clients={clients} initialClientId={clientId} onSuccess={() => {}} onClientCreated={() => {}} />
+                         <ProjectForm clients={clients} initialClientId={watchedValues.clientId} onSuccess={() => {}} onClientCreated={() => {}} />
                       </SelectWithCreate>
                       <FormDescription>Selecting a project can auto-fill invoice details.</FormDescription>
                       <FormMessage />
@@ -617,7 +616,7 @@ export default function NewInvoicePage() {
                             <FormControl>
                                <div className="flex items-center gap-2">
                                  <span>$</span>
-                                 <Input type="number" {...field} className="w-32 h-8 text-right" />
+                                 <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} className="w-32 h-8 text-right" />
                                </div>
                             </FormControl>
                         </FormItem>
@@ -644,7 +643,7 @@ export default function NewInvoicePage() {
                             <FormControl>
                                <div className="flex items-center gap-2">
                                  <span>$</span>
-                                 <Input type="number" {...field} className="w-32 h-8 text-right" />
+                                 <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} className="w-32 h-8 text-right" />
                                </div>
                             </FormControl>
                         </FormItem>
@@ -660,7 +659,7 @@ export default function NewInvoicePage() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
-                                     <Input type="number" {...field} className="w-20 h-8 text-right" />
+                                     <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} className="w-20 h-8 text-right" />
                                   </FormControl>
                                 </FormItem>
                               )}

@@ -160,7 +160,13 @@ export function generateInvoicePdf({ invoice, client, user, removeWatermark = fa
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(...black);
 
-        invoice.lineItems.forEach((item, index) => {
+        const allLineItems = [...invoice.lineItems];
+        if (invoice.expensesTotal && invoice.expensesTotal > 0) {
+            allLineItems.push({ description: `Reimbursable Expenses` });
+        }
+
+
+        allLineItems.forEach((item, index) => {
             const isEvenRow = index % 2 === 0;
             const splitDescription = doc.splitTextToSize(toTitleCase(item.description), tableWidth - (descriptionColX - pageMargin));
             const rowHeight = (splitDescription.length * (itemGap - 2)) + 10;
@@ -192,17 +198,13 @@ export function generateInvoicePdf({ invoice, client, user, removeWatermark = fa
         y += itemGap + 2;
         
         const subTotal = Number(invoice.subTotal) || 0;
-        const expensesTotal = Number(invoice.expensesTotal) || 0;
-        const servicesTotal = subTotal - expensesTotal;
         const discount = Number(invoice.discount) || 0;
         const discountedSubTotal = subTotal - discount;
         const taxRate = Number(invoice.taxRate) || 0;
         const taxAmount = (discountedSubTotal * taxRate) / 100;
-        const totalAmount = Number(invoice.amount) || 0;
+        const totalAmount = discountedSubTotal + taxAmount;
 
         const totals = [
-            ...(servicesTotal > 0 && expensesTotal > 0 ? [{ label: 'Services', value: `$${servicesTotal.toFixed(2)}` }] : []),
-            ...(expensesTotal > 0 ? [{ label: 'Expenses', value: `$${expensesTotal.toFixed(2)}` }] : []),
             { label: 'Sub-total', value: `$${subTotal.toFixed(2)}` },
             ...(discount > 0 ? [{ label: 'Discount', value: `-$${discount.toFixed(2)}`, color: gray }] : []),
             { label: `Tax (${taxRate}%)`, value: `$${taxAmount.toFixed(2)}` },
