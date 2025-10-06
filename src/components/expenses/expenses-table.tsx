@@ -41,53 +41,45 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
 
-  const fetchExpensesCallback = useCallback(async (page: 'first' | 'next' | 'prev') => {
+  const fetchExpenses = async (
+    page: 'first' | 'next' | 'prev',
+    currentCursors: (DocumentSnapshot | null)[],
+    currentPageNum: number
+  ) => {
     setLoading(true);
     let cursor: DocumentSnapshot | null = null;
-    
+  
     if (page === 'next') {
-        cursor = cursors[currentPage] || null;
+      cursor = currentCursors[currentPageNum] || null;
     } else if (page === 'prev') {
-        cursor = cursors[currentPage - 2] || null;
+      cursor = currentCursors[currentPageNum - 2] || null;
     }
-
+  
     const { expenses: expensesData, next } = await getExpenses(page, cursor, 10);
     setExpenses(expensesData);
-
-    if (page === 'next') {
-        if (!cursors.includes(next)) {
-            setCursors(prev => [...prev, next]);
-        }
-        setCurrentPage(prevPage => prevPage + 1);
-    } else if (page === 'prev') {
-        setCurrentPage(prevPage => Math.max(1, prevPage - 1));
-    } else { // first
-        setCursors([null, next]);
-        setCurrentPage(1);
-    }
     setHasNextPage(!!next);
-    setLoading(false);
-  }, [currentPage, cursors]);
-
-  useEffect(() => {
-    fetchExpensesCallback('first');
-  }, [fetchExpensesCallback]);
-
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteExpense(id);
-      toast({
-        title: 'Expense Deleted',
-        description: `The expense has been deleted.`,
-      });
-      fetchExpensesCallback('first');
-    } catch (error) {
-      // API handles error toast
+  
+    if (page === 'first') {
+      setCursors([null, next]);
+      setCurrentPage(1);
+    } else if (page === 'next') {
+      if (!currentCursors.includes(next)) {
+        setCursors(prev => [...prev, next]);
+      }
+      setCurrentPage(prevPage => prevPage + 1);
+    } else if (page === 'prev') {
+      setCurrentPage(prevPage => Math.max(1, prevPage - 1));
     }
+  
+    setLoading(false);
   };
+  
+  useEffect(() => {
+    fetchExpenses('first', [null], 1);
+  }, []);
 
   const handleUpdate = () => {
-    fetchExpensesCallback('first');
+    fetchExpenses('first', [null], 1);
   }
   
   if (loading && expenses.length === 0) {
@@ -188,8 +180,8 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
         </Table>
       </div>
       <PaginationControls
-        onNext={() => fetchExpensesCallback('next')}
-        onPrev={() => fetchExpensesCallback('prev')}
+        onNext={() => fetchExpenses('next', cursors, currentPage)}
+        onPrev={() => fetchExpenses('prev', cursors, currentPage)}
         hasNextPage={hasNextPage}
         hasPrevPage={currentPage > 1}
         currentPage={currentPage}
