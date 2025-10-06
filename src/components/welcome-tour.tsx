@@ -92,7 +92,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
           <CarouselContent>
             {tourSteps.map((step, index) => (
               <CarouselItem key={index}>
-                  <Card className='p-1 border-none shadow-none'>
+                  <Card className='border-none shadow-none'>
                     <CardContent className="grid lg:grid-cols-2 gap-6 items-center p-4">
                         <div>
                            <Image
