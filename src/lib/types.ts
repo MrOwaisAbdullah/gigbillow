@@ -77,7 +77,7 @@ export type Expense = {
   description: string;
   amount: number;
   date: Date;
-  category: 'Travel' | 'Software' | 'Other';
+  category: 'Travel' | 'Software' | 'Office Supplies' | 'Marketing' | 'Meals' | 'Utilities' | 'Other';
   includeOnInvoice: boolean;
   invoiceId: string | null;
 };

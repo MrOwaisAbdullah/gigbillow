@@ -40,7 +40,7 @@ const formSchema = z.object({
   description: z.string().min(2, 'Description must be at least 2 characters.'),
   amount: z.coerce.number().min(0.01, 'Amount must be greater than zero.'),
   date: z.date(),
-  category: z.enum(['Travel', 'Software', 'Other']),
+  category: z.enum(['Travel', 'Software', 'Office Supplies', 'Marketing', 'Meals', 'Utilities', 'Other']),
   projectId: z.string().nullable(),
 });
 
@@ -99,7 +99,7 @@ export function ExpenseForm({ projects, expense, onSuccess }: ExpenseFormProps) 
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="amount"
@@ -143,7 +143,7 @@ export function ExpenseForm({ projects, expense, onSuccess }: ExpenseFormProps) 
             )}
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="category"
@@ -159,6 +159,10 @@ export function ExpenseForm({ projects, expense, onSuccess }: ExpenseFormProps) 
                   <SelectContent>
                     <SelectItem value="Software">Software</SelectItem>
                     <SelectItem value="Travel">Travel</SelectItem>
+                    <SelectItem value="Office Supplies">Office Supplies</SelectItem>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Meals">Meals</SelectItem>
+                    <SelectItem value="Utilities">Utilities</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>

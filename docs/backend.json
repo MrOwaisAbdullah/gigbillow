@@ -120,7 +120,7 @@
         "description": { "type": "string" },
         "amount": { "type": "number" },
         "date": { "type": "string", "format": "date-time" },
-        "category": { "type": "string", "enum": ["Travel", "Software", "Other"] },
+        "category": { "type": "string", "enum": ["Travel", "Software", "Office Supplies", "Marketing", "Meals", "Utilities", "Other"] },
         "includeOnInvoice": { "type": "boolean", "default": false },
         "invoiceId": { "type": "string", "description": "The ID of the invoice this expense is included on." }
       },
