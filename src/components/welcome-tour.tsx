@@ -94,7 +94,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
             {tourSteps.map((step, index) => (
               <CarouselItem key={index}>
                   <Card className='p-1 border-none shadow-none'>
-                    <CardContent className="flex flex-col lg:flex-row items-center justify-center p-2 sm:p-4 gap-4 sm:gap-6">
+                    <CardContent className="flex flex-wrap items-center justify-center p-4 gap-6">
                         <div className="w-full lg:w-1/2 flex-shrink-0">
                            <Image
                                 src={step.imageSrc}
@@ -105,7 +105,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
                                 data-ai-hint={step.imageHint}
                             />
                         </div>
-                        <div className="space-y-3 text-center lg:text-left">
+                        <div className="space-y-3 text-center lg:text-left flex-1 min-w-[280px]">
                            <h3 className="text-xl font-semibold">{step.title}</h3>
                            <p className="text-muted-foreground text-sm sm:text-base">{step.description}</p>
                         </div>
