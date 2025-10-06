@@ -41,7 +41,7 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
 
-  const fetchExpenses = useCallback(async (page: 'first' | 'next' | 'prev') => {
+  const fetchExpensesCallback = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
     let cursor: DocumentSnapshot | null = null;
     
@@ -70,8 +70,8 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
   }, [currentPage, cursors]);
 
   useEffect(() => {
-    fetchExpenses('first');
-  }, [fetchExpenses]);
+    fetchExpensesCallback('first');
+  }, [fetchExpensesCallback]);
 
   const handleDelete = async (id: string) => {
     try {
@@ -80,14 +80,14 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
         title: 'Expense Deleted',
         description: `The expense has been deleted.`,
       });
-      fetchExpenses('first');
+      fetchExpensesCallback('first');
     } catch (error) {
       // API handles error toast
     }
   };
 
   const handleUpdate = () => {
-    fetchExpenses('first');
+    fetchExpensesCallback('first');
   }
   
   if (loading && expenses.length === 0) {
@@ -188,8 +188,8 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
         </Table>
       </div>
       <PaginationControls
-        onNext={() => fetchExpenses('next')}
-        onPrev={() => fetchExpenses('prev')}
+        onNext={() => fetchExpensesCallback('next')}
+        onPrev={() => fetchExpensesCallback('prev')}
         hasNextPage={hasNextPage}
         hasPrevPage={currentPage > 1}
         currentPage={currentPage}
