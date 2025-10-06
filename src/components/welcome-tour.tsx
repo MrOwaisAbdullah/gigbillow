@@ -80,7 +80,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-2 sm:p-6">
+      <DialogContent className="max-w-[95vw] w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-2 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl">Welcome to GigBillow!</DialogTitle>
           <DialogDescription>
