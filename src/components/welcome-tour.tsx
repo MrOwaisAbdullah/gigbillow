@@ -19,7 +19,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
-import { Check } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 type WelcomeTourProps = {
     open: boolean;
@@ -31,38 +32,58 @@ const tourSteps = [
     title: '1. Win Your Next Job',
     description: "Paste a job description into the Proposal Generator and let AI write a compelling, client-winning proposal in seconds.",
     imageSrc: 'https://picsum.photos/seed/proposals/1200/800',
-    imageHint: 'proposal generator'
+    imageHint: 'proposal generator',
+    href: '/proposal-generator',
+    linkText: 'Go to Proposal Generator',
   },
   {
     title: '2. Manage Clients & Projects',
     description: 'Once you win the job, add the client and create a new project. Set an hourly rate to make time tracking seamless.',
     imageSrc: 'https://picsum.photos/seed/projects_page/1200/800',
-    imageHint: 'project management app'
+    imageHint: 'project management app',
+    href: '/projects',
+    linkText: 'Go to Projects',
   },
   {
     title: '3. Track Every Billable Second',
     description: 'Use the simple, background-safe time tracker to log your hours accurately. Never lose a minute of your hard work.',
     imageSrc: 'https://picsum.photos/seed/tracker/1200/800',
-    imageHint: 'time tracker'
+    imageHint: 'time tracker',
+    href: '/track',
+    linkText: 'Go to Time Tracker',
   },
   {
     title: '4. Get Paid Faster',
     description: 'When it’s time to bill, generate a professional, 1-click PDF invoice. Add a payment link to get paid instantly.',
     imageSrc: 'https://picsum.photos/seed/invoices/1200/800',
-    imageHint: 'invoicing app'
+    imageHint: 'invoicing app',
+    href: '/invoices/new',
+    linkText: 'Go to New Invoice',
   },
-  {
+   {
     title: '5. Track Your Expenses',
     description: 'Keep your finances in order by logging billable and non-billable expenses. Easily add them to invoices when needed.',
     imageSrc: 'https://picsum.photos/seed/expenses_app/1200/800',
-    imageHint: 'expense tracker app'
+    imageHint: 'expense tracker app',
+    href: '/expenses',
+    linkText: 'Go to Expenses',
   },
   {
     title: '6. Understand Your Business',
     description: 'Keep an eye on your performance with reports. Visualize your revenue, see where your hours are going, and make smarter decisions.',
     imageSrc: 'https://picsum.photos/seed/reports/1200/800',
-    imageHint: 'analytics dashboard'
+    imageHint: 'analytics dashboard',
+    href: '/reports',
+    linkText: 'Go to Reports',
   },
+  {
+    title: '7. Earn by Referring',
+    description: 'Share your unique code with friends. When they subscribe, you earn discounts on your plan. It’s a win-win!',
+    imageSrc: 'https://picsum.photos/seed/referrals_page/1200/800',
+    imageHint: 'referral program dashboard',
+    href: '/referrals',
+    linkText: 'Go to Referrals',
+  }
 ];
 
 export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
@@ -83,6 +104,10 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
   const handleFinish = () => {
     onOpenChange(false);
   }
+  
+  const handleLinkClick = () => {
+    onOpenChange(false);
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -100,7 +125,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
               <CarouselItem key={index}>
                   <Card className='border-none shadow-none'>
                     <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center p-0">
-                        <div className="max-w-full">
+                        <div>
                            <Image
                                 src={step.imageSrc}
                                 alt={step.title}
@@ -110,9 +135,15 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
                                 data-ai-hint={step.imageHint}
                             />
                         </div>
-                        <div className="space-y-3 text-center lg:text-left">
+                        <div className="space-y-4 text-center lg:text-left">
                            <h3 className="text-xl font-semibold">{step.title}</h3>
                            <p className="text-muted-foreground text-sm sm:text-base">{step.description}</p>
+                            <Button variant="outline" asChild onClick={handleLinkClick}>
+                                <Link href={step.href}>
+                                    {step.linkText}
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Link>
+                            </Button>
                         </div>
                     </CardContent>
                   </Card>
@@ -121,7 +152,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
           </CarouselContent>
         </Carousel>
         
-        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full items-center pt-4 gap-4">
+        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full items-center pt-4 gap-y-4 sm:gap-x-4">
           <Button variant="ghost" onClick={handleFinish}>
             Skip Tour
           </Button>
