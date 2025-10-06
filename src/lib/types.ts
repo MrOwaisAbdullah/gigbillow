@@ -1,4 +1,5 @@
 
+
 export type Client = {
   id: string;
   name: string;
@@ -35,7 +36,8 @@ export type Invoice = {
   lineItems: { description: string }[];
   subTotal: number;
   taxRate: number;
-  discount: number;
+  discountValue: number;
+  discountType: 'percentage' | 'fixed';
   paymentUrl?: string;
   notes?: string;
   enhancedSummary?: string;

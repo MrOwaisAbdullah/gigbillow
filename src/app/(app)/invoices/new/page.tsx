@@ -53,6 +53,7 @@ import { generateInvoicePdf } from '@/lib/pdf-utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 
 const lineItemSchema = z.object({
@@ -73,7 +74,8 @@ const formSchema = z.object({
   }),
   lineItems: z.array(lineItemSchema).min(1, 'At least one line item is required.'),
   taxRate: z.coerce.number().min(0).max(100).default(0),
-  discount: z.coerce.number().min(0).default(0),
+  discountValue: z.coerce.number().min(0).default(0),
+  discountType: z.enum(['percentage', 'fixed']).default('fixed'),
   paymentUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   notes: z.string().optional(),
   subTotal: z.coerce.number().min(0).default(0),
@@ -105,7 +107,8 @@ export default function NewInvoicePage() {
       dueDate: addDays(new Date(), 30),
       lineItems: [{ description: '' }],
       taxRate: 0,
-      discount: 0,
+      discountValue: 0,
+      discountType: 'fixed',
       paymentUrl: '',
       notes: '',
       subTotal: 0,
@@ -121,19 +124,26 @@ export default function NewInvoicePage() {
   
   const watchedValues = form.watch();
   
-  const expensesTotal = useMemo(() => {
-    return uninvoicedExpenses
+  const { grandSubTotal, discountAmount, taxAmount, totalAmount, expensesTotal } = useMemo(() => {
+    const servicesSubTotal = watchedValues.subTotal || 0;
+    const expensesTotal = uninvoicedExpenses
       .filter(exp => watchedValues.selectedExpenseIds?.includes(exp.id))
       .reduce((acc, exp) => acc + exp.amount, 0);
-  }, [watchedValues.selectedExpenseIds, uninvoicedExpenses]);
+    
+    const grandSubTotal = servicesSubTotal + expensesTotal;
 
-  const servicesSubTotal = watchedValues.subTotal || 0;
-  const grandSubTotal = servicesSubTotal + expensesTotal;
-  const discountAmount = watchedValues.discount || 0;
-  const discountedSubTotal = grandSubTotal - discountAmount;
-  const taxRateValue = watchedValues.taxRate || 0;
-  const taxAmount = (discountedSubTotal * taxRateValue) / 100;
-  const totalAmount = discountedSubTotal + taxAmount;
+    let discountAmount = watchedValues.discountValue || 0;
+    if (watchedValues.discountType === 'percentage') {
+      discountAmount = (grandSubTotal * discountAmount) / 100;
+    }
+
+    const discountedSubTotal = grandSubTotal - discountAmount;
+    const taxRateValue = watchedValues.taxRate || 0;
+    const taxAmount = (discountedSubTotal * taxRateValue) / 100;
+    const totalAmount = discountedSubTotal + taxAmount;
+
+    return { grandSubTotal, discountAmount, taxAmount, totalAmount, expensesTotal };
+  }, [watchedValues, uninvoicedExpenses]);
   
   const includesExpenses = watchedValues.selectedExpenseIds && watchedValues.selectedExpenseIds.length > 0;
   
@@ -279,7 +289,6 @@ export default function NewInvoicePage() {
             status: 'unpaid' as const,
             subTotal: grandSubTotal,
             expensesTotal: expensesTotal,
-            discount: values.discount || 0,
         };
         
         delete (invoiceToCreate as any).selectedExpenseIds;
@@ -313,7 +322,7 @@ export default function NewInvoicePage() {
             dueDate: format(values.dueDate, 'PPP')
         });
 
-        const updatedInvoiceData = { ...newInvoice, enhancedSummary: enhancementResult.summary, discount: values.discount || 0 };
+        const updatedInvoiceData = { ...newInvoice, enhancedSummary: enhancementResult.summary, discountValue: values.discountValue || 0, discountType: values.discountType || 'fixed' };
         await updateInvoice(newInvoice.id, { enhancedSummary: enhancementResult.summary });
 
         generateInvoicePdf({
@@ -616,7 +625,7 @@ export default function NewInvoicePage() {
                             <FormControl>
                                <div className="flex items-center gap-2">
                                  <span>$</span>
-                                 <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} className="w-32 h-8 text-right" />
+                                 <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} className="w-32 h-8 text-right" />
                                </div>
                             </FormControl>
                         </FormItem>
@@ -636,19 +645,37 @@ export default function NewInvoicePage() {
 
                     <FormField
                       control={form.control}
-                      name="discount"
+                      name="discountValue"
                       render={({ field }) => (
                         <FormItem className="flex justify-between items-center">
                             <FormLabel>Discount</FormLabel>
                             <FormControl>
-                               <div className="flex items-center gap-2">
-                                 <span>$</span>
-                                 <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} className="w-32 h-8 text-right" />
+                               <div className="flex items-center gap-1">
+                                 <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} className="w-24 h-8 text-right" />
+                                  <FormField
+                                    control={form.control}
+                                    name="discountType"
+                                    render={({ field: typeField }) => (
+                                      <ToggleGroup type="single" variant="outline" value={typeField.value} onValueChange={(value: 'fixed' | 'percentage') => value && typeField.onChange(value)} className="h-8">
+                                        <ToggleGroupItem value="fixed" aria-label="Fixed amount" className="px-2 h-full text-xs">
+                                          $
+                                        </ToggleGroupItem>
+                                        <ToggleGroupItem value="percentage" aria-label="Percentage" className="px-2 h-full text-xs">
+                                          %
+                                        </ToggleGroupItem>
+                                      </ToggleGroup>
+                                    )}
+                                  />
                                </div>
                             </FormControl>
                         </FormItem>
                       )}
                     />
+
+                    <div className="flex justify-between items-center text-muted-foreground text-sm">
+                      <span>Discount Amount</span>
+                      <span>-{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(discountAmount)}</span>
+                    </div>
 
                      <div className="flex justify-between items-center">
                         <span>Tax</span>
@@ -659,7 +686,7 @@ export default function NewInvoicePage() {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
-                                     <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} className="w-20 h-8 text-right" />
+                                     <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} className="w-20 h-8 text-right" />
                                   </FormControl>
                                 </FormItem>
                               )}
@@ -667,6 +694,13 @@ export default function NewInvoicePage() {
                             <span>%</span>
                         </div>
                     </div>
+                     <div className="flex justify-between items-center text-muted-foreground text-sm">
+                      <span>Tax Amount</span>
+                      <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(taxAmount)}</span>
+                    </div>
+
+                    <Separator />
+
                     <div className="flex justify-between font-bold text-lg">
                         <span>Total</span>
                         <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalAmount)}</span>

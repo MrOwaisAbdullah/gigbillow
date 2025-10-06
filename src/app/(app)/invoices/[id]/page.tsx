@@ -114,9 +114,14 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  const subTotal = invoice.subTotal;
-  const discount = invoice.discount || 0;
-  const discountedSubTotal = subTotal - discount;
+  const subTotal = invoice.subTotal || 0;
+  
+  let discountAmount = invoice.discountValue || 0;
+  if (invoice.discountType === 'percentage') {
+    discountAmount = (subTotal * discountAmount) / 100;
+  }
+
+  const discountedSubTotal = subTotal - discountAmount;
   const taxRate = invoice.taxRate || 0;
   const taxAmount = (discountedSubTotal * taxRate) / 100;
   const totalAmount = invoice.amount;
@@ -213,10 +218,10 @@ export default function InvoiceDetailPage() {
                         <span className="text-muted-foreground">Subtotal</span>
                         <span>${subTotal.toFixed(2)}</span>
                     </div>
-                     {discount > 0 && (
+                     {discountAmount > 0 && (
                         <div className="flex justify-between text-muted-foreground">
                             <span>Discount</span>
-                            <span>-${discount.toFixed(2)}</span>
+                            <span>-${discountAmount.toFixed(2)}</span>
                         </div>
                     )}
                      <div className="flex justify-between">
