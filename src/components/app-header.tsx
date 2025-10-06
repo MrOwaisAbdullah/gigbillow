@@ -89,7 +89,7 @@ export function AppHeader() {
                     <span className="sr-only">GigBillow</span>
                 </Link>
             </SheetHeader>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
                 <AppSidebarNav isCollapsed={false} onLinkClick={() => setIsSheetOpen(false)} />
             </div>
         </SheetContent>
