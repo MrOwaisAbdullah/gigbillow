@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect, useCallback } from "react"
@@ -284,7 +285,7 @@ export function TimeTracker() {
           )}
          
           <div className="text-center my-8">
-            <div className="font-mono text-7xl sm:text-8xl font-bold tracking-tighter">
+            <div className="font-mono text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter">
               {formatTime(elapsedTime)}
             </div>
           </div>
@@ -339,3 +340,5 @@ export function TimeTracker() {
     </>
   )
 }
+
+    
