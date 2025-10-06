@@ -35,13 +35,13 @@
 
 [**Buy Standard**] (Stripe checkout)
 
-### C. Max Pack – $30  
+### C. Agency Pack – $30  
 - **500 tokens**  
 - **12-month validity** (expires 365 days after purchase)  
 - **6 ¢ per PDF**  
 - Priority email support  
 
-[**Buy Max**] (Stripe checkout)
+[**Buy Agency Pack**] (Stripe checkout)
 
 ---
 

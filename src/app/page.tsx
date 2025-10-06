@@ -390,7 +390,7 @@ export default function LandingPage() {
             <Card className="max-w-5xl mx-auto mt-8 p-6 md:p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6">
                 <div className="md:col-span-2">
-                    <h3 className="text-xl font-bold">Max Pack</h3>
+                    <h3 className="text-xl font-bold">Agency Pack</h3>
                     <p className="text-muted-foreground mt-1">For power users and agencies. Get a large bundle of tokens that last a full year.</p>
                      <ul className="space-y-3 text-muted-foreground mt-4">
                         <li className="font-semibold text-foreground">Includes all Standard Plan benefits, plus:</li>
@@ -402,7 +402,7 @@ export default function LandingPage() {
                 <div className="text-center md:text-right">
                     <p className="text-4xl font-extrabold mt-2">$30</p>
                     <p className="text-muted-foreground">One-time purchase</p>
-                    <Button size="lg" className="mt-4 w-full md:w-auto" asChild><Link href="/register">Buy Max Pack</Link></Button>
+                    <Button size="lg" className="mt-4 w-full md:w-auto" asChild><Link href="/register">Buy Agency Pack</Link></Button>
                 </div>
               </div>
             </Card>
