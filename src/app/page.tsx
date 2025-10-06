@@ -155,20 +155,6 @@ export default function LandingPage() {
       buttonVariant: 'default' as const,
       popular: true
     },
-    {
-      name: 'Agency Pack',
-      price: '$30',
-      description: 'The best value for established freelancers & agencies.',
-      features: [
-        '500 Tokens',
-        '12-month validity',
-        'Early access to new beta features',
-        'Priority email support',
-      ],
-      buttonText: 'Buy Agency Pack',
-      buttonVariant: 'outline' as const,
-      popular: false
-    },
   ];
 
     const faqs = [
@@ -270,7 +256,7 @@ export default function LandingPage() {
                 <Link href="#pricing">View Pricing</Link>
               </Button>
             </div>
-            <div className="w-full max-w-3xl mx-auto pt-8">
+            <div className="w-full max-w-4xl mx-auto pt-8">
               <div className="rounded-lg border p-2">
                 <Carousel
                     plugins={[heroCarouselPlugin.current]}
@@ -282,7 +268,7 @@ export default function LandingPage() {
                     {carouselImages.map((image, index) => (
                       <CarouselItem key={index}>
                         <Card className='border-none shadow-none'>
-                          <CardContent className="flex aspect-video items-center justify-center p-0">
+                          <CardContent className="flex aspect-[16/8] items-center justify-center p-0">
                             <Image
                                 src={image.src}
                                 alt={`App Screenshot ${index + 1}`}
@@ -340,7 +326,7 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto mt-12 grid max-w-7xl items-start gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+            <div className="mx-auto mt-12 grid max-w-5xl items-start gap-8 sm:grid-cols-1 md:grid-cols-3">
               {pricingTiers.map((tier) => (
                 <Card key={tier.name} className={tier.popular ? 'border-primary border-2 shadow-lg -translate-y-4' : ''}>
                    {tier.popular && (
@@ -368,6 +354,28 @@ export default function LandingPage() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+            <div className="mx-auto mt-12 max-w-5xl">
+                <Card className="border-primary/50 bg-primary/5">
+                  <div className="p-6 grid md:grid-cols-3 items-center gap-6">
+                    <div className="md:col-span-2 space-y-4">
+                        <CardTitle className="text-2xl font-bold">Agency Pack</CardTitle>
+                        <p className="text-muted-foreground">The best value for established freelancers & agencies handling high volume.</p>
+                        <ul className="space-y-3 text-sm">
+                            <li className="flex items-center gap-2"><Check className="h-5 w-5 text-primary" /><span>Everything in Standard, plus:</span></li>
+                            <li className="flex items-center gap-2 pl-6"><Check className="h-5 w-5 text-primary" /><span>500 Tokens</span></li>
+                            <li className="flex items-center gap-2 pl-6"><Check className="h-5 w-5 text-primary" /><span>12-month validity</span></li>
+                            <li className="flex items-center gap-2 pl-6"><Check className="h-5 w-5 text-primary" /><span>Early access to new beta features</span></li>
+                        </ul>
+                    </div>
+                    <div className="flex flex-col items-center justify-center gap-4">
+                        <div className="text-4xl font-bold">$30</div>
+                        <Button asChild size="lg" className="w-full">
+                          <Link href="/register">Buy Agency Pack</Link>
+                        </Button>
+                    </div>
+                  </div>
+                </Card>
             </div>
              <div className="mt-12 text-center text-muted-foreground text-sm">
                 <p>All one-time packs are purchased via Stripe. You can manage your payment methods securely.</p>
