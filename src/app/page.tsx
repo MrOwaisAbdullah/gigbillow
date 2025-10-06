@@ -19,6 +19,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
 } from '@/components/ui/carousel';
 import { Check, Zap, FileText, Timer, PenSquare, Cog, FileClock, LineChart, Moon, Sun, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -314,12 +316,19 @@ export default function LandingPage() {
         </section>
 
         {/* Testimonials Carousel */}
-        <section className="py-16 md:py-20 bg-primary/5 dark:bg-primary/10">
+        <section className="py-16 md:py-20 bg-secondary/30">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto">
+                <div className="flex justify-center items-center gap-2 mb-4">
+                    <Star className="h-8 w-8 text-yellow-500 fill-yellow-500" />
+                    <Star className="h-8 w-8 text-yellow-500 fill-yellow-500" />
+                    <Star className="h-8 w-8 text-yellow-500 fill-yellow-500" />
+                    <Star className="h-8 w-8 text-yellow-500 fill-yellow-500" />
+                    <Star className="h-8 w-8 text-yellow-500 fill-yellow-400" />
+                </div>
                 <h2 className="text-3xl font-bold">Loved by Freelancers Everywhere</h2>
                 <p className="text-muted-foreground mt-2 text-lg">
-                    Don't just take our word for it. Here's what real users are saying.
+                    Average 4.8 rating in beta testing. Here's what real users are saying.
                 </p>
             </div>
             <Carousel 
@@ -327,6 +336,10 @@ export default function LandingPage() {
                 plugins={[testimonialCarouselPlugin.current]}
                 onMouseEnter={testimonialCarouselPlugin.current.stop}
                 onMouseLeave={testimonialCarouselPlugin.current.reset}
+                opts={{
+                    align: "start",
+                    loop: true,
+                }}
             >
               <CarouselContent>
                 {testimonials.map((testimonial, index) => (
@@ -354,6 +367,8 @@ export default function LandingPage() {
                   </CarouselItem>
                 ))}
               </CarouselContent>
+              <CarouselPrevious className="hidden lg:flex" />
+              <CarouselNext className="hidden lg:flex" />
             </Carousel>
           </div>
         </section>
@@ -544,5 +559,6 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
