@@ -114,20 +114,20 @@ export default function LandingPage() {
   
   const faqs = [
     {
-        question: "Can I buy multiple packs?",
+        question: "Can I buy multiple token packs?",
         answer: "Yes – tokens stack and each pack keeps its own expiry date. The system will always use the tokens that are closest to expiring first."
     },
     {
-        question: "What happens when a pack expires?",
+        question: "What happens when a token pack expires?",
         answer: "Only unused tokens from that specific pack disappear. Your account, data, and all free features remain active forever."
     },
     {
-        question: "Is there a subscription?",
+        question: "Is there a monthly subscription?",
         answer: "No. We believe you should only pay when you have work to bill for. Buy token packs when you need them, and they'll be ready when you do."
     },
     {
-        question: "Do you store my logo file?",
-        answer: "Not yet. To add your branding to PDFs, you can paste a public URL to your logo (e.g., from your website, Google Drive, or Dropbox), and we embed it instantly. We plan to add direct uploads in the future."
+        question: "How does the 'Branded PDF' feature work?",
+        answer: "On paid plans, you can add your logo to invoices and proposals by pasting a public URL to your logo file (e.g., from your website, Google Drive, or Dropbox). We embed it instantly, no upload required."
     }
   ];
 
@@ -559,6 +559,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
 

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,20 +14,20 @@ export default function SupportPage() {
     
     const faqs = [
         {
-            question: "Can I buy multiple token packs?",
-            answer: "Yes – tokens stack and each pack keeps its own expiry date. The system will always use the tokens that are closest to expiring first."
+            question: "How do I add my logo to invoices?",
+            answer: "To add your logo, you must purchase a token pack. Once you have, you can go to Settings > Profile and add a public URL to your logo file. This URL can be from your own website, a cloud storage service like Google Drive or Dropbox (ensure the link is public), or an image hosting service."
         },
         {
-            question: "What happens when a pack expires?",
-            answer: "Only unused tokens from that specific pack disappear. Your account, data, and all free features remain active forever."
+            question: "My timer didn't record my time correctly. What should I do?",
+            answer: "The timer is designed to be resilient, but issues can still occur. If you notice a discrepancy, you can manually add a time entry. Go to the Time Tracker page, click 'History', and you will find an option to add a manual entry. We are working on improving timer reliability in future updates."
         },
         {
-            question: "Is there a subscription?",
-            answer: "No. We believe you should only pay when you have work to bill for. Buy token packs when you need them, and they'll be ready when you do."
+            question: "What does '1 Token' get me?",
+            answer: "One token can be used for one premium action. This includes: generating one AI proposal, downloading one PDF invoice, creating a new project, or exporting one report. Removing the GigBillow watermark from a PDF costs 3 tokens."
         },
         {
-            question: "Do you store my logo file?",
-            answer: "Not yet. To add your branding to PDFs, you can paste a public URL to your logo (e.g., from your website, Google Drive, or Dropbox), and we embed it instantly. We plan to add direct uploads in the future."
+            question: "I was referred by a friend. How do I make sure they get credit?",
+            answer: "If you signed up using a referral link or entered a code during registration, the system has automatically logged the referral. Your friend will receive their reward once you become a paying customer (i.e., after your first token pack purchase). There is no further action needed from you."
         }
     ];
 
