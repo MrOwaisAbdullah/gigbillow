@@ -20,7 +20,6 @@ export async function getReferrals(): Promise<Referral[]> {
   if (!userId) return [];
 
   const collectionPath = getCollectionPath();
-  if (!collectionPath) return [];
 
   const q = query(collection(db, collectionPath), where('referrer_user_id', '==', userId));
   
