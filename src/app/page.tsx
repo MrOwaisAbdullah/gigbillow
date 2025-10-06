@@ -20,7 +20,7 @@ import {
   CarouselContent,
   CarouselItem,
 } from '@/components/ui/carousel';
-import { Check, Zap, FileText, Timer, PenSquare, Cog, FileClock, LineChart, Moon, Sun } from 'lucide-react';
+import { Check, Zap, FileText, Timer, PenSquare, Cog, FileClock, LineChart, Moon, Sun, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import Autoplay from "embla-carousel-autoplay"
@@ -154,7 +154,7 @@ export default function LandingPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="bg-secondary/30 py-20 md:py-28">
+        <section className="bg-secondary/30 py-16 md:py-20">
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground">
               Stop Losing Billable Hours
@@ -185,7 +185,7 @@ export default function LandingPage() {
         </section>
 
         {/* App Screenshot Carousel */}
-        <section className="container mx-auto px-4 relative z-10 -mt-20">
+        <section className="container mx-auto px-4 relative z-10 -mt-16">
            <Carousel
               className="bg-white dark:bg-card p-2 rounded-xl shadow-2xl ring-1 ring-black/10"
               plugins={[plugin.current]}
@@ -398,6 +398,7 @@ export default function LandingPage() {
                         <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 500 tokens</li>
                         <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> ~$0.06 per premium action</li>
                         <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 12 months</li>
+                        <li className="flex items-start gap-2"><Star className="h-4 w-4 mt-1 text-yellow-500 flex-shrink-0"/> Early access to new beta features</li>
                         <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
                     </ul>
                 </div>
