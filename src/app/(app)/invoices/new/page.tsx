@@ -494,6 +494,55 @@ export default function NewInvoicePage() {
               </div>
             </CardContent>
           </Card>
+          
+          {uninvoicedExpenses.length > 0 && (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Uninvoiced Expenses</CardTitle>
+                    <CardDescription>Select expenses to add to this invoice. This will cost 1 token.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <FormField
+                        control={form.control}
+                        name="selectedExpenseIds"
+                        render={() => (
+                            <FormItem className="space-y-3">
+                                {uninvoicedExpenses.map(expense => (
+                                    <FormField
+                                        key={expense.id}
+                                        control={form.control}
+                                        name="selectedExpenseIds"
+                                        render={({ field }) => {
+                                            return (
+                                                <FormItem
+                                                    key={expense.id}
+                                                    className="flex flex-row items-center space-x-3 space-y-0 p-3 bg-muted/50 rounded-md"
+                                                >
+                                                    <FormControl>
+                                                        <Checkbox
+                                                            checked={field.value?.includes(expense.id)}
+                                                            onCheckedChange={checked => {
+                                                                return checked
+                                                                ? field.onChange([...(field.value || []), expense.id])
+                                                                : field.onChange(field.value?.filter(value => value !== expense.id))
+                                                            }}
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal flex-grow flex justify-between">
+                                                        <span>{expense.description} ({format(expense.date, "MMM d")})</span>
+                                                        <span>${expense.amount.toFixed(2)}</span>
+                                                    </FormLabel>
+                                                </FormItem>
+                                            )
+                                        }}
+                                    />
+                                ))}
+                            </FormItem>
+                        )}
+                    />
+                </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
@@ -598,56 +647,6 @@ export default function NewInvoicePage() {
                 </div>
             </CardFooter>
           </Card>
-          
-          {uninvoicedExpenses.length > 0 && (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Uninvoiced Expenses</CardTitle>
-                    <CardDescription>Select expenses to add to this invoice. This will cost 1 token.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <FormField
-                        control={form.control}
-                        name="selectedExpenseIds"
-                        render={() => (
-                            <FormItem className="space-y-3">
-                                {uninvoicedExpenses.map(expense => (
-                                    <FormField
-                                        key={expense.id}
-                                        control={form.control}
-                                        name="selectedExpenseIds"
-                                        render={({ field }) => {
-                                            return (
-                                                <FormItem
-                                                    key={expense.id}
-                                                    className="flex flex-row items-center space-x-3 space-y-0 p-3 bg-muted/50 rounded-md"
-                                                >
-                                                    <FormControl>
-                                                        <Checkbox
-                                                            checked={field.value?.includes(expense.id)}
-                                                            onCheckedChange={checked => {
-                                                                return checked
-                                                                ? field.onChange([...(field.value || []), expense.id])
-                                                                : field.onChange(field.value?.filter(value => value !== expense.id))
-                                                            }}
-                                                        />
-                                                    </FormControl>
-                                                    <FormLabel className="font-normal flex-grow flex justify-between">
-                                                        <span>{expense.description} ({format(expense.date, "MMM d")})</span>
-                                                        <span>${expense.amount.toFixed(2)}</span>
-                                                    </FormLabel>
-                                                </FormItem>
-                                            )
-                                        }}
-                                    />
-                                ))}
-                            </FormItem>
-                        )}
-                    />
-                </CardContent>
-            </Card>
-          )}
-
 
            <Card>
             <CardHeader>
@@ -706,5 +705,3 @@ export default function NewInvoicePage() {
     </div>
   );
 }
-
-    
