@@ -80,7 +80,7 @@ export default function LandingPage() {
   
   const faqs = [
     {
-        question: "Can I buy multiple packs?",
+        question: "Can I buy multiple token packs?",
         answer: "Yes – tokens stack and each pack keeps its own expiry date. The system will always use the tokens that are closest to expiring first."
     },
     {
@@ -154,8 +154,8 @@ export default function LandingPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="bg-secondary/30">
-          <div className="container mx-auto px-4 py-20 text-center">
+        <section className="bg-secondary/30 py-20">
+          <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground">
               Stop Losing Billable Hours
             </h1>
@@ -341,9 +341,12 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="space-y-4 p-6 pt-0">
                   <ul className="space-y-3 text-muted-foreground">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Unlimited free features</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 10 free tokens / month</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Community support</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Unlimited Time Tracking</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Unlimited Projects & Clients</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Unlimited Expense Entries</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 10 Free Tokens / month</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Online Invoice & Proposal Sharing</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Community support</li>
                   </ul>
                   <Button variant="outline" className="w-full" asChild><Link href="/register">Get Started</Link></Button>
                 </CardContent>
@@ -357,9 +360,10 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="space-y-4 p-6 pt-0">
                    <ul className="space-y-3 text-muted-foreground">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 200 tokens</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Valid for 3 months</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Priority email support</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 200 tokens</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 7.5¢ per PDF Download</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 3 months</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
                   </ul>
                   <Button className="w-full" asChild><Link href="/register">Buy Standard Pack</Link></Button>
                 </CardContent>
@@ -372,9 +376,10 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="space-y-4 p-6 pt-0">
                   <ul className="space-y-3 text-muted-foreground">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 50 tokens</li>
-                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Valid for 1 month</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Priority email support</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 50 tokens</li>
+                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 10¢ per PDF Download</li>
+                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 1 month</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
                   </ul>
                   <Button variant="secondary" className="w-full" asChild><Link href="/register">Buy Mini Pack</Link></Button>
                 </CardContent>
@@ -387,9 +392,10 @@ export default function LandingPage() {
                     <h3 className="text-xl font-bold">Max Pack</h3>
                     <p className="text-muted-foreground mt-1">For power users and agencies. Get a large bundle of tokens that last a full year.</p>
                      <ul className="space-y-3 text-muted-foreground mt-4">
-                        <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 500 tokens</li>
-                        <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Valid for 12 months</li>
-                        <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Priority email support</li>
+                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 500 tokens</li>
+                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 6¢ per PDF Download</li>
+                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 12 months</li>
+                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
                     </ul>
                 </div>
                 <div className="text-center md:text-right">
