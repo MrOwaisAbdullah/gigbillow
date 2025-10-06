@@ -79,7 +79,7 @@ export function AppHeader() {
           <SheetHeader>
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
             </SheetHeader>
-            <div className="flex flex-col gap-6 pt-6">
+            <div className="flex flex-col gap-6 pt-6 overflow-y-auto">
                  <Link
                     href="#"
                     className="group flex h-10 shrink-0 items-center justify-start gap-2 rounded-full text-lg font-semibold text-primary-foreground px-4"
