@@ -395,12 +395,11 @@ export default function LandingPage() {
                     <h3 className="text-xl font-bold">Max Pack</h3>
                     <p className="text-muted-foreground mt-1">For power users and agencies. Get a large bundle of tokens that last a full year.</p>
                      <ul className="space-y-3 text-muted-foreground mt-4">
-                        <li className="font-semibold text-foreground">Everything in Standard, plus...</li>
-                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 500 tokens</li>
+                        <li className="font-semibold text-foreground">Includes all Standard Plan benefits, plus:</li>
+                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 500 tokens total</li>
                         <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> ~$0.06 per premium action</li>
                         <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 12 months</li>
                         <li className="flex items-start gap-2"><Star className="h-4 w-4 mt-1 text-yellow-500 flex-shrink-0"/> Early access to new beta features</li>
-                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
                     </ul>
                 </div>
                 <div className="text-center md:text-right">
