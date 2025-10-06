@@ -1,5 +1,4 @@
 
-
 'use client'
 
 import Link from 'next/link';
@@ -112,52 +111,7 @@ export default function LandingPage() {
     },
   ];
 
-  const pricingTiers = [
-    {
-      name: 'Free',
-      price: '$0',
-      description: 'The perfect starting point for any freelancer.',
-      features: [
-        'Unlimited Time Tracking',
-        'Unlimited Projects & Clients',
-        'Unlimited Expense Entries',
-        '10 Free Tokens per Month',
-        'Online Invoice & Proposal Sharing'
-      ],
-      buttonText: 'Start for Free',
-      buttonVariant: 'outline' as const,
-      popular: false
-    },
-    {
-      name: 'Mini Pack',
-      price: '$5',
-      description: 'A small pack for light usage.',
-      features: [
-        '50 Tokens',
-        '1-month validity',
-        'Priority email support',
-      ],
-      buttonText: 'Buy Mini Pack',
-      buttonVariant: 'outline' as const,
-      popular: false,
-    },
-    {
-      name: 'Standard Pack',
-      price: '$15',
-      description: 'For growing freelancers who need more power.',
-      features: [
-        '200 Tokens',
-        'Branded PDFs (with your logo) at no extra token cost',
-        '3-month validity',
-        'Priority email support'
-      ],
-      buttonText: 'Buy Standard Pack',
-      buttonVariant: 'default' as const,
-      popular: true
-    },
-  ];
-
-    const faqs = [
+  const faqs = [
     {
       question: "What are tokens and why do I need them?",
       answer: "Tokens are credits you use for premium actions. Core features like time tracking, project management, and expense logging are free forever. You only use tokens for actions like downloading a branded PDF invoice, generating an AI proposal, or exporting a report. This pay-as-you-grow model means you only pay for what you actually use."
@@ -172,7 +126,7 @@ export default function LandingPage() {
     },
     {
       question: "How do I add my logo to invoices?",
-      answer: "To add your logo, you must purchase a token pack (Standard or Agency). Once you have, you can go to Settings > Profile and add a public URL to your logo file. This URL can be from your own website, a cloud storage service like Google Drive or Dropbox (ensure the link is public), or an image hosting service."
+      answer: "To add your logo, you must purchase a token pack. Once you have, you can go to Settings > Profile and add a public URL to your logo file. This URL can be from your own website, a cloud storage service like Google Drive or Dropbox (ensure the link is public), or an image hosting service."
     },
     {
       question: "What happens if I run out of tokens?",
@@ -184,7 +138,7 @@ export default function LandingPage() {
     },
     {
       question: "Is my client and financial data secure?",
-      answer: "Yes. All your data is stored securely using robust, industry-standard backend platforms and security practices. We never share your client or financial information with third parties."
+      answer: "Yes. All your data is stored securely. We use industry-standard security practices to ensure your data is safe, and we never share your client or financial information with third parties."
     },
     {
       question: "Can I manage multiple businesses or brands?",
@@ -268,7 +222,7 @@ export default function LandingPage() {
                     {carouselImages.map((image, index) => (
                       <CarouselItem key={index}>
                         <Card className='border-none shadow-none'>
-                          <CardContent className="flex aspect-[16/8] items-center justify-center p-0">
+                          <CardContent className="flex aspect-[16/9] items-center justify-center p-0">
                             <Image
                                 src={image.src}
                                 alt={`App Screenshot ${index + 1}`}
@@ -315,7 +269,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-       <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 dark:bg-secondary/30">
+       <section id="pricing" className="w-full py-12 md:py-24 lg:py-32">
           <div className="container mx-auto px-4 md:px-6">
             <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -327,56 +281,79 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="mx-auto mt-12 grid max-w-5xl items-start gap-8 sm:grid-cols-1 md:grid-cols-3">
-              {pricingTiers.map((tier) => (
-                <Card key={tier.name} className={tier.popular ? 'border-primary border-2 shadow-lg -translate-y-4' : ''}>
-                   {tier.popular && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-sm font-semibold text-primary-foreground">
-                        Most Popular
-                      </div>
-                    )}
-                  <CardHeader className="p-6">
-                    <CardTitle className="text-2xl font-bold">{tier.name}</CardTitle>
-                    <p className="text-muted-foreground h-10">{tier.description}</p>
-                  </CardHeader>
-                  <CardContent className="space-y-6 p-6 pt-0">
-                    <div className="text-4xl font-bold">{tier.price}</div>
-                    <ul className="space-y-3 text-sm min-h-[140px]">
-                      {tier.features.map((feature, i) => (
-                         <li key={i} className="flex items-center gap-2">
-                          <Check className="h-5 w-5 text-primary" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
+              <Card>
+                <CardHeader className="text-center p-6">
+                  <CardTitle className="text-xl">Free</CardTitle>
+                  <p className="text-4xl font-extrabold mt-2">$0</p>
+                  <p className="text-muted-foreground">No card required</p>
+                </CardHeader>
+                <CardContent className="space-y-4 p-6 pt-0">
+                  <ul className="space-y-3 text-muted-foreground">
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Unlimited Time Tracking</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Unlimited Projects & Clients</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Unlimited Expense Entries</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 10 Free Tokens / month</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Online Invoice & Proposal Sharing</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Community support</li>
+                  </ul>
+                  <Button variant="outline" className="w-full" asChild><Link href="/register">Get Started</Link></Button>
+                </CardContent>
+              </Card>
+              <Card className="border-primary border-2 relative">
+                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap">Most Popular</div>
+                <CardHeader className="text-center p-6">
+                  <CardTitle className="text-xl">Standard Pack</CardTitle>
+                  <p className="text-4xl font-extrabold mt-2">$15</p>
+                  <p className="text-muted-foreground">One-time purchase</p>
+                </CardHeader>
+                <CardContent className="space-y-4 p-6 pt-0">
+                   <ul className="space-y-3 text-muted-foreground">
+                    <li className="font-semibold text-foreground">Everything in Free, plus...</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 200 tokens</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Branded PDFs (with your logo) at no extra token cost</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 3 months</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
+                  </ul>
+                  <Button className="w-full" asChild><Link href="/register">Buy Standard Pack</Link></Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="text-center p-6">
+                  <CardTitle className="text-xl">Mini Pack</CardTitle>
+                  <p className="text-4xl font-extrabold mt-2">$5</p>
+                  <p className="text-muted-foreground">One-time purchase</p>
+                </CardHeader>
+                <CardContent className="space-y-4 p-6 pt-0">
+                  <ul className="space-y-3 text-muted-foreground">
+                    <li className="font-semibold text-foreground">Everything in Free, plus...</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 50 tokens</li>
+                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 1 month</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
+                  </ul>
+                  <Button variant="secondary" className="w-full" asChild><Link href="/register">Buy Mini Pack</Link></Button>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <Card className="max-w-5xl mx-auto mt-8 p-6 md:p-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6">
+                <div className="md:col-span-2">
+                    <h3 className="text-xl font-bold">Agency Pack</h3>
+                    <p className="text-muted-foreground mt-1">For power users and agencies. Get a large bundle of tokens that last a full year.</p>
+                     <ul className="space-y-3 text-muted-foreground mt-4">
+                        <li className="font-semibold text-foreground">Includes all Standard Plan benefits, plus:</li>
+                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 500 tokens total</li>
+                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 12 months</li>
+                        <li className="flex items-start gap-2"><Star className="h-4 w-4 mt-1 text-yellow-500 flex-shrink-0"/> Early access to new beta features</li>
                     </ul>
-                    <Button asChild size="lg" variant={tier.buttonVariant} className="w-full">
-                      <Link href="/register">{tier.buttonText}</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            <div className="mx-auto mt-12 max-w-5xl">
-                <Card className="border-primary/50 bg-primary/5">
-                  <div className="p-6 grid md:grid-cols-3 items-center gap-6">
-                    <div className="md:col-span-2 space-y-4">
-                        <CardTitle className="text-2xl font-bold">Agency Pack</CardTitle>
-                        <p className="text-muted-foreground">The best value for established freelancers & agencies handling high volume.</p>
-                        <ul className="space-y-3 text-sm">
-                            <li className="flex items-center gap-2"><Check className="h-5 w-5 text-primary" /><span>Everything in Standard, plus:</span></li>
-                            <li className="flex items-center gap-2 pl-6"><Check className="h-5 w-5 text-primary" /><span>500 Tokens</span></li>
-                            <li className="flex items-center gap-2 pl-6"><Check className="h-5 w-5 text-primary" /><span>12-month validity</span></li>
-                            <li className="flex items-center gap-2 pl-6"><Check className="h-5 w-5 text-primary" /><span>Early access to new beta features</span></li>
-                        </ul>
-                    </div>
-                    <div className="flex flex-col items-center justify-center gap-4">
-                        <div className="text-4xl font-bold">$30</div>
-                        <Button asChild size="lg" className="w-full">
-                          <Link href="/register">Buy Agency Pack</Link>
-                        </Button>
-                    </div>
-                  </div>
-                </Card>
-            </div>
+                </div>
+                <div className="text-center md:text-right">
+                    <p className="text-4xl font-extrabold mt-2">$30</p>
+                    <p className="text-muted-foreground">One-time purchase</p>
+                    <Button size="lg" className="mt-4 w-full md:w-auto" asChild><Link href="/register">Buy Agency Pack</Link></Button>
+                </div>
+              </div>
+            </Card>
              <div className="mt-12 text-center text-muted-foreground text-sm">
                 <p>All one-time packs are purchased via Stripe. You can manage your payment methods securely.</p>
             </div>
