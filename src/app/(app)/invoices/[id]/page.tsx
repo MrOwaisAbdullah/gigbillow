@@ -117,7 +117,10 @@ export default function InvoiceDetailPage() {
   const subTotal = Number(invoice.subTotal) || 0;
   const taxRate = Number(invoice.taxRate) || 0;
   const amount = Number(invoice.amount) || 0;
+  const expensesTotal = Number(invoice.expensesTotal) || 0;
   const taxAmount = (subTotal * taxRate) / 100;
+  const servicesTotal = subTotal - expensesTotal;
+
 
   return (
     <div className="flex flex-col gap-8 pb-8">
@@ -192,6 +195,18 @@ export default function InvoiceDetailPage() {
             <div className="flex justify-end">
                 <div className="w-full max-w-sm space-y-4">
                     <Separator />
+                    {expensesTotal > 0 && (
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Services</span>
+                            <span>${servicesTotal.toFixed(2)}</span>
+                        </div>
+                    )}
+                    {expensesTotal > 0 && (
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Expenses</span>
+                            <span>${expensesTotal.toFixed(2)}</span>
+                        </div>
+                    )}
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Subtotal</span>
                         <span>${subTotal.toFixed(2)}</span>
