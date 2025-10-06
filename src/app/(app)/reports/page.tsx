@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileDown } from 'lucide-react';
+import { FileDown, Loader2 } from 'lucide-react';
 import { RevenueChart } from '@/components/reports/revenue-chart';
 import { HoursChart } from '@/components/reports/hours-chart';
 import { getInvoices } from '@/lib/api/invoices';
@@ -14,6 +15,8 @@ import { generateReportPdf, generateReportCsv } from '@/lib/pdf-utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SummaryStats } from '@/components/dashboard/summary-stats';
 import { useAuth } from '@/components/auth/auth-provider';
+import { useToken } from '@/components/token/token-provider';
+import { canAfford, chargeFor } from '@/lib/api/tokens';
 
 type Stats = {
   outstandingRevenue: number;
@@ -24,10 +27,12 @@ type Stats = {
 
 export default function ReportsPage() {
   const { user } = useAuth();
+  const { openDialog } = useToken();
   const [stats, setStats] = useState<Stats | null>(null);
   const [revenueData, setRevenueData] = useState<{name: string, total: number}[]>([]);
   const [hoursData, setHoursData] = useState<{name: string, value: number}[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     async function fetchAllReportData() {
@@ -107,27 +112,39 @@ export default function ReportsPage() {
     }
     fetchAllReportData();
   }, []);
+  
+  const handleExport = async (exportFn: (data: any) => void) => {
+    setIsExporting(true);
+    const hasTokens = await canAfford('report_export');
+    if (!hasTokens) {
+      openDialog();
+      setIsExporting(false);
+      return;
+    }
 
-  const handleExportPdf = () => {
-    if (!stats || !user) return;
-    generateReportPdf({ stats, revenueData, hoursData, user });
+    if (!stats || !user) {
+        setIsExporting(false);
+        return;
+    };
+    
+    exportFn({ stats, revenueData, hoursData, user });
+    await chargeFor('report_export');
+    setIsExporting(false);
   };
 
-  const handleExportCsv = () => {
-    if (!stats) return;
-    generateReportCsv({ stats, revenueData, hoursData });
-  };
 
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
         <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExportPdf} disabled={loading}>
-              <FileDown className="mr-2 h-4 w-4" /> Export PDF
+            <Button variant="outline" onClick={() => handleExport(generateReportPdf)} disabled={loading || isExporting}>
+              {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />} 
+              Export PDF (-1 Token)
             </Button>
-            <Button variant="outline" onClick={handleExportCsv} disabled={loading}>
-              <FileDown className="mr-2 h-4 w-4" /> Export CSV
+            <Button variant="outline" onClick={() => handleExport(generateReportCsv)} disabled={loading || isExporting}>
+             {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />} 
+              Export CSV (-1 Token)
             </Button>
         </div>
       </div>

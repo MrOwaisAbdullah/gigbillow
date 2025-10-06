@@ -1,3 +1,4 @@
+
 'use client';
 
 import { db } from '@/lib/firebase';
@@ -54,7 +55,7 @@ export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boo
 }
 
 
-export type SpendAction = 'proposal' | 'invoice_pdf' | 'project' | 'import_work_log' | 'invoice_expense' | 'remove_watermark';
+export type SpendAction = 'proposal' | 'invoice_pdf' | 'project' | 'import_work_log' | 'invoice_expense' | 'remove_watermark' | 'report_export';
 
 const TOKEN_COSTS: Record<SpendAction, number> = {
     proposal: 1,
@@ -63,6 +64,7 @@ const TOKEN_COSTS: Record<SpendAction, number> = {
     import_work_log: 1,
     invoice_expense: 1,
     remove_watermark: 3,
+    report_export: 1,
 };
 
 async function spendToken(userId: string, cost: number): Promise<{ success: boolean, newBalance?: number }> {
