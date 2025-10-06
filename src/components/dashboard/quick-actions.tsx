@@ -33,7 +33,7 @@ export function QuickActions() {
             {actions.map((action) => (
                  <Card 
                     key={action.title}
-                    className="transition-shadow text-primary-foreground bg-gradient-to-br from-primary to-primary/80 hover:shadow-lg hover:from-primary/90 hover:to-primary/70"
+                    className="transition-shadow text-primary-foreground bg-gradient-to-br from-primary to-primary/70 hover:shadow-lg hover:from-primary/90 hover:to-primary/60"
                 >
                     <Link 
                         href={action.href}
