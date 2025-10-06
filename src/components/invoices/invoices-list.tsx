@@ -94,7 +94,7 @@ export function InvoicesList() {
     }
     setHasNextPage(!!next);
     setLoading(false);
-  }, []);
+  }, [currentPage, cursors, data]);
 
   useEffect(() => {
     fetchInvoices('first');
