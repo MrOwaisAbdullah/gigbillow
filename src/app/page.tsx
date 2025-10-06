@@ -512,17 +512,22 @@ export default function LandingPage() {
                   </AccordionContent>
                 </AccordionItem>
               ))}
-               <AccordionItem value="money-back-guarantee">
-                  <AccordionTrigger className="text-lg text-left hover:text-primary">
-                    What is your refund policy?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-base text-muted-foreground space-y-4">
-                    <p><strong>7-Day Money-Back Guarantee:</strong> If you don’t use a single token within 7 days of a purchase, email us for a full refund – no questions asked.</p>
-                    <p className="text-sm italic">“Your first paid invoice costs less than a coffee. Buy tokens only when you get paid – no subscriptions, no surprises.”</p>
-                  </AccordionContent>
-                </AccordionItem>
             </Accordion>
            </div>
+        </section>
+
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="mx-auto max-w-4xl text-center">
+                <h3 className="text-2xl font-bold text-primary">⑥ Money-Back Guarantee</h3>
+                <p className="mt-4 text-lg text-muted-foreground">
+                    If you don’t use a single token within 7 days of purchase, email us for a full refund – no questions asked.
+                </p>
+                <div className="mt-8 border-t border-dashed pt-8">
+                    <p className="text-2xl font-semibold italic text-foreground">“Your first paid invoice costs less than a coffee. Buy tokens only when you get paid – no subscriptions, no surprises.”</p>
+                </div>
+            </div>
+          </div>
         </section>
 
 
