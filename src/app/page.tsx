@@ -362,7 +362,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-12">
-              <Card className="flex flex-col">
+              <Card className="flex flex-col bg-background">
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Free</CardTitle>
                   <p className="text-4xl font-extrabold mt-2">$0</p>
@@ -380,7 +380,7 @@ export default function LandingPage() {
                   <Button variant="outline" className="w-full" asChild><Link href="/register">Get Started</Link></Button>
                 </CardContent>
               </Card>
-              <Card className="border-primary border-2 relative flex flex-col">
+              <Card className="border-primary border-2 relative flex flex-col bg-background">
                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap">Most Popular</div>
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Standard Pack</CardTitle>
@@ -398,7 +398,7 @@ export default function LandingPage() {
                   <Button className="w-full" asChild><Link href="/register">Buy Standard Pack</Link></Button>
                 </CardContent>
               </Card>
-              <Card className="flex flex-col">
+              <Card className="flex flex-col bg-background">
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Mini Pack</CardTitle>
                   <p className="text-4xl font-extrabold mt-2">$5</p>
@@ -416,7 +416,7 @@ export default function LandingPage() {
               </Card>
             </div>
             
-            <Card className="max-w-5xl mx-auto mt-8 p-6 md:p-8">
+            <Card className="max-w-5xl mx-auto mt-8 p-6 md:p-8 bg-background">
               <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6">
                 <div className="md:col-span-2">
                     <h3 className="text-xl font-bold">Agency Pack</h3>
@@ -572,5 +572,6 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
