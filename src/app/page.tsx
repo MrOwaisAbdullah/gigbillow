@@ -34,7 +34,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 export default function LandingPage() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const { toggleTheme } = useTheme();
 
   const carouselImages = [
@@ -168,7 +168,7 @@ export default function LandingPage() {
               <Sun className="h-6 w-6 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-6 w-6 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             </Button>
-            {loading ? null : user ? (
+            {user ? (
               <Button asChild>
                 <Link href="/dashboard">Dashboard</Link>
               </Button>
@@ -198,20 +198,14 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
-             {loading ? null : user ? (
-              <Button asChild size="lg" className="flex-1">
-                <Link href="/dashboard">Go to Dashboard</Link>
+             <Button asChild size="lg" className="flex-1">
+                <Link href="/proposal-generator">Generate a Proposal</Link>
               </Button>
-             ) : (
-              <Button asChild size="lg" className="flex-1">
-                <Link href="/register">Get Started for Free</Link>
-              </Button>
-             )}
               <Button asChild variant="outline" size="lg" className="flex-1">
                 <Link href="#pricing">View Pricing</Link>
               </Button>
             </div>
-            <div className="w-full max-w-4xl mx-auto pt-8">
+            <div className="w-full max-w-5xl mx-auto pt-8">
               <div className="rounded-lg border p-2">
                 <Carousel
                     plugins={[heroCarouselPlugin.current]}
@@ -446,7 +440,7 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="mx-auto w-full max-w-sm space-y-2">
-                 {loading ? null : user ? (
+                 {user ? (
                     <Button asChild size="lg">
                         <Link href="/dashboard">Go to Dashboard</Link>
                     </Button>
@@ -475,4 +469,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
