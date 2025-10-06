@@ -95,7 +95,7 @@ export default function PublicInvoicePage() {
         </div>
 
 
-      <Card className="max-w-4xl mx-auto w-full">
+      <Card className="max-w-4xl w-full">
         <CardHeader>
            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>

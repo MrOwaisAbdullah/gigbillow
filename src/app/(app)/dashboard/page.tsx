@@ -11,7 +11,7 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-1">
+      <div className="grid gap-4 sm:grid-cols-1">
         <SummaryStats />
       </div>
 
