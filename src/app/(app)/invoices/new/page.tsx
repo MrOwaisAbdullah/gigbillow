@@ -775,11 +775,11 @@ export default function NewInvoicePage() {
           </Card>
 
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" asChild>
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
               <Link href="/invoices">Cancel</Link>
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {submitButtonText}
             </Button>
