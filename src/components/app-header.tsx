@@ -44,7 +44,7 @@ export function AppHeader() {
   const segments = pathname.split('/').filter(Boolean)
   const { user } = useAuth();
   const { tokens, totalTokens, loading: tokensLoading, openDialog } = useToken();
-  const [isSheetOpen, React.useState(false);
+  const [isSheetOpen, setIsSheetOpen] = React.useState(false);
   const { setOpen: setTourOpen } = useTour();
   const { toggleTheme, theme } = useTheme();
 
