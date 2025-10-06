@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -18,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
-import { getExpenses, deleteExpense } from "@/lib/api/expenses"
+import { getExpenses } from "@/lib/api/expenses"
 import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState, useCallback } from "react"
 import type { Expense, Project } from "@/lib/types"
