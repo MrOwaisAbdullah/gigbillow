@@ -1,5 +1,4 @@
 
-
 'use client'
 
 import Link from 'next/link';
@@ -186,7 +185,7 @@ export default function LandingPage() {
     },
     {
       question: "Is my client and financial data secure?",
-      answer: "Yes. All your data is stored securely using Firebase, Google's robust backend platform. We use industry-standard security practices to ensure your data is safe, and we never share your client or financial information with third parties."
+      answer: "Yes. All your data is stored securely using robust, industry-standard backend platforms and security practices. We never share your client or financial information with third parties."
     },
     {
       question: "Can I manage multiple businesses or brands?",
@@ -461,4 +460,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
