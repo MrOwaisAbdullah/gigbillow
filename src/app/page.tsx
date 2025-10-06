@@ -220,7 +220,7 @@ export default function LandingPage() {
                 <Link href="/proposal-generator">Generate a Proposal</Link>
               </Button>
             </div>
-            <div className="w-full max-w-4xl mx-auto pt-8">
+            <div className="w-full max-w-5xl mx-auto pt-8">
               <div className="rounded-lg border p-2">
                 <Carousel
                     plugins={[heroCarouselPlugin.current]}
@@ -232,7 +232,7 @@ export default function LandingPage() {
                     {carouselImages.map((image, index) => (
                       <CarouselItem key={index}>
                         <Card className='border-none shadow-none'>
-                          <CardContent className="flex aspect-[21/9] items-center justify-center p-0">
+                          <CardContent className="flex aspect-[21/10] items-center justify-center p-0">
                             <Image
                                 src={image.src}
                                 alt={`App Screenshot ${index + 1}`}
@@ -519,7 +519,7 @@ export default function LandingPage() {
         <section className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30">
           <div className="container mx-auto px-4 md:px-6">
             <div className="mx-auto max-w-4xl text-center">
-                <h3 className="text-2xl font-bold text-primary">⑥ Money-Back Guarantee</h3>
+                <h3 className="text-2xl font-bold text-primary">Money-Back Guarantee</h3>
                 <p className="mt-4 text-lg text-muted-foreground">
                     If you don’t use a single token within 7 days of purchase, email us for a full refund – no questions asked.
                 </p>
@@ -572,3 +572,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
