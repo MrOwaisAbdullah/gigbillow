@@ -133,7 +133,6 @@ export default function LandingPage() {
       price: '$15',
       description: 'For growing freelancers who need more power.',
       features: [
-        'Everything in Free, plus...',
         '200 Tokens',
         'Branded PDFs (with your logo) at no extra token cost',
         '3-month validity',
@@ -235,24 +234,24 @@ export default function LandingPage() {
 
       <main className="flex-1">
         <section className="relative w-full py-12 md:py-24 lg:py-32">
-          <div className="container mx-auto grid max-w-5xl items-center gap-8 px-4 md:px-6 lg:grid-cols-2 lg:gap-12">
+          <div className="container mx-auto flex max-w-5xl flex-col items-center justify-center space-y-8 px-4 text-center md:px-6">
             <div className="space-y-4">
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
                 Track time, write proposals, and get paid.
               </h1>
-              <p className="text-muted-foreground md:text-xl">
+              <p className="mx-auto max-w-3xl text-muted-foreground md:text-xl">
                 GigBillow is the all-in-one toolkit for modern freelancers. Stop juggling apps and start streamlining your business with AI-powered proposals, 1-click invoicing, and dead-simple time tracking.
               </p>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Button asChild size="lg" className="flex-1">
-                  <Link href="/register">Get Started for Free</Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="flex-1">
-                  <Link href="#pricing">View Pricing</Link>
-                </Button>
-              </div>
             </div>
-            <div className="w-full max-w-md mx-auto">
+            <div className="flex flex-col gap-2 min-[400px]:flex-row">
+              <Button asChild size="lg" className="flex-1">
+                <Link href="/register">Get Started for Free</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="flex-1">
+                <Link href="#pricing">View Pricing</Link>
+              </Button>
+            </div>
+            <div className="w-full max-w-2xl mx-auto pt-8">
               <Carousel
                   plugins={[heroCarouselPlugin.current]}
                   className="w-full"
@@ -461,9 +460,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-
-
-
-
-    
