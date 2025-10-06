@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,15 +14,22 @@ export default function ExpensesPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [tableKey, setTableKey] = useState(Date.now());
 
   useEffect(() => {
     async function fetchProjects() {
+      // Since getProjects is client-side, this is fine.
       const { projects: projectsData } = await getProjects('first', null, 9999);
       setProjects(projectsData);
       setLoading(false);
     }
     fetchProjects();
   }, []);
+
+  const handleSuccess = () => {
+    setIsDialogOpen(false);
+    setTableKey(Date.now()); // Change the key to force re-render of the table
+  }
 
   if (loading) {
     return (
@@ -50,15 +58,12 @@ export default function ExpensesPage() {
       <p className="text-sm text-muted-foreground -mt-4">
         Track and manage your billable and non-billable expenses.
       </p>
-      <ExpensesTable allProjects={projects}/>
+      <ExpensesTable key={tableKey} allProjects={projects}/>
        <ExpenseDialog
         projects={projects}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        onSuccess={() => {
-          setIsDialogOpen(false);
-          // The table will refetch on its own, but we could pass a callback if needed
-        }}
+        onSuccess={handleSuccess}
       />
     </div>
   )
