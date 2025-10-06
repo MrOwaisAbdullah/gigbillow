@@ -350,7 +350,14 @@ export function generateReportPdf({ revenueData, hoursData }: ReportData) {
 function convertToCSV(data: any[], headers: string[]): string {
   const headerRow = headers.join(',') + '\n';
   const bodyRows = data.map(row => 
-    headers.map(header => row[header.toLowerCase().replace(' ', '_')]).join(',')
+    headers.map(header => {
+      const key = header.toLowerCase().replace(/ /g, '_');
+      let value = row[key];
+      if (typeof value === 'string' && value.includes(',')) {
+        return `"${value}"`;
+      }
+      return value;
+    }).join(',')
   ).join('\n');
   return headerRow + bodyRows;
 }
@@ -370,9 +377,13 @@ function downloadCSV(csvString: string, fileName: string) {
 }
 
 export function generateReportCsv({ revenueData, hoursData }: ReportData) {
-    const revenueCsv = convertToCSV(revenueData.map(d => ({ month: d.name, total_revenue: d.total })), ['Month', 'Total Revenue']);
-    downloadCSV(revenueCsv, 'revenue_report.csv');
+    let csvContent = '';
 
-    const hoursCsv = convertToCSV(hoursData.map(d => ({ project: d.name, hours_logged: d.value })), ['Project', 'Hours Logged']);
-    downloadCSV(hoursCsv, 'hours_report.csv');
+    csvContent += 'Revenue Report (Last 12 Months)\n';
+    csvContent += convertToCSV(revenueData.map(d => ({ month: d.name, total_revenue: d.total })), ['Month', 'Total Revenue']);
+    csvContent += '\n\n'; 
+    csvContent += 'Hours by Project (This Month)\n';
+    csvContent += convertToCSV(hoursData.map(d => ({ project: d.name, hours_logged: d.value.toFixed(2) })), ['Project', 'Hours Logged']);
+
+    downloadCSV(csvContent, 'combined_report.csv');
 }

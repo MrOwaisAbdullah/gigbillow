@@ -11,6 +11,7 @@ import { getTimeEntries } from '@/lib/api/time-entries';
 import { subMonths, format, startOfMonth } from 'date-fns';
 import { generateReportPdf, generateReportCsv } from '@/lib/pdf-utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SummaryStats } from '@/components/dashboard/summary-stats';
 
 export default function ReportsPage() {
   const [revenueData, setRevenueData] = useState<{name: string, total: number}[]>([]);
@@ -87,6 +88,9 @@ export default function ReportsPage() {
             </Button>
         </div>
       </div>
+      
+      <SummaryStats />
+
       {loading ? (
         <div className="grid gap-8 md:grid-cols-2">
           <Skeleton className="h-[450px]" />
