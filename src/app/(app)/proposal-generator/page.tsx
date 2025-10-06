@@ -166,7 +166,7 @@ export default function ProposalGeneratorPage() {
   const generateButtonText = user ? 'Generate Proposal (-1 Token)' : 'Log In & Generate';
 
   return (
-    <div className="flex flex-col gap-8 pb-8">
+    <div className="flex flex-col gap-8 pb-8 overflow-x-hidden">
       <h1 className="text-3xl font-bold tracking-tight">Proposal Generator</h1>
 
       <div className="grid gap-8 lg:grid-cols-2">
@@ -212,6 +212,7 @@ export default function ProposalGeneratorPage() {
                         <Textarea
                           placeholder="e.g., 5-page responsive website, new brand logo, 3 blog posts..."
                           {...field}
+                          className="min-h-[60px]"
                         />
                       </FormControl>
                       <FormDescription>
@@ -361,3 +362,5 @@ export default function ProposalGeneratorPage() {
     </div>
   );
 }
+
+    
