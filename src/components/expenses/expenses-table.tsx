@@ -41,7 +41,7 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
 
-  const fetchExpenses = useCallback(async (
+  const fetchExpensesCallback = useCallback(async (
     page: 'first' | 'next' | 'prev',
     currentCursors: (DocumentSnapshot | null)[],
     currentPageNum: number
@@ -75,11 +75,11 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
   }, []);
   
   useEffect(() => {
-    fetchExpenses('first', [null], 1);
-  }, [fetchExpenses]);
+    fetchExpensesCallback('first', [null], 1);
+  }, [fetchExpensesCallback]);
 
   const handleUpdate = () => {
-    fetchExpenses('first', [null], 1);
+    fetchExpensesCallback('first', [null], 1);
   }
   
   if (loading && expenses.length === 0) {
@@ -184,8 +184,8 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
         </Table>
       </div>
       <PaginationControls
-        onNext={() => fetchExpenses('next', cursors, currentPage)}
-        onPrev={() => fetchExpenses('prev', cursors, currentPage)}
+        onNext={() => fetchExpensesCallback('next', cursors, currentPage)}
+        onPrev={() => fetchExpensesCallback('prev', cursors, currentPage)}
         hasNextPage={hasNextPage}
         hasPrevPage={currentPage > 1}
         currentPage={currentPage}
