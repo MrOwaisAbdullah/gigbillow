@@ -154,7 +154,7 @@ export default function LandingPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="bg-secondary/30 py-16">
+        <section className="bg-secondary/30 py-20 md:py-28">
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground">
               Stop Losing Billable Hours
@@ -185,7 +185,7 @@ export default function LandingPage() {
         </section>
 
         {/* App Screenshot Carousel */}
-        <section className="container mx-auto px-4 relative z-10 -mt-12">
+        <section className="container mx-auto px-4 relative z-10 -mt-20">
            <Carousel
               className="bg-white dark:bg-card p-2 rounded-xl shadow-2xl ring-1 ring-black/10"
               plugins={[plugin.current]}
@@ -360,6 +360,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="space-y-4 p-6 pt-0">
                    <ul className="space-y-3 text-muted-foreground">
+                    <li className="font-semibold text-foreground">Everything in Free, plus...</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 200 tokens</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> ~$0.075 per premium action</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 3 months</li>
@@ -376,6 +377,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="space-y-4 p-6 pt-0">
                   <ul className="space-y-3 text-muted-foreground">
+                    <li className="font-semibold text-foreground">Everything in Free, plus...</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 50 tokens</li>
                      <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> ~$0.10 per premium action</li>
                      <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 1 month</li>
@@ -392,6 +394,7 @@ export default function LandingPage() {
                     <h3 className="text-xl font-bold">Max Pack</h3>
                     <p className="text-muted-foreground mt-1">For power users and agencies. Get a large bundle of tokens that last a full year.</p>
                      <ul className="space-y-3 text-muted-foreground mt-4">
+                        <li className="font-semibold text-foreground">Everything in Free, plus...</li>
                         <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 500 tokens</li>
                         <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> ~$0.06 per premium action</li>
                         <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 12 months</li>
