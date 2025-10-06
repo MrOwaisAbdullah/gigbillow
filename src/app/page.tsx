@@ -124,7 +124,7 @@ export default function LandingPage() {
       <main>
         {/* Hero Section */}
         <section className="bg-secondary/30">
-          <div className="container mx-auto px-4 pt-20 pb-16 text-center">
+          <div className="container mx-auto px-4 pt-16 pb-12 text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground">
               Stop Losing Billable Hours
             </h1>
