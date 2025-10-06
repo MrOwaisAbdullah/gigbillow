@@ -279,6 +279,77 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Pain-Points Grid */}
+        <section className="py-16 md:py-28">
+          <div className="container mx-auto px-4">
+            <div className="text-center max-w-3xl mx-auto">
+              <h2 className="text-3xl font-bold">Sound Familiar?</h2>
+              <p className="text-muted-foreground mt-4 text-lg">Freelancing has its headaches. We're here to help.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-12">
+              <div className="p-6 rounded-lg">
+                <Timer className="h-10 w-10 mx-auto text-primary mb-4" />
+                <h3 className="text-xl font-bold">Forgot To Log Hours?</h3>
+                <p className="text-muted-foreground mt-2">
+                  An idle-aware timer that runs safely in the background. Never miss a billable second.
+                </p>
+              </div>
+              <div className="p-6 rounded-lg">
+                <FileText className="h-10 w-10 mx-auto text-primary mb-4" />
+                <h3 className="text-xl font-bold">Invoices Look Amateur?</h3>
+                <p className="text-muted-foreground mt-2">
+                  Generate a 1-click PDF with your branding and a payment link. Professionalism, sorted.
+                </p>
+              </div>
+              <div className="p-6 rounded-lg">
+                <PenSquare className="h-10 w-10 mx-auto text-primary mb-4" />
+                <h3 className="text-xl font-bold">Proposals Take Forever?</h3>
+                <p className="text-muted-foreground mt-2">
+                  Let AI write a client-winning draft in seconds from any job post. More winning, less writing.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Token Credit Block */}
+        <section className="py-16 md:py-20 bg-secondary/30">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-3xl font-bold">Simple, Pay-As-You-Grow Credits</h2>
+            <p className="text-muted-foreground mt-2">No subscriptions. No hidden fees. Just tokens.</p>
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-primary">10 Tokens / month</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="font-bold text-lg">Free, Forever</p>
+                  <p className="text-muted-foreground text-sm mt-1">Enough for a few projects a month.</p>
+                </CardContent>
+              </Card>
+               <Card className="border-primary">
+                <CardHeader>
+                  <CardTitle className="text-primary">What's a Token?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="font-semibold text-lg">1 Token = 1 Action</p>
+                  <p className="text-muted-foreground text-sm mt-1">Generate 1 invoice, or 1 proposal, or create 1 new project.</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-primary">Top-up Anytime</CardTitle>
+                </CardHeader>
+                <CardContent>
+                   <p className="font-bold text-lg">50 Tokens for $5</p>
+                   <p className="text-muted-foreground text-sm mt-1">Running low? Grab more on the fly.</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+
        <section id="pricing" className="w-full py-12 md:py-24 lg:py-32">
           <div className="container mx-auto px-4 md:px-6">
             <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
@@ -441,6 +512,15 @@ export default function LandingPage() {
                   </AccordionContent>
                 </AccordionItem>
               ))}
+               <AccordionItem value="money-back-guarantee">
+                  <AccordionTrigger className="text-lg text-left hover:text-primary">
+                    What is your refund policy?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-base text-muted-foreground space-y-4">
+                    <p><strong>7-Day Money-Back Guarantee:</strong> If you don’t use a single token within 7 days of a purchase, email us for a full refund – no questions asked.</p>
+                    <p className="text-sm italic">“Your first paid invoice costs less than a coffee. Buy tokens only when you get paid – no subscriptions, no surprises.”</p>
+                  </AccordionContent>
+                </AccordionItem>
             </Accordion>
            </div>
         </section>
@@ -484,7 +564,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
-
-    
