@@ -33,14 +33,14 @@ export function QuickActions() {
             {actions.map((action) => (
                  <Card 
                     key={action.title}
-                    className="transition-shadow text-white bg-gradient-to-br from-primary to-primary/80 hover:shadow-lg hover:from-primary/90 hover:to-primary/70"
+                    className="transition-shadow text-primary-foreground bg-gradient-to-br from-primary to-primary/80 hover:shadow-lg hover:from-primary/90 hover:to-primary/70"
                 >
                     <Link 
                         href={action.href}
                         className="block h-full p-4"
                     >
                         <div className="flex items-center gap-4 mb-2">
-                             <action.icon className="h-6 w-6 text-white" />
+                             <action.icon className="h-6 w-6" />
                              <CardTitle className="text-lg">{action.title}</CardTitle>
                         </div>
                         <CardDescription className="text-sm text-primary-foreground/80">
