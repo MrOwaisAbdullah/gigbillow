@@ -36,49 +36,54 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [cursors, setCursors] = useState<(DocumentSnapshot | null)[]>([null]);
+  const [lastVisible, setLastVisible] = useState<DocumentSnapshot | null>(null);
+  const [firstVisible, setFirstVisible] = useState<DocumentSnapshot | null>(null);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { toast } = useToast();
 
-  const fetchExpenses = useCallback(async (
-    page: 'first' | 'next' | 'prev',
-  ) => {
+  const fetchInitialExpenses = useCallback(async () => {
     setLoading(true);
-    let cursor: DocumentSnapshot | null = null;
-  
-    if (page === 'next') {
-      cursor = cursors[currentPage] || null;
-    } else if (page === 'prev') {
-      cursor = cursors[currentPage - 2] || null;
-    }
-  
-    const { expenses: expensesData, next } = await getExpenses(page, cursor, 10);
+    const { expenses: expensesData, next, prev } = await getExpenses('first', null, 10);
     setExpenses(expensesData);
     setHasNextPage(!!next);
-  
-    if (page === 'first') {
-      setCursors([null, next]);
-      setCurrentPage(1);
-    } else if (page === 'next') {
-      if (!cursors.includes(next)) {
-        setCursors(prev => [...prev, next]);
-      }
-      setCurrentPage(prevPage => prevPage + 1);
-    } else if (page === 'prev') {
-      setCurrentPage(prevPage => Math.max(1, prevPage - 1));
-    }
-  
+    setLastVisible(next);
+    setFirstVisible(prev);
+    setCurrentPage(1);
     setLoading(false);
-  }, [currentPage, cursors]);
-  
+  }, []);
+
   useEffect(() => {
-    fetchExpenses('first');
-  }, [fetchExpenses]);
+    fetchInitialExpenses();
+  }, [fetchInitialExpenses]);
+
+  const fetchNextPage = async () => {
+    if (!hasNextPage) return;
+    setLoading(true);
+    const { expenses: expensesData, next, prev } = await getExpenses('next', lastVisible, 10);
+    setExpenses(expensesData);
+    setHasNextPage(!!next);
+    setLastVisible(next);
+    setFirstVisible(prev);
+    setCurrentPage(prev => prev + 1);
+    setLoading(false);
+  }
+
+  const fetchPrevPage = async () => {
+     if (currentPage <= 1) return;
+    setLoading(true);
+    const { expenses: expensesData, next, prev } = await getExpenses('prev', firstVisible, 10);
+    setExpenses(expensesData);
+    setHasNextPage(!!next);
+    setLastVisible(next);
+    setFirstVisible(prev);
+    setCurrentPage(prev => prev - 1);
+    setLoading(false);
+  }
+
 
   const handleSuccess = () => {
-    fetchExpenses('first');
+    fetchInitialExpenses();
     setIsDialogOpen(false);
     setSelectedExpense(null);
   }
@@ -192,8 +197,8 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
         </Table>
       </div>
       <PaginationControls
-        onNext={() => fetchExpenses('next')}
-        onPrev={() => fetchExpenses('prev')}
+        onNext={fetchNextPage}
+        onPrev={fetchPrevPage}
         hasNextPage={hasNextPage}
         hasPrevPage={currentPage > 1}
         currentPage={currentPage}
