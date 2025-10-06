@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import { format } from 'date-fns';
 import type { Invoice, Client } from './types';
 import { toTitleCase } from './utils';
@@ -302,4 +303,76 @@ export function generateProposalPdf({ proposalText, clientName, removeWatermark 
     };
 
     generatePdf('Project-Proposal', 'Project Proposal', removeWatermark, addContent);
+}
+
+// --- REPORT PDF ---
+type ReportData = {
+  revenueData: { name: string; total: number }[];
+  hoursData: { name: string; value: number }[];
+};
+
+export function generateReportPdf({ revenueData, hoursData }: ReportData) {
+  const doc = new jsPDF('p', 'pt', 'a4');
+  let y = pageMargin + 40;
+
+  addHeader(doc, 'Reports Summary');
+
+  // Revenue Report
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Revenue Overview (Last 12 Months)', pageMargin, y);
+  y += 20;
+  (doc as any).autoTable({
+    startY: y,
+    head: [['Month', 'Total Revenue']],
+    body: revenueData.map(d => [d.name, `$${d.total.toFixed(2)}`]),
+    headStyles: { fillColor: primaryRgb },
+  });
+  y = (doc as any).lastAutoTable.finalY + 30;
+
+  // Hours Report
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Hours by Project (This Month)', pageMargin, y);
+  y += 20;
+  (doc as any).autoTable({
+    startY: y,
+    head: [['Project', 'Hours Logged']],
+    body: hoursData.map(d => [d.name, `${d.value.toFixed(2)}h`]),
+    headStyles: { fillColor: primaryRgb },
+  });
+
+  addWatermark(doc);
+  doc.save('Reports-Summary.pdf');
+}
+
+// --- CSV EXPORT ---
+function convertToCSV(data: any[], headers: string[]): string {
+  const headerRow = headers.join(',') + '\n';
+  const bodyRows = data.map(row => 
+    headers.map(header => row[header.toLowerCase().replace(' ', '_')]).join(',')
+  ).join('\n');
+  return headerRow + bodyRows;
+}
+
+function downloadCSV(csvString: string, fileName: string) {
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+}
+
+export function generateReportCsv({ revenueData, hoursData }: ReportData) {
+    const revenueCsv = convertToCSV(revenueData.map(d => ({ month: d.name, total_revenue: d.total })), ['Month', 'Total Revenue']);
+    downloadCSV(revenueCsv, 'revenue_report.csv');
+
+    const hoursCsv = convertToCSV(hoursData.map(d => ({ project: d.name, hours_logged: d.value })), ['Project', 'Hours Logged']);
+    downloadCSV(hoursCsv, 'hours_report.csv');
 }
