@@ -284,7 +284,7 @@ export default function LandingPage() {
             <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Pricing</div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Simple, Pay-As-You-Grow Credits</h2>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Simple Pricing for Every Freelancer</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   No subscriptions. No hidden fees. Get 10 free tokens every month. Buy more only when you need them.
                 </p>
@@ -324,7 +324,7 @@ export default function LandingPage() {
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 3 months</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
                   </ul>
-                  <Button className="w-full" asChild><Link href="/proposal-generator">Generate a Proposal</Link></Button>
+                  <Button className="w-full" asChild><Link href="/register">Buy Standard Pack</Link></Button>
                 </CardContent>
               </Card>
               <Card className="flex flex-col">
@@ -340,7 +340,7 @@ export default function LandingPage() {
                      <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 1 month</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
                   </ul>
-                  <Button variant="secondary" className="w-full" asChild><Link href="/proposal-generator">Generate a Proposal</Link></Button>
+                  <Button variant="secondary" className="w-full" asChild><Link href="/register">Buy Mini Pack</Link></Button>
                 </CardContent>
               </Card>
             </div>
@@ -360,7 +360,7 @@ export default function LandingPage() {
                 <div className="text-center md:text-right">
                     <p className="text-4xl font-extrabold mt-2">$30</p>
                     <p className="text-muted-foreground">One-time purchase</p>
-                    <Button size="lg" className="mt-4 w-full md:w-auto" asChild><Link href="/proposal-generator">Generate a Proposal</Link></Button>
+                    <Button size="lg" className="mt-4 w-full md:w-auto" asChild><Link href="/register">Buy Agency Pack</Link></Button>
                 </div>
               </div>
             </Card>
