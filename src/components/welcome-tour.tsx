@@ -80,7 +80,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-2 sm:p-6">
+      <DialogContent className="max-w-[95vw] w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-4">
         <DialogHeader>
           <DialogTitle className="text-2xl">Welcome to GigBillow!</DialogTitle>
           <DialogDescription>
@@ -93,7 +93,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
             {tourSteps.map((step, index) => (
               <CarouselItem key={index}>
                   <Card className='border-none shadow-none'>
-                    <CardContent className="grid lg:grid-cols-2 gap-6 items-center p-4">
+                    <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center p-0">
                         <div>
                            <Image
                                 src={step.imageSrc}
@@ -115,7 +115,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
           </CarouselContent>
         </Carousel>
         
-        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full px-2 sm:px-0">
+        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full">
           <Button variant="ghost" onClick={handleFinish}>
             Skip Tour
           </Button>
