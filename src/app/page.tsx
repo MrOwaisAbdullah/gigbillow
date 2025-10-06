@@ -28,6 +28,7 @@ import React from 'react';
 import { useAuth } from '@/components/auth/auth-provider';
 import { Logo } from '@/components/logo';
 import { useTheme } from '@/hooks/use-theme';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 export default function LandingPage() {
@@ -40,9 +41,34 @@ export default function LandingPage() {
     { src: 'https://picsum.photos/seed/tracker/1200/800', hint: 'time tracker' },
     { src: 'https://picsum.photos/seed/proposals/1200/800', hint: 'proposal generator' },
   ];
+  
+  const testimonials = [
+    {
+      quote: "GigBillow recovered $340 in unbilled hours my first week! The background timer is a lifesaver.",
+      name: "Alex Rivera",
+      role: "UX Freelancer",
+      avatar: "https://picsum.photos/seed/alex/100"
+    },
+    {
+      quote: "The AI proposal writer is a game-changer. I went from spending an hour on proposals to just five minutes. More time for actual work.",
+      name: "Samantha Chen",
+      role: "Copywriter",
+      avatar: "https://picsum.photos/seed/samantha/100"
+    },
+    {
+      quote: "Finally, an all-in-one tool that doesn't feel bloated. The invoicing is clean, simple, and my clients pay faster.",
+      name: "David Lee",
+      role: "Web Developer",
+      avatar: "https://picsum.photos/seed/david/100"
+    }
+  ];
 
-  const plugin = React.useRef(
-    Autoplay({ delay: 2000, stopOnInteraction: true })
+  const heroCarouselPlugin = React.useRef(
+    Autoplay({ delay: 2500, stopOnInteraction: true })
+  );
+  
+  const testimonialCarouselPlugin = React.useRef(
+    Autoplay({ delay: 4000, stopOnInteraction: true })
   );
 
   const features = [
@@ -154,7 +180,7 @@ export default function LandingPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="bg-secondary/30 py-16 md:py-20">
+        <section className="bg-secondary/30 py-20 md:py-28">
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground">
               Stop Losing Billable Hours
@@ -185,12 +211,12 @@ export default function LandingPage() {
         </section>
 
         {/* App Screenshot Carousel */}
-        <section className="container mx-auto px-4 relative z-10 -mt-16">
+        <section className="container mx-auto px-4 relative z-10 -mt-24">
            <Carousel
               className="bg-white dark:bg-card p-2 rounded-xl shadow-2xl ring-1 ring-black/10"
-              plugins={[plugin.current]}
-              onMouseEnter={plugin.current.stop}
-              onMouseLeave={plugin.current.reset}
+              plugins={[heroCarouselPlugin.current]}
+              onMouseEnter={heroCarouselPlugin.current.stop}
+              onMouseLeave={heroCarouselPlugin.current.reset}
             >
               <CarouselContent>
                 {carouselImages.map((img, index) => (
@@ -281,19 +307,45 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Social Proof Strip */}
-        <section className="py-12 bg-primary text-primary-foreground">
-          <div className="container mx-auto px-4 text-center">
-            <p className="text-lg font-semibold">
-              &quot;GigBillow recovered $340 in billable hours my first
-              week!&quot;
-            </p>
-            <p className="text-sm opacity-80 mt-2">
-              — Alex, UX Freelancer
-            </p>
-             <p className="text-sm opacity-80 mt-4">
-              Trusted by over 200+ freelancers | 4.8/5 Beta Rating
-            </p>
+        {/* Testimonials Carousel */}
+        <section className="py-16 md:py-20 bg-primary/5 dark:bg-primary/10">
+          <div className="container mx-auto px-4">
+            <div className="text-center max-w-3xl mx-auto">
+                <h2 className="text-3xl font-bold">Loved by Freelancers Everywhere</h2>
+                <p className="text-muted-foreground mt-2 text-lg">
+                    Don't just take our word for it. Here's what real users are saying.
+                </p>
+            </div>
+            <Carousel 
+                className="w-full max-w-4xl mx-auto mt-12"
+                plugins={[testimonialCarouselPlugin.current]}
+                onMouseEnter={testimonialCarouselPlugin.current.stop}
+                onMouseLeave={testimonialCarouselPlugin.current.reset}
+            >
+              <CarouselContent>
+                {testimonials.map((testimonial, index) => (
+                  <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                    <div className="p-1 h-full">
+                        <Card className="h-full flex flex-col justify-between">
+                          <CardContent className="p-6 text-base">
+                            <p>&quot;{testimonial.quote}&quot;</p>
+                          </CardContent>
+                          <CardHeader className="flex flex-row gap-4 items-center pt-0">
+                            <Avatar>
+                              <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                              <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <CardTitle className="text-sm font-semibold">{testimonial.name}</CardTitle>
+                                <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                            </div>
+                          </CardHeader>
+                        </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
           </div>
         </section>
 
@@ -483,3 +535,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
