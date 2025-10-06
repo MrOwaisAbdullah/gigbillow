@@ -95,7 +95,7 @@ export default function LandingPage() {
         title: 'AI Proposal Writer',
         description: 'Turn job descriptions into winning proposals in seconds. Land more clients with less effort.'
     },
-    { 
+    { _id: '4', 
         icon: LineChart,
         title: 'Insightful Reports', 
         description: 'Understand your business performance with visual dashboards for revenue, hours, and project profitability.' 
@@ -142,8 +142,8 @@ export default function LandingPage() {
       answer: "Yes. All your data is stored securely. We use industry-standard security practices to ensure your data is safe, and we never share your client or financial information with third parties."
     },
     {
-      question: "Can I manage multiple businesses or brands?",
-      answer: "Currently, each GigBillow account is designed to manage a single freelance business. For managing multiple distinct brands, we recommend creating separate accounts. This ensures clean data separation for clients, projects, and reporting."
+      question: "What is your refund policy?",
+      answer: "If you don’t use a single token within 7 days of purchase, email us for a full refund – no questions asked."
     }
   ];
 
@@ -199,7 +199,7 @@ export default function LandingPage() {
         <section className="relative w-full py-12 md:py-24 lg:py-32">
           <div className="container mx-auto flex max-w-6xl flex-col items-center justify-center space-y-8 px-4 text-center md:px-6">
             <div className="space-y-4">
-              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl max-w-4xl">
                 Track time, write proposals, and get paid.
               </h1>
               <p className="mx-auto max-w-3xl text-muted-foreground md:text-xl">
@@ -278,9 +278,9 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
+        
         {/* Pain-Points Grid */}
-        <section className="py-16 md:py-28">
+        <section className="py-16 md:py-28 bg-secondary/30">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto">
               <h2 className="text-3xl font-bold">Sound Familiar?</h2>
@@ -313,7 +313,7 @@ export default function LandingPage() {
         </section>
 
         {/* Token Credit Block */}
-        <section className="py-16 md:py-20 bg-secondary/30">
+        <section className="py-16 md:py-20">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold">Simple, Pay-As-You-Grow Credits</h2>
             <p className="text-muted-foreground mt-2">No subscriptions. No hidden fees. Just tokens.</p>
@@ -350,7 +350,7 @@ export default function LandingPage() {
         </section>
 
 
-       <section id="pricing" className="w-full py-12 md:py-24 lg:py-32">
+       <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 bg-background">
           <div className="container mx-auto px-4 md:px-6">
             <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -362,7 +362,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-12">
-              <Card className="flex flex-col bg-background">
+              <Card className="flex flex-col bg-secondary/30">
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Free</CardTitle>
                   <p className="text-4xl font-extrabold mt-2">$0</p>
@@ -380,7 +380,7 @@ export default function LandingPage() {
                   <Button variant="outline" className="w-full" asChild><Link href="/register">Get Started</Link></Button>
                 </CardContent>
               </Card>
-              <Card className="border-primary border-2 relative flex flex-col bg-background">
+              <Card className="border-primary border-2 relative flex flex-col bg-secondary/30">
                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap">Most Popular</div>
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Standard Pack</CardTitle>
@@ -398,7 +398,7 @@ export default function LandingPage() {
                   <Button className="w-full" asChild><Link href="/register">Buy Standard Pack</Link></Button>
                 </CardContent>
               </Card>
-              <Card className="flex flex-col bg-background">
+              <Card className="flex flex-col bg-secondary/30">
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Mini Pack</CardTitle>
                   <p className="text-4xl font-extrabold mt-2">$5</p>
@@ -416,7 +416,7 @@ export default function LandingPage() {
               </Card>
             </div>
             
-            <Card className="max-w-5xl mx-auto mt-8 p-6 md:p-8 bg-background">
+            <Card className="max-w-5xl mx-auto mt-8 p-6 md:p-8 bg-secondary/30">
               <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6">
                 <div className="md:col-span-2">
                     <h3 className="text-xl font-bold">Agency Pack</h3>
@@ -572,6 +572,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
 
