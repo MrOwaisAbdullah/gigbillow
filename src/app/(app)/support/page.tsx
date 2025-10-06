@@ -6,9 +6,29 @@ import { Button } from '@/components/ui/button';
 import { LifeBuoy, Mail, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useTour } from '@/components/tour-provider';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 export default function SupportPage() {
     const { setOpen: setTourOpen } = useTour();
+    
+    const faqs = [
+        {
+            question: "Can I buy multiple token packs?",
+            answer: "Yes – tokens stack and each pack keeps its own expiry date. The system will always use the tokens that are closest to expiring first."
+        },
+        {
+            question: "What happens when a pack expires?",
+            answer: "Only unused tokens from that specific pack disappear. Your account, data, and all free features remain active forever."
+        },
+        {
+            question: "Is there a subscription?",
+            answer: "No. We believe you should only pay when you have work to bill for. Buy token packs when you need them, and they'll be ready when you do."
+        },
+        {
+            question: "Do you store my logo file?",
+            answer: "Not yet. To add your branding to PDFs, you can paste a public URL to your logo (e.g., from your website, Google Drive, or Dropbox), and we embed it instantly. We plan to add direct uploads in the future."
+        }
+    ];
 
     return (
         <div className="flex flex-col gap-8 pb-8">
@@ -59,19 +79,17 @@ export default function SupportPage() {
                 <CardHeader>
                     <CardTitle>Frequently Asked Questions</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4 text-sm">
-                   <div className="border-b pb-4">
-                        <h4 className="font-semibold">How does token rollover work?</h4>
-                        <p className="text-muted-foreground">If you are on a paid subscription plan, any unused tokens from the current month (up to your plan's limit) will automatically roll over to the next month.</p>
-                   </div>
-                    <div className="border-b pb-4">
-                        <h4 className="font-semibold">Can I cancel my subscription anytime?</h4>
-                        <p className="text-muted-foreground">Yes, you can cancel your subscription at any time from your settings page. You will retain access to your plan's features until the end of the current billing period.</p>
-                   </div>
-                   <div>
-                        <h4 className="font-semibold">What happens if I use all my tokens?</h4>
-                        <p className="text-muted-foreground">You can easily purchase a one-time token pack to top-up your account at any time, or upgrade to a subscription for a higher monthly allowance.</p>
-                   </div>
+                <CardContent>
+                    <Accordion type="single" collapsible className="w-full">
+                        {faqs.map((faq, index) => (
+                            <AccordionItem value={`item-${index}`} key={index}>
+                                <AccordionTrigger>{faq.question}</AccordionTrigger>
+                                <AccordionContent>
+                                    {faq.answer}
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
                 </CardContent>
             </Card>
 

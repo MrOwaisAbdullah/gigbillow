@@ -2,7 +2,6 @@
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -22,9 +21,9 @@ type InsufficientTokensDialogProps = {
 }
 
 const packs = [
-    { name: '50 Tokens', price: '$5', amount: 50 },
-    { name: '200 Tokens', price: '$15', amount: 200 },
-    { name: '500 Tokens', price: '$30', amount: 500 },
+    { name: 'Mini Pack', price: '$5', amount: 50 },
+    { name: 'Standard Pack', price: '$15', amount: 200 },
+    { name: 'Max Pack', price: '$30', amount: 500 },
 ];
 
 export function InsufficientTokensDialog({ open, onOpenChange }: InsufficientTokensDialogProps) {
@@ -33,6 +32,7 @@ export function InsufficientTokensDialog({ open, onOpenChange }: InsufficientTok
 
     const handleBuy = async (amount: number, index: number) => {
         setIsBuying(index);
+        // This is a simulation. In a real app, this would redirect to a Stripe checkout.
         await addTokens(amount);
         setIsBuying(null);
         onOpenChange(false);
@@ -48,19 +48,20 @@ export function InsufficientTokensDialog({ open, onOpenChange }: InsufficientTok
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="flex flex-col gap-4 py-4">
-                    <p className="font-semibold">One-time packs:</p>
-                    <div className="grid grid-cols-3 gap-4">
+                    <p className="font-semibold">One-time token packs:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {packs.map((pack, index) => (
                             <Button
                                 key={pack.name}
                                 variant="outline"
-                                className="flex flex-col h-auto p-4 gap-1"
+                                className="flex flex-col h-auto p-4 gap-1 text-center"
                                 disabled={isBuying !== null}
                                 onClick={() => handleBuy(pack.amount, index)}
                             >
                                 {isBuying === index ? <Loader2 className="h-5 w-5 animate-spin" /> : (
                                     <>
-                                        <span className="text-lg font-bold">{pack.name}</span>
+                                        <span className="text-lg font-bold">{pack.amount}</span>
+                                        <span className="font-semibold">{pack.name}</span>
                                         <span className="text-sm text-muted-foreground">{pack.price}</span>
                                     </>
                                 )}

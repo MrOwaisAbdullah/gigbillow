@@ -10,6 +10,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
   Carousel,
   CarouselContent,
   CarouselItem,
@@ -71,6 +77,25 @@ export default function LandingPage() {
         description: 'Visualize your revenue, track hours per project, and understand your business performance at a glance.'
     },
   ];
+  
+  const faqs = [
+    {
+        question: "Can I buy multiple packs?",
+        answer: "Yes – tokens stack and each pack keeps its own expiry date. The system will always use the tokens that are closest to expiring first."
+    },
+    {
+        question: "What happens when a pack expires?",
+        answer: "Only unused tokens from that specific pack disappear. Your account, data, and all free features remain active forever."
+    },
+    {
+        question: "Is there a subscription?",
+        answer: "No. We believe you should only pay when you have work to bill for. Buy token packs when you need them, and they'll be ready when you do."
+    },
+    {
+        question: "Do you store my logo file?",
+        answer: "Not yet. To add your branding to PDFs, you can paste a public URL to your logo (e.g., from your website, Google Drive, or Dropbox), and we embed it instantly. We plan to add direct uploads in the future."
+    }
+  ];
 
 
   return (
@@ -94,6 +119,12 @@ export default function LandingPage() {
                 className="transition-colors hover:text-foreground/80 text-foreground/60"
               >
                 Pricing
+              </Link>
+               <Link
+                href="#faq"
+                className="transition-colors hover:text-foreground/80 text-foreground/60"
+              >
+                FAQ
               </Link>
             </nav>
           </div>
@@ -124,7 +155,7 @@ export default function LandingPage() {
       <main>
         {/* Hero Section */}
         <section className="bg-secondary/30">
-          <div className="container mx-auto px-4 pt-20 pb-16 text-center">
+          <div className="container mx-auto px-4 py-20 text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground">
               Stop Losing Billable Hours
             </h1>
@@ -156,7 +187,7 @@ export default function LandingPage() {
         {/* App Screenshot Carousel */}
         <section className="container mx-auto px-4 -mt-24 relative z-10">
            <Carousel
-              className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10 mt-4"
+              className="bg-white dark:bg-card p-2 rounded-xl shadow-2xl ring-1 ring-black/10 mt-4"
               plugins={[plugin.current]}
               onMouseEnter={plugin.current.stop}
               onMouseLeave={plugin.current.reset}
@@ -310,8 +341,8 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent className="space-y-4 p-6 pt-0">
                   <ul className="space-y-3 text-muted-foreground">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 10 tokens / month</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> No token rollover</li>
+                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Unlimited free features</li>
+                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 10 free tokens / month</li>
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Community support</li>
                   </ul>
                   <Button variant="outline" className="w-full" asChild><Link href="/register">Get Started</Link></Button>
@@ -320,32 +351,32 @@ export default function LandingPage() {
               <Card className="border-primary border-2 relative">
                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap">Most Popular</div>
                 <CardHeader className="text-center p-6">
-                  <CardTitle className="text-xl">Starter</CardTitle>
-                  <p className="text-4xl font-extrabold mt-2">$15<span className="text-lg font-normal text-muted-foreground">/mo</span></p>
-                  <p className="text-muted-foreground">For growing businesses</p>
+                  <CardTitle className="text-xl">Standard Pack</CardTitle>
+                  <p className="text-4xl font-extrabold mt-2">$15</p>
+                  <p className="text-muted-foreground">One-time purchase</p>
                 </CardHeader>
                 <CardContent className="space-y-4 p-6 pt-0">
                    <ul className="space-y-3 text-muted-foreground">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 150 tokens / month</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Rollover up to 150 tokens</li>
+                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 200 tokens</li>
+                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Valid for 3 months</li>
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Priority email support</li>
                   </ul>
-                  <Button className="w-full" asChild><Link href="/register">Register</Link></Button>
+                  <Button className="w-full" asChild><Link href="/register">Buy Standard Pack</Link></Button>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="text-center p-6">
-                  <CardTitle className="text-xl">Mini (one-time)</CardTitle>
+                  <CardTitle className="text-xl">Mini Pack</CardTitle>
                   <p className="text-4xl font-extrabold mt-2">$5</p>
-                  <p className="text-muted-foreground">Low-budget top-up</p>
+                  <p className="text-muted-foreground">One-time purchase</p>
                 </CardHeader>
                 <CardContent className="space-y-4 p-6 pt-0">
                   <ul className="space-y-3 text-muted-foreground">
                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 50 tokens</li>
-                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Never expire</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> One-time purchase</li>
+                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Valid for 1 month</li>
+                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Priority email support</li>
                   </ul>
-                  <Button variant="secondary" className="w-full">Buy Now</Button>
+                  <Button variant="secondary" className="w-full" asChild><Link href="/register">Buy Mini Pack</Link></Button>
                 </CardContent>
               </Card>
             </div>
@@ -353,33 +384,54 @@ export default function LandingPage() {
             <Card className="max-w-5xl mx-auto mt-8 p-6 md:p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6">
                 <div className="md:col-span-2">
-                    <h3 className="text-xl font-bold">Booster Pack</h3>
-                    <p className="text-muted-foreground mt-1">For power users and agencies. Get a large bundle of tokens that never expire.</p>
+                    <h3 className="text-xl font-bold">Max Pack</h3>
+                    <p className="text-muted-foreground mt-1">For power users and agencies. Get a large bundle of tokens that last a full year.</p>
                      <ul className="space-y-3 text-muted-foreground mt-4">
                         <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> 500 tokens</li>
-                        <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Never expire</li>
+                        <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Valid for 12 months</li>
                         <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500"/> Priority email support</li>
                     </ul>
                 </div>
                 <div className="text-center md:text-right">
                     <p className="text-4xl font-extrabold mt-2">$30</p>
                     <p className="text-muted-foreground">One-time purchase</p>
-                    <Button size="lg" className="mt-4 w-full md:w-auto">Buy Booster Pack</Button>
+                    <Button size="lg" className="mt-4 w-full md:w-auto" asChild><Link href="/register">Buy Max Pack</Link></Button>
                 </div>
               </div>
             </Card>
           </div>
+        </section>
+        
+        {/* FAQ Section */}
+        <section id="faq" className="py-16 md:py-20">
+            <div className="container mx-auto px-4 max-w-3xl">
+                 <div className="text-center">
+                    <h2 className="text-3xl font-bold">Common Questions</h2>
+                    <p className="text-muted-foreground mt-2">
+                        Here are some of the most common questions we get about GigBillow.
+                    </p>
+                </div>
+                <Accordion type="single" collapsible className="w-full mt-12">
+                    {faqs.map((faq, index) => (
+                        <AccordionItem value={`item-${index}`} key={index}>
+                            <AccordionTrigger>{faq.question}</AccordionTrigger>
+                            <AccordionContent>
+                                {faq.answer}
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
+            </div>
         </section>
 
         {/* CTA Strip */}
         <section className="py-20">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold">
-              Ready to ditch the spreadsheet?
+              Your first paid invoice costs less than a coffee.
             </h2>
             <p className="mt-2 text-lg text-muted-foreground">
-              Start your free trial. No credit card required. 10 tokens are
-              waiting for you.
+              Sign up and get 10 free tokens. No credit card required.
             </p>
             <div className="mt-8">
               {user ? (
@@ -402,8 +454,8 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-center gap-2 md:gap-4 mb-4">
             <Link href="#features" className="text-sm hover:underline">Features</Link>
             <Link href="#pricing" className="text-sm hover:underline">Pricing</Link>
+            <Link href="#faq" className="text-sm hover:underline">FAQ</Link>
             <Link href="/proposal-generator" className="text-sm hover:underline">Proposal Writer</Link>
-            <Link href="/track" className="text-sm hover:underline">Time Tracker</Link>
           </div>
           <p className="text-sm">
             © 2024 GigBillow. All rights reserved.
