@@ -52,7 +52,13 @@ const tourSteps = [
     imageHint: 'invoicing app'
   },
   {
-    title: '5. Understand Your Business',
+    title: '5. Track Your Expenses',
+    description: 'Keep your finances in order by logging billable and non-billable expenses. Easily add them to invoices when needed.',
+    imageSrc: 'https://picsum.photos/seed/expenses_app/1200/800',
+    imageHint: 'expense tracker app'
+  },
+  {
+    title: '6. Understand Your Business',
     description: 'Keep an eye on your performance with reports. Visualize your revenue, see where your hours are going, and make smarter decisions.',
     imageSrc: 'https://picsum.photos/seed/reports/1200/800',
     imageHint: 'analytics dashboard'
@@ -94,7 +100,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
               <CarouselItem key={index}>
                   <Card className='border-none shadow-none'>
                     <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center p-0">
-                        <div>
+                        <div className="max-w-full">
                            <Image
                                 src={step.imageSrc}
                                 alt={step.title}
@@ -115,7 +121,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
           </CarouselContent>
         </Carousel>
         
-        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full">
+        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full items-center pt-4 gap-4">
           <Button variant="ghost" onClick={handleFinish}>
             Skip Tour
           </Button>
