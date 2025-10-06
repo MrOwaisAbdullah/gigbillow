@@ -1,12 +1,41 @@
+'use client';
 
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { ExpensesTable } from "@/components/expenses/expenses-table"
 import { PlusCircle } from "lucide-react"
 import { ExpenseDialog } from "@/components/expenses/expense-dialog"
 import { getProjects } from "@/lib/api/projects"
+import type { Project } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export default async function ExpensesPage() {
-  const { projects } = await getProjects('first', null, 9999);
+export default function ExpensesPage() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProjects() {
+      const { projects: projectsData } = await getProjects('first', null, 9999);
+      setProjects(projectsData);
+      setLoading(false);
+    }
+    fetchProjects();
+  }, []);
+
+  if (loading) {
+    return (
+       <div className="flex flex-col gap-8">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <Skeleton className="h-9 w-40" />
+          <Skeleton className="h-10 w-36" />
+        </div>
+        <Skeleton className="h-4 w-96" />
+        <div className="rounded-lg border overflow-x-auto">
+            <div className="h-72" />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-8">
