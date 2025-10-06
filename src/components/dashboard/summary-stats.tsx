@@ -1,11 +1,13 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getInvoices } from '@/lib/api/invoices';
 import { getTimeEntries } from '@/lib/api/time-entries';
+import { getExpenses } from '@/lib/api/expenses';
 import { useEffect, useState } from "react";
-import { subDays, isThisWeek } from 'date-fns';
-import { TrendingUp, AlertCircle, Clock } from 'lucide-react';
+import { subDays, isThisWeek, startOfMonth } from 'date-fns';
+import { TrendingUp, AlertCircle, Clock, Receipt } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
 export function SummaryStats() {
@@ -13,16 +15,23 @@ export function SummaryStats() {
     outstandingRevenue: 0,
     incomeLast30d: 0,
     hoursThisWeek: 0,
+    expensesThisMonth: 0,
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchStats() {
-      const [invoicesResult, timeEntriesResult] = await Promise.all([getInvoices('first', null, 9999), getTimeEntries(null, 9999)]);
+      const [invoicesResult, timeEntriesResult, expensesResult] = await Promise.all([
+        getInvoices('first', null, 9999), 
+        getTimeEntries(null, 9999),
+        getExpenses('first', null, 9999)
+      ]);
       const invoicesData = invoicesResult.invoices;
       const timeEntriesData = timeEntriesResult.entries;
+      const expensesData = expensesResult.expenses;
       
       const thirtyDaysAgo = subDays(new Date(), 30);
+      const startOfCurrentMonth = startOfMonth(new Date());
 
       const outstandingRevenue = invoicesData
         .filter((inv) => inv.status === 'unpaid' || inv.status === 'overdue')
@@ -39,8 +48,12 @@ export function SummaryStats() {
       const hoursThisWeek = timeEntriesData
         .filter((entry) => isThisWeek(new Date(entry.startTime), { weekStartsOn: 1 }))
         .reduce((acc, entry) => acc + entry.hours, 0);
+      
+      const expensesThisMonth = expensesData
+        .filter(exp => new Date(exp.date) >= startOfCurrentMonth)
+        .reduce((acc, exp) => acc + exp.amount, 0);
 
-      setStats({ outstandingRevenue, incomeLast30d, hoursThisWeek });
+      setStats({ outstandingRevenue, incomeLast30d, hoursThisWeek, expensesThisMonth });
       setLoading(false);
     }
     fetchStats();
@@ -54,7 +67,7 @@ export function SummaryStats() {
       description: 'Total from unpaid invoices',
     },
     {
-      title: 'Income (Last 30 d)',
+      title: 'Income (Last 30d)',
       value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(stats.incomeLast30d),
       icon: TrendingUp,
       description: 'Based on paid invoices',
@@ -64,13 +77,19 @@ export function SummaryStats() {
       value: `${stats.hoursThisWeek.toFixed(1)}h`,
       icon: Clock,
       description: 'Total billable hours tracked',
-    }
+    },
+    {
+      title: 'Expenses (This Month)',
+      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(stats.expensesThisMonth),
+      icon: Receipt,
+      description: 'Total expenses logged',
+    },
   ];
 
   if (loading) {
     return (
-        <div className="grid gap-4 md:grid-cols-3">
-            {[...Array(3)].map((_, i) => (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
                 <Card key={i}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <Skeleton className="h-4 w-32" />
@@ -87,7 +106,7 @@ export function SummaryStats() {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {statCards.map((stat) => (
         <Card key={stat.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

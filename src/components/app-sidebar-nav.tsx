@@ -12,6 +12,7 @@ import {
   PenSquare,
   Gift,
   Settings,
+  Receipt,
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
@@ -33,6 +34,7 @@ export function AppSidebarNav({ isCollapsed = false, onLinkClick }: AppSidebarNa
     { href: '/projects', icon: FolderKanban, label: 'Projects' },
     { href: '/clients', icon: Users, label: 'Clients' },
     { href: '/invoices', icon: FileText, label: 'Invoices' },
+    { href: '/expenses', icon: Receipt, label: 'Expenses' },
     { href: '/reports', icon: LineChart, label: 'Reports' },
     { href: '/referrals', icon: Gift, label: 'Referrals' },
     { href: '/settings', icon: Settings, label: 'Settings' },

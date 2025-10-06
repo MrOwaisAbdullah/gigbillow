@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,47 +13,37 @@ export function QuickActions() {
             description: 'Jump right into your work',
             icon: Timer,
             href: '/track',
-            disabled: false,
         },
         {
-            title: 'Create Invoice',
+            title: 'New Invoice',
             description: 'Bill a client for your work',
             icon: FilePlus,
             href: '/invoices/new',
-            disabled: false,
         },
         {
-            title: 'Track Expense',
-            description: 'Coming soon',
+            title: 'Log Expense',
+            description: 'Record a new expense',
             icon: Receipt,
-            href: '#',
-            disabled: true,
+            href: '/expenses',
         },
     ];
 
     return (
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 lg:grid-cols-1">
             {actions.map((action) => (
                  <Card 
                     key={action.title}
-                    className={cn(
-                        "transition-shadow",
-                        !action.disabled && "text-white bg-gradient-to-br from-primary to-primary/80 hover:shadow-lg hover:from-primary/90 hover:to-primary/70",
-                        action.disabled && "bg-muted/50"
-                    )}
+                    className="transition-shadow text-white bg-gradient-to-br from-primary to-primary/80 hover:shadow-lg hover:from-primary/90 hover:to-primary/70"
                 >
                     <Link 
-                        href={action.disabled ? '#' : action.href}
-                        className={cn(
-                            "block h-full p-4", 
-                            action.disabled && "pointer-events-none"
-                        )}
+                        href={action.href}
+                        className="block h-full p-4"
                     >
                         <div className="flex items-center gap-4 mb-2">
-                             <action.icon className={cn("h-6 w-6", action.disabled ? "text-muted-foreground" : "text-white" )} />
+                             <action.icon className="h-6 w-6 text-white" />
                              <CardTitle className="text-lg">{action.title}</CardTitle>
                         </div>
-                        <CardDescription className={cn('text-sm', action.disabled ? 'text-muted-foreground' : 'text-primary-foreground/80')}>
+                        <CardDescription className="text-sm text-primary-foreground/80">
                             {action.description}
                         </CardDescription>
                     </Link>

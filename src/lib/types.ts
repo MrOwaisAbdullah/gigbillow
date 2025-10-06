@@ -38,6 +38,7 @@ export type Invoice = {
   paymentUrl?: string;
   notes?: string;
   enhancedSummary?: string;
+  expensesTotal?: number;
 };
 
 export type UserToken = {
@@ -69,3 +70,14 @@ export type UserProfile = {
     photoURL: string;
     referral_code: string;
 }
+
+export type Expense = {
+  id: string;
+  projectId: string | null;
+  description: string;
+  amount: number;
+  date: Date;
+  category: 'Travel' | 'Software' | 'Other';
+  includeOnInvoice: boolean;
+  invoiceId: string | null;
+};
