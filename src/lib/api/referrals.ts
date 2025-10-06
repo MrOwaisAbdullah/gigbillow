@@ -10,18 +10,18 @@ import { errorEmitter } from '@/lib/error-emitter';
 import { FirestorePermissionError } from '@/lib/errors';
 
 function getCollectionPath() {
-    return 'referrals'; // Referrals are stored in a root collection
+    const auth = getAuth();
+    const userId = auth.currentUser?.uid;
+    if (!userId) return null;
+    return `users/${userId}/referrals`;
 }
 
 // Fetches referrals *made by* the current user.
 export async function getReferrals(): Promise<Referral[]> {
-  const auth = getAuth();
-  const userId = auth.currentUser?.uid;
-  if (!userId) return [];
-
   const collectionPath = getCollectionPath();
+  if (!collectionPath) return [];
 
-  const q = query(collection(db, collectionPath), where('referrer_user_id', '==', userId));
+  const q = query(collection(db, collectionPath));
   
   const querySnapshot = await getDocs(q).catch((serverError) => {
     const permissionError = new FirestorePermissionError({
@@ -73,7 +73,8 @@ export async function createReferral(referrerCode: string, referredStripeCustome
         created_at: serverTimestamp(),
     };
 
-    const docRef = await addDoc(collection(db, 'referrals'), referralData);
+    // Note: This now writes to the referrer's subcollection.
+    const docRef = await addDoc(collection(db, `users/${referrerUserId}/referrals`), referralData);
     
     // Here, you would trigger the Stripe coupon creation logic from the design document.
     // e.g., triggerStripeCouponCreation(referrerUserId);

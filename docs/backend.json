@@ -157,13 +157,13 @@
       "schema": { "$ref": "#/entities/Expense" },
       "description": "Stores expenses for each user."
     },
+    "/users/{userId}/referrals/{referralId}": {
+        "schema": { "$ref": "#/entities/Referral" },
+        "description": "Stores referral records for a specific user."
+    },
     "/user_tokens/{userId}": {
       "schema": { "$ref": "#/entities/UserToken" },
       "description": "Stores token balances for each user."
-    },
-    "/referrals/{referralId}": {
-        "schema": { "$ref": "#/entities/Referral" },
-        "description": "Stores referral records for each user."
     }
   }
 }

@@ -7,7 +7,7 @@ import { Copy } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth/auth-provider';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { UserProfile, Referral } from '@/lib/types';
 import { getReferrals } from '@/lib/api/referrals';
@@ -64,16 +64,22 @@ export function ReferralDashboard() {
           userProfileData = userSnap.data() as UserProfile;
         } else {
             const newReferralCode = generateReferralCode(6);
-            const existingData = userSnap.exists() ? userSnap.data() : {};
-            userProfileData = {
-                displayName: user.displayName || 'New User',
-                email: user.email || '',
-                photoURL: user.photoURL || '',
-                ...existingData,
+            const updates: Partial<UserProfile> = {
                 referral_code: newReferralCode,
             };
+            if (!userSnap.exists() || !userSnap.data().displayName) {
+                updates.displayName = user.displayName || 'New User';
+                updates.email = user.email || '';
+                updates.photoURL = user.photoURL || '';
+            }
+            
             // Use setDoc with merge to create or update the document safely
-            await setDoc(userDocRef, { referral_code: newReferralCode }, { merge: true });
+            await setDoc(userDocRef, updates, { merge: true });
+
+            userProfileData = {
+                ...(userSnap.exists() ? userSnap.data() : {}),
+                ...updates,
+            } as UserProfile;
         }
         
         setProfile(userProfileData);
@@ -199,4 +205,3 @@ export function ReferralDashboard() {
     </Card>
   );
 }
-
