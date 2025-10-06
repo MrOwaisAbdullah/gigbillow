@@ -17,14 +17,13 @@ export default function DashboardPage() {
       </div>
       
       <div className="grid gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-            <TodaysPulse />
+        <div className="lg:col-span-2 grid gap-8">
+          <TodaysPulse />
+          <ProjectPulse />
         </div>
-        <QuickActions />
-      </div>
-
-      <div className="grid gap-8 lg:grid-cols-2">
-        <ProjectPulse />
+        <div className="grid gap-8">
+          <QuickActions />
+        </div>
       </div>
       
       <div>
