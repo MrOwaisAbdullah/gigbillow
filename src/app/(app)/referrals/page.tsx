@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ReferralDashboard } from "@/components/referrals/referral-dashboard";
@@ -5,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function ReferralsPage() {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 overflow-x-hidden">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Referrals</h1>
       </div>

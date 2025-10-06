@@ -1,3 +1,4 @@
+
 import { ProjectPulse } from '@/components/dashboard/project-pulse';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { TodaysPulse } from '@/components/dashboard/todays-pulse';
@@ -6,7 +7,7 @@ import { SummaryStats } from '@/components/dashboard/summary-stats';
 
 export default function DashboardPage() {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 overflow-x-hidden">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
       </div>
@@ -14,13 +15,13 @@ export default function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-1">
         <SummaryStats />
       </div>
-
+      
       <div className="grid gap-8 lg:grid-cols-2">
-        <TodaysPulse />
         <QuickActions />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-1">
+      <div className="grid gap-8 lg:grid-cols-2">
+        <TodaysPulse />
         <ProjectPulse />
       </div>
       
