@@ -60,6 +60,12 @@ export default function LandingPage() {
       name: "David Lee",
       role: "Web Developer",
       avatar: "https://picsum.photos/seed/david/100"
+    },
+    {
+      quote: "As a visual artist, managing invoices was my biggest nightmare. GigBillow made it simple and beautiful. The reports help me see where my time really goes.",
+      name: "Maria Rodriguez",
+      role: "Illustrator & Designer",
+      avatar: "https://picsum.photos/seed/maria/100"
     }
   ];
 
@@ -106,7 +112,7 @@ export default function LandingPage() {
   
   const faqs = [
     {
-        question: "Can I buy multiple token packs?",
+        question: "Can I buy multiple packs?",
         answer: "Yes – tokens stack and each pack keeps its own expiry date. The system will always use the tokens that are closest to expiring first."
     },
     {
@@ -327,8 +333,11 @@ export default function LandingPage() {
                   <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                     <div className="p-1 h-full">
                         <Card className="h-full flex flex-col justify-between">
-                          <CardContent className="p-6 text-base">
-                            <p>&quot;{testimonial.quote}&quot;</p>
+                          <CardContent className="p-6 text-base space-y-4">
+                             <div className="flex gap-0.5">
+                                {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />)}
+                             </div>
+                            <p className="italic">&quot;{testimonial.quote}&quot;</p>
                           </CardContent>
                           <CardHeader className="flex flex-row gap-4 items-center pt-0">
                             <Avatar>
@@ -535,4 +544,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
