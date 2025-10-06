@@ -124,7 +124,7 @@ export default function LandingPage() {
       <main>
         {/* Hero Section */}
         <section className="bg-secondary/30">
-          <div className="container mx-auto px-4 pt-16 pb-12 text-center">
+          <div className="container mx-auto px-4 pt-20 pb-16 text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground">
               Stop Losing Billable Hours
             </h1>
@@ -154,7 +154,7 @@ export default function LandingPage() {
         </section>
 
         {/* App Screenshot Carousel */}
-        <section className="container mx-auto px-4 -mt-12 sm:-mt-16 md:-mt-24 relative z-10">
+        <section className="container mx-auto px-4 -mt-24 relative z-10">
            <Carousel
               className="bg-white dark:bg-black p-2 rounded-xl shadow-2xl ring-1 ring-black/10 mt-4"
               plugins={[plugin.current]}
