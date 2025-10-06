@@ -412,7 +412,7 @@ export default function LandingPage() {
 
         <section className="w-full py-12 md:py-24 lg:py-32">
            <div className="container mx-auto max-w-5xl px-4 md:px-6">
-             <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
+             <div className="mx-auto flex max-w-3xl flex-col items-center justify-center space-y-4 text-center">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Frequently Asked Questions</h2>
              </div>
              <Accordion type="single" collapsible className="w-full max-w-3xl mx-auto mt-12">
@@ -464,3 +464,6 @@ export default function LandingPage() {
 
 
 
+
+
+    
