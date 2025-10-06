@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +26,22 @@ export default function SupportPage() {
         {
             question: "I was referred by a friend. How do I make sure they get credit?",
             answer: "If you signed up using a referral link or entered a code during registration, the system has automatically logged the referral. Your friend will receive their reward once you become a paying customer (i.e., after your first token pack purchase). There is no further action needed from you."
+        },
+        {
+            question: "Can I edit an invoice after it's been created?",
+            answer: "You can edit some details of an invoice after it's been created, but not all. You can mark it as 'Paid' or delete it. For significant changes to line items or totals, the recommended workflow is to delete the incorrect invoice and generate a new one. This ensures your records remain accurate."
+        },
+        {
+            question: "How do I create a project for a new client?",
+            answer: "When you go to 'Projects' > 'New Project', the form includes a client selector. If the client doesn't exist, you can click 'Create New...' right from the dropdown. This will open a dialog to add the new client, and once saved, they will be automatically selected for your new project."
+        },
+        {
+            question: "What's the difference between 'unpaid' and 'overdue' statuses?",
+            answer: "An 'unpaid' invoice is an invoice that has been issued but has not yet reached its due date. An 'overdue' invoice is an invoice that has passed its due date without being paid. The system automatically determines this based on the current date and the invoice's due date."
+        },
+        {
+            question: "I have a lot of old time entries. Can I import them from a spreadsheet?",
+            answer: "Currently, you can import work logs by pasting text data using the 'Import Work Log' feature on the Invoices page, which uses AI to parse the data. Direct spreadsheet import (e.g., CSV) is a feature we are considering for the future based on user feedback."
         }
     ];
 
