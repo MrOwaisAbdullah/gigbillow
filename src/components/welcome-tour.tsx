@@ -80,9 +80,8 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
   }
 
   return (
-    <div className='max-w-[100vw] sm:max-w-[95vw] md:max-w-xl lg:max-w-5xl mx-auto p-4'>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[90vw] mx-auto p-2 sm:p-6">
+      <DialogContent className="max-w-[95vw] sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-2 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl">Welcome to GigBillow!</DialogTitle>
           <DialogDescription>
@@ -90,12 +89,12 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
           </DialogDescription>
         </DialogHeader>
         
-        <Carousel setApi={setApi} className="max-w-[95vw] sm:max-w-[90vw]   mx-auto">
-          <CarouselContent className="max-h-[90vh] sm:max-w-[80vw]">
+        <Carousel setApi={setApi} className="w-full">
+          <CarouselContent>
             {tourSteps.map((step, index) => (
               <CarouselItem key={index}>
-                  <Card className='p-1'>
-                    <CardContent className="flex flex-col lg:flex-row items-center justify-center p-4 gap-6">
+                  <Card className='p-1 border-none shadow-none'>
+                    <CardContent className="flex flex-col lg:flex-row items-center justify-center p-2 sm:p-4 gap-4 sm:gap-6">
                         <div className="w-full lg:w-1/2 flex-shrink-0">
                            <Image
                                 src={step.imageSrc}
@@ -108,7 +107,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
                         </div>
                         <div className="space-y-3 text-center lg:text-left">
                            <h3 className="text-xl font-semibold">{step.title}</h3>
-                           <p className="text-muted-foreground">{step.description}</p>
+                           <p className="text-muted-foreground text-sm sm:text-base">{step.description}</p>
                         </div>
                     </CardContent>
                   </Card>
@@ -117,7 +116,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
           </CarouselContent>
         </Carousel>
         
-        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full">
+        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full px-2 sm:px-0">
           <Button variant="ghost" onClick={handleFinish}>
             Skip Tour
           </Button>
@@ -145,6 +144,5 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    </div>
   );
 }
