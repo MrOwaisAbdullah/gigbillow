@@ -168,7 +168,16 @@ export default function LandingPage() {
               <Sun className="h-6 w-6 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-6 w-6 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             </Button>
-            {user ? (
+            {user === undefined ? (
+               <>
+                 <Button variant="ghost" asChild>
+                  <Link href="/login">Log In</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/register">Sign Up</Link>
+                </Button>
+              </>
+            ) : user ? (
               <Button asChild>
                 <Link href="/dashboard">Dashboard</Link>
               </Button>
@@ -309,7 +318,7 @@ export default function LandingPage() {
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 3 months</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
                   </ul>
-                  <Button className="w-full" asChild><Link href="/register">Buy Standard Pack</Link></Button>
+                  <Button className="w-full" asChild><Link href="/proposal-generator">Generate a Proposal</Link></Button>
                 </CardContent>
               </Card>
               <Card className="flex flex-col">
@@ -325,7 +334,7 @@ export default function LandingPage() {
                      <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 1 month</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
                   </ul>
-                  <Button variant="secondary" className="w-full" asChild><Link href="/register">Buy Mini Pack</Link></Button>
+                  <Button variant="secondary" className="w-full" asChild><Link href="/proposal-generator">Generate a Proposal</Link></Button>
                 </CardContent>
               </Card>
             </div>
@@ -345,7 +354,7 @@ export default function LandingPage() {
                 <div className="text-center md:text-right">
                     <p className="text-4xl font-extrabold mt-2">$30</p>
                     <p className="text-muted-foreground">One-time purchase</p>
-                    <Button size="lg" className="mt-4 w-full md:w-auto" asChild><Link href="/register">Buy Agency Pack</Link></Button>
+                    <Button size="lg" className="mt-4 w-full md:w-auto" asChild><Link href="/proposal-generator">Generate a Proposal</Link></Button>
                 </div>
               </div>
             </Card>
@@ -469,3 +478,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
