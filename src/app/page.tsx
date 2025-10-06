@@ -168,7 +168,7 @@ export default function LandingPage() {
               <Sun className="h-6 w-6 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-6 w-6 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             </Button>
-            {user === undefined ? (
+            {user === null ? (
                <>
                  <Button variant="ghost" asChild>
                   <Link href="/login">Log In</Link>
@@ -197,7 +197,7 @@ export default function LandingPage() {
 
       <main className="flex-1">
         <section className="relative w-full py-12 md:py-24 lg:py-32">
-          <div className="container mx-auto flex max-w-5xl flex-col items-center justify-center space-y-8 px-4 text-center md:px-6">
+          <div className="container mx-auto flex max-w-6xl flex-col items-center justify-center space-y-8 px-4 text-center md:px-6">
             <div className="space-y-4">
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
                 Track time, write proposals, and get paid.
@@ -560,10 +560,10 @@ export default function LandingPage() {
               Made with ❤️ by <a href="https://owaisabdullah.dev/" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">Owais Abdullah</a>
             </div>
             <nav className="flex gap-4 sm:gap-6">
-              <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
+              <Link href="/terms-of-service" className="text-xs hover:underline underline-offset-4" prefetch={false}>
                 Terms of Service
               </Link>
-              <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
+              <Link href="/privacy-policy" className="text-xs hover:underline underline-offset-4" prefetch={false}>
                 Privacy
               </Link>
             </nav>
@@ -572,4 +572,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
