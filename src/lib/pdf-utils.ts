@@ -1,3 +1,4 @@
+
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
@@ -43,7 +44,12 @@ async function addHeader(doc: jsPDF, title: string, logoUrl?: string) {
     if (logoUrl) {
         try {
             // This is a simplified fetch. A real app might need CORS handling or a proxy.
-            const response = await fetch(logoUrl);
+            const response = await fetch(logoUrl, { 
+                mode: 'cors',
+                headers: {
+                    'Access-Control-Allow-Origin':'*'
+                }
+            });
             const blob = await response.blob();
             const reader = new FileReader();
             await new Promise((resolve, reject) => {
@@ -283,7 +289,7 @@ export async function generateInvoicePdf({ invoice, client, user, removeWatermar
         }
     };
     
-    await generatePdf(invoice.invoiceNumber, 'INVOICE', removeWatermark, addContent, user.is_subscribed ? user.logoUrl : undefined);
+    await generatePdf(invoice.invoiceNumber, 'INVOICE', removeWatermark, user.is_subscribed ? user.logoUrl : undefined);
 }
 
 // --- PROPOSAL PDF ---
