@@ -52,17 +52,20 @@ async function addHeader(doc: jsPDF, title: string, logoUrl?: string) {
 
     if (logoUrl) {
         try {
-            // Data URI is passed directly to addImage
+            // Create an Image object and load the data URI
             const img = new Image();
             img.src = logoUrl;
+            
+            // Wait for the image to load
             await new Promise<void>((resolve, reject) => {
                 img.onload = () => resolve();
-                img.onerror = reject;
+                img.onerror = (err) => reject(err);
             });
             
             const logoHeight = 40;
             const logoWidth = (img.width * logoHeight) / img.height;
-            doc.addImage(logoUrl, pageMargin, pageMargin - 15, logoWidth, logoHeight);
+            // Pass the loaded image object, not the URL, to addImage
+            doc.addImage(img, pageMargin, pageMargin - 15, logoWidth, logoHeight);
 
         } catch (error) {
             console.error("Failed to load logo image from Data URI:", error);
