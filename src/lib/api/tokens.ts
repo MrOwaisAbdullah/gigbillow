@@ -8,6 +8,7 @@ import type { UserToken } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 import { isAfter } from 'date-fns';
 import { updateUserSubscriptionStatus } from './users';
+import { betaConfig, standardConfig } from '../config';
 
 
 export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boolean, wasRefilled: boolean }> {
@@ -15,11 +16,16 @@ export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boo
   const tokenSnap = await getDoc(tokenRef);
   
   if (!tokenSnap.exists()) {
+    // This case is handled by initializeUser, but as a fallback:
+    const initialTokens = betaConfig.isActive ? betaConfig.newUserTokens : standardConfig.freeUser.newUserTokens;
+    const initialSubStatus = betaConfig.isActive ? betaConfig.newUserIsSubscribed : standardConfig.freeUser.newUserIsSubscribed;
+    const initialRollover = betaConfig.isActive ? betaConfig.newUserRolloverLimit : standardConfig.freeUser.newUserRolloverLimit;
+    
     await setDoc(tokenRef, {
-      balance: 50, // Beta: 50 tokens
+      balance: initialTokens,
       last_refill_at: serverTimestamp(),
-      rollover_limit: 50,
-      is_subscribed: true, // Beta: everyone is subscribed
+      rollover_limit: initialRollover,
+      is_subscribed: initialSubStatus,
     });
     return { isNewUser: true, wasRefilled: false };
   } 
@@ -36,15 +42,21 @@ export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boo
   nextRefillDate.setDate(nextRefillDate.getDate() + 30);
 
   if (isAfter(new Date(), nextRefillDate)) {
-    // During beta, everyone is treated as subscribed
+    const isSubscribed = tokenData.is_subscribed || betaConfig.isActive;
+    const refillAmount = isSubscribed ? (betaConfig.isActive ? betaConfig.refillAmount : standardConfig.subscribedUser.refillAmount) : standardConfig.freeUser.refillAmount;
+    const rolloverLimit = isSubscribed ? (betaConfig.isActive ? betaConfig.newUserRolloverLimit : standardConfig.subscribedUser.rollover_limit) : 0;
+    
     const currentBalance = tokenData.balance;
-    const rolloverAmount = Math.min(currentBalance, tokenData.rollover_limit);
-    const newBalance = rolloverAmount + 50; // Beta refill amount
+    const rolloverAmount = Math.min(currentBalance, rolloverLimit);
+    const newBalance = rolloverAmount + refillAmount;
+
     await updateDoc(tokenRef, {
       balance: newBalance,
       last_refill_at: serverTimestamp()
     });
-    toast({ title: '🎉 Monthly Beta Tokens Added!', description: `Your 50 tokens have been added. ${rolloverAmount} unused tokens were rolled over.` });
+    
+    const toastTitle = betaConfig.isActive ? '🎉 Monthly Beta Tokens Added!' : 'Monthly Tokens Refilled!';
+    toast({ title: toastTitle, description: `Your ${refillAmount} tokens have been added. ${rolloverAmount} unused tokens were rolled over.` });
     
     return { isNewUser: false, wasRefilled: true };
   }

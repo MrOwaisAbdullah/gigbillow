@@ -14,6 +14,7 @@ import {
 } from 'firebase/auth';
 import { app, db } from './firebase';
 import { doc, setDoc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { betaConfig, standardConfig } from './config';
 
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
@@ -37,19 +38,24 @@ async function initializeUser(user: User) {
     if (!userSnap.exists()) {
         // --- This is a new user ---
         const referralCode = generateReferralCode(6);
+        
+        const initialTokens = betaConfig.isActive ? betaConfig.newUserTokens : standardConfig.freeUser.newUserTokens;
+        const initialSubStatus = betaConfig.isActive ? betaConfig.newUserIsSubscribed : standardConfig.freeUser.newUserIsSubscribed;
+        const initialRollover = betaConfig.isActive ? betaConfig.newUserRolloverLimit : standardConfig.freeUser.newUserRolloverLimit;
+
         await setDoc(userDocRef, {
             displayName: user.displayName,
             email: user.email,
             photoURL: user.photoURL,
             referral_code: referralCode,
-            is_subscribed: true, // Beta user is subscribed
+            is_subscribed: initialSubStatus,
         });
 
         await setDoc(tokenRef, {
-            balance: 50, // Beta user gets 50 tokens
+            balance: initialTokens,
             last_refill_at: serverTimestamp(),
-            rollover_limit: 50,
-            is_subscribed: true,
+            rollover_limit: initialRollover,
+            is_subscribed: initialSubStatus,
         });
         
         // Handle referral

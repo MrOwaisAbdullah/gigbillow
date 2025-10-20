@@ -1,0 +1,105 @@
+
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { Loader2, MessageSquareHeart } from 'lucide-react';
+import { useAuth } from '@/components/auth/auth-provider';
+
+const formSchema = z.object({
+  feedback: z.string().min(10, 'Feedback must be at least 10 characters.'),
+});
+
+export default function FeedbackPage() {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      feedback: '',
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
+    
+    // In a real app, you would send this to a backend service.
+    // For this demo, we'll just log it to the console.
+    console.log('--- User Feedback Received ---');
+    console.log('User:', user?.email);
+    console.log('Feedback:', values.feedback);
+    console.log('-----------------------------');
+
+    // Simulate an API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    toast({
+      title: 'Feedback Sent!',
+      description: "Thank you for helping us improve GigBillow. We've received your feedback.",
+    });
+
+    form.reset();
+    setIsSubmitting(false);
+  }
+
+  return (
+    <div className="flex flex-col gap-8 pb-8">
+      <div className="flex items-center gap-4">
+         <MessageSquareHeart className="h-8 w-8 text-primary" />
+         <h1 className="text-3xl font-bold tracking-tight">Submit Feedback</h1>
+      </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Share Your Thoughts</CardTitle>
+          <CardDescription>
+            We're in beta and your feedback is crucial. Let us know what you like, what you don't, or any ideas you have.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="feedback"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Your Feedback</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Tell us about your experience..."
+                        className="min-h-[200px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Send Feedback
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

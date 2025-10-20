@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import Link from "next/link"
@@ -43,7 +42,7 @@ export function AppHeader() {
   const pathname = usePathname()
   const segments = pathname.split('/').filter(Boolean)
   const { user } = useAuth();
-  const { tokens, totalTokens, loading: tokensLoading, openDialog } = useToken();
+  const { tokens, tokenData, loading: tokensLoading, openDialog } = useToken();
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
   const { setOpen: setTourOpen } = useTour();
   const { toggleTheme, theme } = useTheme();
@@ -59,10 +58,10 @@ export function AppHeader() {
         <BreadcrumbSeparator />
         <BreadcrumbItem>
           {isLast ? (
-            <BreadcrumbPage className="capitalize">{segment}</BreadcrumbPage>
+            <BreadcrumbPage className="capitalize">{segment.replace('-', ' ')}</BreadcrumbPage>
           ) : (
             <BreadcrumbLink asChild>
-              <Link href={href} className="capitalize">{segment}</Link>
+              <Link href={href} className="capitalize">{segment.replace('-', ' ')}</Link>
             </BreadcrumbLink>
           )}
         </BreadcrumbItem>
@@ -113,7 +112,7 @@ export function AppHeader() {
       </div>
        <Button variant="outline" size="sm" onClick={openDialog}>
             <Zap className="mr-2 h-4 w-4 text-yellow-500" />
-            {tokensLoading ? '...' : `${tokens}/${totalTokens}`} Tokens
+            {tokensLoading ? '...' : `${tokens}/${tokenData?.rollover_limit ?? 0}`} Tokens
        </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

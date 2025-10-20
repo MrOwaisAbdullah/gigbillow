@@ -10,14 +10,14 @@ import { useAuth } from '../auth/auth-provider';
 
 type TokenContextType = {
   tokens: number;
-  totalTokens: number;
+  tokenData: UserToken | null;
   loading: boolean;
   openDialog: () => void;
 };
 
 const TokenContext = createContext<TokenContextType>({
   tokens: 0,
-  totalTokens: 0,
+  tokenData: null,
   loading: true,
   openDialog: () => {},
 });
@@ -33,7 +33,11 @@ export const TokenProvider = ({ children }: { children: React.ReactNode }) => {
       const tokenRef = doc(db, 'user_tokens', user.uid);
       const unsubscribe = onSnapshot(tokenRef, (doc) => {
         if (doc.exists()) {
-          setTokenData(doc.data() as UserToken);
+          const data = doc.data() as UserToken;
+           if (data.last_refill_at && data.last_refill_at instanceof Timestamp) {
+            data.last_refill_at = data.last_refill_at.toDate();
+          }
+          setTokenData(data);
         }
         setLoading(false);
       });
@@ -51,7 +55,7 @@ export const TokenProvider = ({ children }: { children: React.ReactNode }) => {
 
 
   return (
-    <TokenContext.Provider value={{ tokens: tokenData?.balance ?? 0, totalTokens: tokenData?.rollover_limit ?? 0, loading, openDialog }}>
+    <TokenContext.Provider value={{ tokens: tokenData?.balance ?? 0, tokenData, loading, openDialog }}>
       {children}
       <InsufficientTokensDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
     </TokenContext.Provider>

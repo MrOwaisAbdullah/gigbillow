@@ -13,11 +13,13 @@ import {
   Gift,
   Settings,
   Receipt,
+  MessageSquareHeart,
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { usePathname } from 'next/navigation'
 import { Logo } from './logo'
+import { Separator } from './ui/separator'
 
 interface AppSidebarNavProps {
   isCollapsed?: boolean
@@ -27,7 +29,7 @@ interface AppSidebarNavProps {
 export function AppSidebarNav({ isCollapsed = false, onLinkClick }: AppSidebarNavProps) {
   const pathname = usePathname()
 
-  const navItems = [
+  const mainNavItems = [
     { href: '/dashboard', icon: LayoutGrid, label: 'Dashboard' },
     { href: '/proposal-generator', icon: PenSquare, label: 'Proposal Generator' },
     { href: '/track', icon: Timer, label: 'Time Tracker' },
@@ -37,14 +39,17 @@ export function AppSidebarNav({ isCollapsed = false, onLinkClick }: AppSidebarNa
     { href: '/expenses', icon: Receipt, label: 'Expenses' },
     { href: '/reports', icon: LineChart, label: 'Reports' },
     { href: '/referrals', icon: Gift, label: 'Referrals' },
+  ];
+
+  const secondaryNavItems = [
+    { href: '/support/feedback', icon: MessageSquareHeart, label: 'Feedback' },
     { href: '/settings', icon: Settings, label: 'Settings' },
   ]
 
   const linkClasses = (href: string) => cn(
     "flex items-center gap-4 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-accent hover:text-primary-foreground",
     {
-      'bg-sidebar-accent text-primary-foreground': pathname.startsWith(href) && href !== '/dashboard',
-      'bg-sidebar-accent text-primary-foreground': pathname === '/dashboard' && href === '/dashboard'
+      'bg-sidebar-accent text-primary-foreground': pathname.startsWith(href),
     },
     isCollapsed && "h-9 w-9 justify-center rounded-lg text-muted-foreground md:h-8 md:w-8 px-0"
   )
@@ -52,9 +57,37 @@ export function AppSidebarNav({ isCollapsed = false, onLinkClick }: AppSidebarNa
   const mobileLinkClasses = (href: string) => cn(
     "flex items-center gap-4 rounded-lg px-3 py-3 text-sidebar-foreground/70 transition-all duration-200 ease-in-out hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:scale-105",
      {
-      'bg-sidebar-accent text-sidebar-accent-foreground scale-105 font-semibold': (pathname.startsWith(href) && href !== '/dashboard') || (pathname === '/dashboard' && href === '/dashboard')
+      'bg-sidebar-accent text-sidebar-accent-foreground scale-105 font-semibold': pathname.startsWith(href)
     }
   )
+  
+  const renderLink = (item: { href: string, icon: React.ElementType, label: string}) => {
+    const Icon = item.icon;
+    if (isCollapsed) {
+       return (
+            <Tooltip key={item.href}>
+                <TooltipTrigger asChild>
+                <Link href={item.href} className={linkClasses(item.href)}>
+                    <Icon className="h-5 w-5" />
+                    <span className="sr-only">{item.label}</span>
+                </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">{item.label}</TooltipContent>
+            </Tooltip>
+        )
+    }
+    return (
+        <Link
+            key={item.href}
+            href={item.href}
+            className={mobileLinkClasses(item.href)}
+            onClick={onLinkClick}
+        >
+            <Icon className="h-5 w-5" />
+            {item.label}
+        </Link>
+    )
+  }
 
   if (isCollapsed) {
     return (
@@ -66,17 +99,9 @@ export function AppSidebarNav({ isCollapsed = false, onLinkClick }: AppSidebarNa
                 <Logo className="h-4 w-4 transition-all group-hover:scale-110 text-primary-foreground" />
                 <span className="sr-only">GigBillow</span>
             </Link>
-            {navItems.map(({ href, icon: Icon, label }) =>
-                <Tooltip key={href}>
-                    <TooltipTrigger asChild>
-                    <Link href={href} className={linkClasses(href)}>
-                        <Icon className="h-5 w-5" />
-                        <span className="sr-only">{label}</span>
-                    </Link>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">{label}</TooltipContent>
-                </Tooltip>
-            )}
+            {mainNavItems.map(renderLink)}
+            <Separator className="my-2 bg-sidebar-border" />
+            {secondaryNavItems.map(renderLink)}
         </nav>
     )
   }
@@ -84,17 +109,9 @@ export function AppSidebarNav({ isCollapsed = false, onLinkClick }: AppSidebarNa
   // Mobile / un-collapsed view
   return (
      <nav className="grid items-start gap-3 px-4 text-base font-medium">
-        {navItems.map(({ href, icon: Icon, label }) => (
-            <Link
-                key={href}
-                href={href}
-                className={mobileLinkClasses(href)}
-                onClick={onLinkClick}
-            >
-                <Icon className="h-5 w-5" />
-                {label}
-            </Link>
-        ))}
+        {mainNavItems.map(renderLink)}
+        <Separator className="my-2 bg-sidebar-border/50" />
+        {secondaryNavItems.map(renderLink)}
     </nav>
   )
 }
