@@ -55,14 +55,16 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      clientId: '',
-      rate: 0,
-      status: 'active',
+      name: project?.name || '',
+      clientId: project?.clientId || initialClientId || '',
+      rate: project?.rate || 0,
+      status: project?.status || 'active',
     },
   });
 
   useEffect(() => {
+    // This effect ensures that if the project prop changes (e.g., when opening the dialog),
+    // the form is reset with the correct values from that project.
     if (project) {
       form.reset({
         name: project.name,
@@ -71,14 +73,15 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
         status: project.status,
       });
     } else {
-       form.reset({
-        name: '',
-        clientId: initialClientId || '',
-        rate: 0,
-        status: 'active',
-      });
+        // This handles the case for creating a new project, potentially with a pre-selected client.
+        form.reset({
+            name: '',
+            clientId: initialClientId || '',
+            rate: 0,
+            status: 'active',
+        });
     }
-  }, [project, initialClientId, form, clients]);
+  }, [project, initialClientId, form]);
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -172,7 +175,6 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
               <FormLabel>Status</FormLabel>
               <Select
                 onValueChange={field.onChange}
-                defaultValue={field.value}
                 value={field.value}
               >
                 <FormControl>

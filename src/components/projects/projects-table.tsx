@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, Loader2 } from "lucide-react"
 import { getProjects, deleteProject } from "@/lib/api/projects"
-import { getClientById } from "@/lib/api/clients"
+import { getClients } from "@/lib/api/clients"
 import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import type { Project, Client } from "@/lib/types"
@@ -51,6 +51,7 @@ type ProjectsTableProps = {
 
 export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [allClients, setAllClients] = useState<Client[]>([]);
   const [clients, setClients] = useState<{[key: string]: Client}>({});
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -63,7 +64,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
 
-  const fetchProjects = useCallback(async (page: 'first' | 'next' | 'prev') => {
+  const fetchProjectsAndClients = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
     const isSearching = searchTerm.trim() !== '';
     const pageSize = isSearching ? 100 : 10;
@@ -78,23 +79,22 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
         cursor = pageCursors[currentPage - 2] || null;
         pageToGo = currentPage - 1;
     }
-
-    const { projects: projectsData, nextCursor, hasNextPage: newHasNextPage } = await getProjects('next', cursor, pageSize);
+    
+    const [{ projects: projectsData, nextCursor, hasNextPage: newHasNextPage }, { clients: clientsData }] = await Promise.all([
+      getProjects('next', cursor, pageSize),
+      getClients('first', null, 9999)
+    ]);
+    
     setProjects(projectsData);
-    setHasNextPage(newHasNextPage);
+    setAllClients(clientsData);
 
-    if(projectsData.length > 0) {
-        const clientIds = [...new Set(projectsData.map(p => p.clientId))].filter(id => !clients[id]);
-        if (clientIds.length > 0) {
-            const clientsData: {[key: string]: Client} = {};
-            const clientPromises = clientIds.map(id => getClientById(id));
-            const clientResults = await Promise.all(clientPromises);
-            clientResults.forEach(client => {
-                if(client) clientsData[client.id] = client;
-            });
-            setClients(prev => ({...prev, ...clientsData}));
-        }
-    }
+    const clientsMap = clientsData.reduce((acc, client) => {
+        acc[client.id] = client;
+        return acc;
+    }, {} as {[key: string]: Client});
+
+    setClients(clientsMap);
+    setHasNextPage(newHasNextPage);
 
     if (!isSearching) {
        if (page === 'next') {
@@ -116,10 +116,10 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
         setPageCursors([null]);
     }
     setLoading(false);
-  }, [pageCursors, currentPage, clients, searchTerm]);
+  }, [pageCursors, currentPage, searchTerm]);
 
   useEffect(() => {
-    fetchProjects('first');
+    fetchProjectsAndClients('first');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
@@ -143,7 +143,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
   const handleSuccess = () => {
     setIsDialogOpen(false);
     setSelectedProject(null);
-    fetchProjects('first');
+    fetchProjectsAndClients('first');
   };
   
   const handleDeleteConfirm = (project: Project) => {
@@ -157,7 +157,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
     try {
       await deleteProject(selectedProject.id);
       toast({ title: 'Project Deleted' });
-      fetchProjects('first');
+      fetchProjectsAndClients('first');
     } catch (error) {
       // API handles toast
     } finally {
@@ -271,8 +271,8 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
     </div>
     {!searchTerm && (
         <PaginationControls
-            onNext={() => fetchProjects('next')}
-            onPrev={() => fetchProjects('prev')}
+            onNext={() => fetchProjectsAndClients('next')}
+            onPrev={() => fetchProjectsAndClients('prev')}
             hasNextPage={hasNextPage}
             hasPrevPage={currentPage > 1}
             currentPage={currentPage}
@@ -280,7 +280,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
     )}
     <ProjectDialog
         project={selectedProject}
-        clients={Object.values(clients)}
+        clients={allClients}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         onSuccess={handleSuccess}
