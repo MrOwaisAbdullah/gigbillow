@@ -440,59 +440,61 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30 overflow-x-hidden">
-          <div className="container mx-auto px-4 md:px-6">
-              <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
-                  <div className="space-y-2">
-                       <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Social Proof</div>
-                       <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Average 4.8 rating in beta testing</h2>
-                       <div className="flex justify-center text-yellow-400">
-                          <Star className="w-8 h-8 fill-current" />
-                          <Star className="w-8 h-8 fill-current" />
-                          <Star className="w-8 h-8 fill-current" />
-                          <Star className="w-8 h-8 fill-current" />
-                          <Star className="w-8 h-8 fill-current" />
-                       </div>
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30">
+          <div className="overflow-x-clip">
+              <div className="container mx-auto px-4 md:px-6">
+                  <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
+                      <div className="space-y-2">
+                           <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Social Proof</div>
+                           <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Average 4.8 rating in beta testing</h2>
+                           <div className="flex justify-center text-yellow-400">
+                              <Star className="w-8 h-8 fill-current" />
+                              <Star className="w-8 h-8 fill-current" />
+                              <Star className="w-8 h-8 fill-current" />
+                              <Star className="w-8 h-8 fill-current" />
+                              <Star className="w-8 h-8 fill-current" />
+                           </div>
+                      </div>
                   </div>
+                  <Carousel 
+                    opts={{ loop: true }}
+                    plugins={[testimonialCarouselPlugin.current]}
+                    className="w-full max-w-4xl mx-auto mt-12"
+                    onMouseEnter={testimonialCarouselPlugin.current.stop}
+                    onMouseLeave={testimonialCarouselPlugin.current.reset}
+                    >
+                    <CarouselContent>
+                      {testimonials.map((testimonial, index) => (
+                        <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                          <Card className="h-full bg-background">
+                            <CardContent className="p-6 flex flex-col justify-between h-full">
+                              <div className="space-y-4">
+                                <div className="flex text-yellow-400">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star key={i} className="w-5 h-5 fill-current" />
+                                  ))}
+                                </div>
+                                <p className="text-muted-foreground">"{testimonial.quote}"</p>
+                              </div>
+                              <div className="flex items-center gap-4 pt-6">
+                                <Avatar>
+                                  <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                                  <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-semibold">{testimonial.name}</p>
+                                  <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-0 sm:left-[-50px] top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80" />
+                    <CarouselNext className="absolute right-0 sm:right-[-50px] top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80" />
+                  </Carousel>
               </div>
-              <Carousel 
-                opts={{ loop: true }}
-                plugins={[testimonialCarouselPlugin.current]}
-                className="w-full max-w-4xl mx-auto mt-12"
-                onMouseEnter={testimonialCarouselPlugin.current.stop}
-                onMouseLeave={testimonialCarouselPlugin.current.reset}
-                >
-                <CarouselContent>
-                  {testimonials.map((testimonial, index) => (
-                    <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                      <Card className="h-full bg-background">
-                        <CardContent className="p-6 flex flex-col justify-between h-full">
-                          <div className="space-y-4">
-                            <div className="flex text-yellow-400">
-                              {[...Array(5)].map((_, i) => (
-                                <Star key={i} className="w-5 h-5 fill-current" />
-                              ))}
-                            </div>
-                            <p className="text-muted-foreground">"{testimonial.quote}"</p>
-                          </div>
-                          <div className="flex items-center gap-4 pt-6">
-                            <Avatar>
-                              <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-                              <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-semibold">{testimonial.name}</p>
-                              <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="absolute left-0 sm:left-[-50px] top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80" />
-                <CarouselNext className="absolute right-0 sm:right-[-50px] top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80" />
-              </Carousel>
           </div>
         </section>
 
@@ -582,6 +584,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
 
