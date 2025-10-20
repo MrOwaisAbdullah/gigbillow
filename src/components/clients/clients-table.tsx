@@ -18,8 +18,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
-import { getClients } from "@/lib/api/clients"
+import { Loader2, MoreHorizontal } from "lucide-react"
+import { getClients, deleteClient } from "@/lib/api/clients"
 import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import type { Client } from "@/lib/types"
@@ -27,6 +27,16 @@ import { Skeleton } from "../ui/skeleton"
 import type { DocumentSnapshot } from "firebase/firestore"
 import { PaginationControls } from "../pagination-controls"
 import { ClientDialog } from "./client-dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type ClientsTableProps = {
     searchTerm: string;
@@ -41,6 +51,8 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
   const { toast } = useToast();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchClients = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
@@ -78,10 +90,10 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
             setCurrentPage(1);
         }
     } else {
+        setHasNextPage(false);
         setCurrentPage(1);
         setPageCursors([null]);
     }
-
     setLoading(false);
   }, [currentPage, pageCursors, searchTerm]);
 
@@ -110,6 +122,27 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
     setIsDialogOpen(false);
     setSelectedClient(null);
     fetchClients('first');
+  };
+
+  const handleDeleteConfirm = (client: Client) => {
+    setSelectedClient(client);
+    setIsAlertOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedClient) return;
+    setIsDeleting(true);
+    try {
+      await deleteClient(selectedClient.id);
+      toast({ title: 'Client Deleted' });
+      fetchClients('first');
+    } catch (error) {
+      // API handles toast
+    } finally {
+      setIsDeleting(false);
+      setIsAlertOpen(false);
+      setSelectedClient(null);
+    }
   };
 
   if (loading && clients.length === 0) {
@@ -203,7 +236,7 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem onSelect={() => handleEdit(client)}>Edit</DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => handleEdit(client)} className="text-destructive">Delete</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleDeleteConfirm(client)} className="text-destructive">Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -235,6 +268,23 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
       onSuccess={handleSuccess}
       onClose={() => setSelectedClient(null)}
     />
+     <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      This will permanently delete the client and all associated data. This action cannot be undone.
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setSelectedClient(null)}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90" disabled={isDeleting}>
+                      {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Delete
+                  </AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

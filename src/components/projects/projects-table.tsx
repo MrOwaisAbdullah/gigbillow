@@ -18,8 +18,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
-import { getProjects } from "@/lib/api/projects"
+import { MoreHorizontal, Loader2 } from "lucide-react"
+import { getProjects, deleteProject } from "@/lib/api/projects"
 import { getClientById } from "@/lib/api/clients"
 import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState, useCallback, useMemo } from "react"
@@ -28,6 +28,16 @@ import { Skeleton } from "../ui/skeleton"
 import type { DocumentSnapshot } from "firebase/firestore"
 import { PaginationControls } from "../pagination-controls"
 import { ProjectDialog } from "./project-dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const statusVariantMap: { [key in 'active' | 'completed' | 'on_hold']: 'default' | 'secondary' | 'outline' } = {
   active: 'default',
@@ -49,6 +59,9 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
   const { toast } = useToast();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
 
   const fetchProjects = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
@@ -133,6 +146,27 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
     fetchProjects('first');
   };
   
+  const handleDeleteConfirm = (project: Project) => {
+    setSelectedProject(project);
+    setIsAlertOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedProject) return;
+    setIsDeleting(true);
+    try {
+      await deleteProject(selectedProject.id);
+      toast({ title: 'Project Deleted' });
+      fetchProjects('first');
+    } catch (error) {
+      // API handles toast
+    } finally {
+      setIsDeleting(false);
+      setIsAlertOpen(false);
+      setSelectedProject(null);
+    }
+  };
+
   if (loading && projects.length === 0) {
     return (
         <div className="rounded-lg border overflow-x-auto">
@@ -218,7 +252,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
                             <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem onSelect={() => handleEdit(project)}>Edit</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleEdit(project)} className="text-destructive">Delete</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleDeleteConfirm(project)} className="text-destructive">Delete</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                         </TableCell>
@@ -253,6 +287,23 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
         onClose={() => setSelectedProject(null)}
         onClientCreated={() => {}}
       />
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      This will permanently delete the project and all associated data. This action cannot be undone.
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setSelectedProject(null)}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90" disabled={isDeleting}>
+                      {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Delete
+                  </AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

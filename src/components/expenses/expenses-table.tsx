@@ -17,8 +17,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
-import { getExpenses } from "@/lib/api/expenses"
+import { Loader2, MoreHorizontal } from "lucide-react"
+import { getExpenses, deleteExpense } from "@/lib/api/expenses"
 import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import type { Expense, Project } from "@/lib/types"
@@ -28,6 +28,17 @@ import type { DocumentSnapshot } from "firebase/firestore"
 import { PaginationControls } from "../pagination-controls"
 import { ExpenseDialog } from "./expense-dialog"
 import { Badge } from "../ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+
 
 type ExpensesTableProps = {
   allProjects: Project[];
@@ -42,6 +53,9 @@ export function ExpensesTable({ allProjects, searchTerm }: ExpensesTableProps) {
   const [hasNextPage, setHasNextPage] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
 
   const fetchExpenses = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
@@ -115,6 +129,27 @@ export function ExpensesTable({ allProjects, searchTerm }: ExpensesTableProps) {
     setIsDialogOpen(true);
   };
   
+  const handleDeleteConfirm = (expense: Expense) => {
+    setSelectedExpense(expense);
+    setIsAlertOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedExpense) return;
+    setIsDeleting(true);
+    try {
+      await deleteExpense(selectedExpense.id);
+      toast({ title: 'Expense Deleted' });
+      fetchExpenses('first');
+    } catch (error) {
+      // API handles toast
+    } finally {
+      setIsDeleting(false);
+      setIsAlertOpen(false);
+      setSelectedExpense(null);
+    }
+  };
+
   if (loading && expenses.length === 0) {
     return (
       <div className="rounded-lg border overflow-x-auto">
@@ -200,7 +235,7 @@ export function ExpensesTable({ allProjects, searchTerm }: ExpensesTableProps) {
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuItem onClick={() => handleEdit(expense)}>Edit</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleEdit(expense)}>Delete</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDeleteConfirm(expense)} className="text-destructive">Delete</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                        )}
@@ -235,6 +270,23 @@ export function ExpensesTable({ allProjects, searchTerm }: ExpensesTableProps) {
         onOpenChange={setIsDialogOpen}
         onClose={() => setSelectedExpense(null)}
       />
+       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      This will permanently delete the expense. This action cannot be undone.
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setSelectedExpense(null)}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90" disabled={isDeleting}>
+                      {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Delete
+                  </AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
