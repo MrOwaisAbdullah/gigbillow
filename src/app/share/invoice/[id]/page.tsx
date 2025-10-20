@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -18,7 +17,7 @@ import {
 } from '@/components/ui/table';
 import { toTitleCase } from '@/lib/utils';
 import { CreditCard, Loader2 } from 'lucide-react';
-import type { Invoice, Client, Project } from '@/lib/types';
+import type { Invoice, Client, Project, UserProfile } from '@/lib/types';
 import { getPublicInvoiceData } from '@/lib/api/invoices';
 import { Logo } from '@/components/logo';
 
@@ -30,7 +29,7 @@ const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 's
 
 type PublicInvoiceData = {
   invoice: Invoice;
-  user: { displayName: string; email: string };
+  user: { displayName: string; email: string; logoUrl?: string; };
   client: Client;
   project: Project;
 };
@@ -79,10 +78,20 @@ export default function PublicInvoicePage() {
 
   const { invoice, user, client, project } = data;
   
-  const subTotal = Number(invoice.subTotal) || 0;
-  const taxRate = Number(invoice.taxRate) || 0;
-  const amount = Number(invoice.amount) || 0;
-  const taxAmount = (subTotal * taxRate) / 100;
+  const subTotal = invoice.subTotal || 0;
+  
+  let discountAmount = invoice.discountValue || 0;
+  if (invoice.discountType === 'percentage') {
+    discountAmount = (subTotal * discountAmount) / 100;
+  }
+
+  const discountedSubTotal = subTotal - discountAmount;
+  const taxRate = invoice.taxRate || 0;
+  const taxAmount = (discountedSubTotal * taxRate) / 100;
+  const totalAmount = invoice.amount;
+  const expensesTotal = invoice.expensesTotal || 0;
+  const servicesTotal = subTotal - expensesTotal;
+
 
   return (
     <div className="flex flex-col gap-8 pb-8 items-center">
@@ -103,6 +112,9 @@ export default function PublicInvoicePage() {
                     <p className="text-muted-foreground"># {invoice.invoiceNumber}</p>
                 </div>
                 <div className="text-left sm:text-right w-full sm:w-auto">
+                    {user.logoUrl ? (
+                        <img src={user.logoUrl} alt={`${user.displayName} Logo`} className="max-h-16 ml-auto mb-2"/>
+                    ) : null}
                     <p className="font-semibold">{user?.displayName}</p>
                     <p className="text-sm text-muted-foreground">{user?.email}</p>
                 </div>
@@ -156,10 +168,28 @@ export default function PublicInvoicePage() {
             <div className="flex justify-end">
                 <div className="w-full max-w-sm space-y-4">
                     <Separator />
+                     {expensesTotal > 0 && (
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Services</span>
+                            <span>${servicesTotal.toFixed(2)}</span>
+                        </div>
+                    )}
+                    {expensesTotal > 0 && (
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Expenses</span>
+                            <span>${expensesTotal.toFixed(2)}</span>
+                        </div>
+                    )}
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Subtotal</span>
                         <span>${subTotal.toFixed(2)}</span>
                     </div>
+                    {discountAmount > 0 && (
+                        <div className="flex justify-between text-muted-foreground">
+                            <span>Discount</span>
+                            <span>-${discountAmount.toFixed(2)}</span>
+                        </div>
+                    )}
                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Tax ({taxRate}%)</span>
                         <span>${taxAmount.toFixed(2)}</span>
@@ -167,7 +197,7 @@ export default function PublicInvoicePage() {
                     <Separator />
                      <div className="flex justify-between font-bold text-lg">
                         <span>Total Amount</span>
-                        <span>${amount.toFixed(2)}</span>
+                        <span>${totalAmount.toFixed(2)}</span>
                     </div>
                 </div>
             </div>
@@ -184,7 +214,7 @@ export default function PublicInvoicePage() {
             <CardFooter className="flex justify-center items-center border-t pt-6">
                 <Button asChild size="lg">
                     <a href={invoice.paymentUrl} target="_blank" rel="noopener noreferrer">
-                        <CreditCard className="mr-2" /> Pay Now (${amount.toFixed(2)})
+                        <CreditCard className="mr-2" /> Pay Now (${totalAmount.toFixed(2)})
                     </a>
                 </Button>
             </CardFooter>

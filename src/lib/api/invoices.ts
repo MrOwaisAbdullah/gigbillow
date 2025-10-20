@@ -1,7 +1,7 @@
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, Timestamp, limit, startAfter, DocumentSnapshot, endBefore } from 'firebase/firestore';
-import type { Invoice, Client, Project } from '@/lib/types';
+import type { Invoice, Client, Project, UserProfile } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
 function getCollectionPath(userId?: string) {
