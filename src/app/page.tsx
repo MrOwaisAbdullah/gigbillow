@@ -229,7 +229,7 @@ export default function LandingPage() {
                     {carouselImages.map((image, index) => (
                       <CarouselItem key={index}>
                         <Card className='border-none shadow-none'>
-                          <CardContent className="flex aspect-[21/10] items-center justify-center p-0">
+                          <CardContent className="flex aspect-[4/3] md:aspect-[21/10] items-center justify-center p-0">
                             <Image
                                 src={image.src}
                                 alt={`App Screenshot ${index + 1}`}
@@ -582,5 +582,6 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
