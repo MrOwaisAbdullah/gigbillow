@@ -66,6 +66,12 @@ async function addHeader(doc: jsPDF, title: string, logoDataUrl?: string) {
         const logoWidth = (img.width * logoHeight) / img.height;
         doc.addImage(img, pageMargin, pageMargin - 15, logoWidth, logoHeight);
 
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(28);
+        doc.setTextColor(...primaryRgb);
+        doc.text(title, doc.internal.pageSize.getWidth() - pageMargin, pageMargin, { align: 'right' });
+
+
     } catch (error) {
         console.error("Failed to load logo image from Data URI:", error);
         fallbackHeader();

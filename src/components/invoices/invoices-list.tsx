@@ -29,6 +29,7 @@ import { Skeleton } from "../ui/skeleton"
 import Link from "next/link";
 import type { DocumentSnapshot } from "firebase/firestore"
 import { PaginationControls } from "../pagination-controls"
+import { useRouter } from 'next/navigation';
 
 const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
   paid: 'default',
@@ -44,6 +45,8 @@ export function InvoicesList() {
   const [cursors, setCursors] = useState<(DocumentSnapshot | null)[]>([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
+
 
   const fetchInvoices = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
@@ -209,8 +212,12 @@ export function InvoicesList() {
               const client = data[invoice.clientId] as Client;
               const project = data[invoice.projectId] as Project;
               return (
-                <TableRow key={invoice.id}>
-                  <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                <TableRow key={invoice.id} onClick={() => router.push(`/invoices/${invoice.id}`)} className="cursor-pointer">
+                  <TableCell className="font-medium">
+                     <Link href={`/invoices/${invoice.id}`} className="hover:underline text-primary">
+                        {invoice.invoiceNumber}
+                     </Link>
+                  </TableCell>
                   <TableCell>{client?.name}</TableCell>
                   <TableCell>{project?.name}</TableCell>
                   <TableCell>${(invoice.amount || 0).toFixed(2)}</TableCell>
@@ -223,7 +230,7 @@ export function InvoicesList() {
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Toggle menu</span>
