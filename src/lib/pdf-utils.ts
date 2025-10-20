@@ -44,12 +44,9 @@ const pageMargin = 40;
 async function addHeader(doc: jsPDF, title: string, logoUrl?: string) {
     if (logoUrl) {
         try {
-            // This is a simplified fetch. A real app might need CORS handling or a proxy.
+            // This is a simplified fetch. A real app might need a proxy for robust CORS handling.
             const response = await fetch(logoUrl, { 
                 mode: 'cors',
-                headers: {
-                    'Access-Control-Allow-Origin':'*'
-                }
             });
             const blob = await response.blob();
             const reader = new FileReader();
