@@ -41,8 +41,7 @@ const borderGray = [226, 232, 240];
 const brandName = 'GigBillow';
 const pageMargin = 40;
 
-async function addHeader(doc: jsPDF, title: string, logoUrl?: string) {
-    // Fallback text header
+async function addHeader(doc: jsPDF, title: string, dataUri?: string) {
     const fallbackHeader = () => {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(28);
@@ -50,33 +49,26 @@ async function addHeader(doc: jsPDF, title: string, logoUrl?: string) {
         doc.text(title, pageMargin, pageMargin, { align: 'left' });
     };
 
-    if (logoUrl && logoUrl.startsWith('data:image/')) {
-        try {
-            // Extract format from data URI, e.g., "image/png" -> "PNG"
-            const formatMatch = logoUrl.match(/data:image\/(.+?);/);
-            const imageFormat = formatMatch ? formatMatch[1].toUpperCase() : 'UNKNOWN';
+    if (!dataUri) {
+        fallbackHeader();
+        return;
+    }
 
-            if (imageFormat === 'UNKNOWN') {
-                throw new Error('Could not determine image format from data URI.');
-            }
+    try {
+        const img = new Image();
+        img.src = dataUri;
 
-            const img = new Image();
-            img.src = logoUrl;
+        await new Promise<void>((resolve, reject) => {
+            img.onload = () => resolve();
+            img.onerror = (err) => reject(err);
+        });
 
-            await new Promise<void>((resolve, reject) => {
-                img.onload = () => resolve();
-                img.onerror = (err) => reject(err);
-            });
+        const logoHeight = 40;
+        const logoWidth = (img.width * logoHeight) / img.height;
+        doc.addImage(img, pageMargin, pageMargin - 15, logoWidth, logoHeight);
 
-            const logoHeight = 40;
-            const logoWidth = (img.width * logoHeight) / img.height;
-            doc.addImage(logoUrl, imageFormat, pageMargin, pageMargin - 15, logoWidth, logoHeight);
-
-        } catch (error) {
-            console.error("Failed to load logo image from Data URI:", error);
-            fallbackHeader();
-        }
-    } else {
+    } catch (error) {
+        console.error("Failed to load logo image from Data URI:", error);
         fallbackHeader();
     }
 }
@@ -93,11 +85,36 @@ function addWatermark(doc: jsPDF) {
     }
 }
 
+async function urlToDataUri(url: string): Promise<string> {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
 async function generatePdf(fileName: string, title: string, removeWatermark: boolean, addContent: (doc: jsPDF) => void, logoUrl?: string) {
     const doc = new jsPDF('p', 'pt', 'a4');
     doc.setFont('helvetica');
 
-    await addHeader(doc, title, logoUrl);
+    let logoDataUri: string | undefined;
+    if (logoUrl) {
+        try {
+            if (logoUrl.startsWith('data:image/')) {
+                logoDataUri = logoUrl;
+            } else {
+                logoDataUri = await urlToDataUri(logoUrl);
+            }
+        } catch (error) {
+            console.error("Failed to convert logo URL to Data URI:", error);
+            // Proceed without logo
+        }
+    }
+
+    await addHeader(doc, title, logoDataUri);
     addContent(doc);
     if (!removeWatermark) {
         addWatermark(doc);
@@ -360,64 +377,61 @@ export async function generateReportPdf({ stats, revenueData, hoursData, user }:
   let y = pageMargin + 40;
   const fileName = `GigBillow-Report-${format(new Date(), 'yyyy-MM-dd')}`;
   
-  await addHeader(doc, 'Reports Summary', user.is_subscribed ? user.logoUrl : undefined);
-  
-  doc.setFontSize(10);
-  doc.setTextColor(...gray);
-  doc.text(`Report for: ${user.displayName || 'User'}`, pageMargin, y);
-  doc.text(`Generated on: ${format(new Date(), 'PPP')}`, doc.internal.pageSize.getWidth() - pageMargin, y, { align: 'right'});
-  y += 30;
+  await generatePdf(fileName, 'Reports Summary', false, (doc) => {
+    doc.setFontSize(10);
+    doc.setTextColor(...gray);
+    doc.text(`Report for: ${user.displayName || 'User'}`, pageMargin, y);
+    doc.text(`Generated on: ${format(new Date(), 'PPP')}`, doc.internal.pageSize.getWidth() - pageMargin, y, { align: 'right'});
+    y += 30;
 
-  // Key Metrics
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Key Metrics', pageMargin, y);
-  y+=10;
-   (doc as any).autoTable({
-    startY: y,
-    body: [
-        ['Outstanding Revenue', `$${stats.outstandingRevenue.toFixed(2)}`],
-        ['Income (Last 30d)', `$${stats.incomeLast30d.toFixed(2)}`],
-        ['Hours This Week', `${stats.hoursThisWeek.toFixed(1)}h`],
-        ['Expenses (This Month)', `$${stats.expensesThisMonth.toFixed(2)}`],
-    ],
-    theme: 'grid',
-    styles: { fontSize: 10 },
-    headStyles: { fillColor: primaryRgb },
-    columnStyles: { 0: { fontStyle: 'bold' } },
-  });
-  y = (doc as any).lastAutoTable.finalY + 30;
+    // Key Metrics
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Key Metrics', pageMargin, y);
+    y+=10;
+    (doc as any).autoTable({
+        startY: y,
+        body: [
+            ['Outstanding Revenue', `$${stats.outstandingRevenue.toFixed(2)}`],
+            ['Income (Last 30d)', `$${stats.incomeLast30d.toFixed(2)}`],
+            ['Hours This Week', `${stats.hoursThisWeek.toFixed(1)}h`],
+            ['Expenses (This Month)', `$${stats.expensesThisMonth.toFixed(2)}`],
+        ],
+        theme: 'grid',
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: primaryRgb },
+        columnStyles: { 0: { fontStyle: 'bold' } },
+    });
+    y = (doc as any).lastAutoTable.finalY + 30;
 
 
-  // Revenue Report
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Revenue Overview (Last 12 Months)', pageMargin, y);
-  y += 20;
-  (doc as any).autoTable({
-    startY: y,
-    head: [['Month', 'Total Revenue']],
-    body: revenueData.map(d => [d.name, `$${d.total.toFixed(2)}`]),
-    headStyles: { fillColor: primaryRgb },
-    styles: { fontSize: 10 },
-  });
-  y = (doc as any).lastAutoTable.finalY + 30;
+    // Revenue Report
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Revenue Overview (Last 12 Months)', pageMargin, y);
+    y += 20;
+    (doc as any).autoTable({
+        startY: y,
+        head: [['Month', 'Total Revenue']],
+        body: revenueData.map(d => [d.name, `$${d.total.toFixed(2)}`]),
+        headStyles: { fillColor: primaryRgb },
+        styles: { fontSize: 10 },
+    });
+    y = (doc as any).lastAutoTable.finalY + 30;
 
-  // Hours Report
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Hours by Project (This Month)', pageMargin, y);
-  y += 20;
-  (doc as any).autoTable({
-    startY: y,
-    head: [['Project', 'Hours Logged']],
-    body: hoursData.map(d => [d.name, `${d.value.toFixed(2)}h`]),
-    headStyles: { fillColor: primaryRgb },
-    styles: { fontSize: 10 },
-  });
-
-  addWatermark(doc);
-  doc.save(`${fileName}.pdf`);
+    // Hours Report
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Hours by Project (This Month)', pageMargin, y);
+    y += 20;
+    (doc as any).autoTable({
+        startY: y,
+        head: [['Project', 'Hours Logged']],
+        body: hoursData.map(d => [d.name, `${d.value.toFixed(2)}h`]),
+        headStyles: { fillColor: primaryRgb },
+        styles: { fontSize: 10 },
+    });
+  }, user.is_subscribed ? user.logoUrl : undefined);
 }
 
 // --- CSV EXPORT ---
