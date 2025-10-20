@@ -229,7 +229,7 @@ export default function LandingPage() {
                     {carouselImages.map((image, index) => (
                       <CarouselItem key={index}>
                         <Card className='border-none shadow-none'>
-                          <CardContent className="flex aspect-video md:aspect-[21/10] items-center justify-center p-0">
+                          <CardContent className="flex aspect-4/3 md:aspect-[21/10] items-center justify-center p-0">
                             <Image
                                 src={image.src}
                                 alt={`App Screenshot ${index + 1}`}
@@ -490,8 +490,8 @@ export default function LandingPage() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="absolute left-[-20px] sm:left-[-50px] top-1/2 -translate-y-1/2 fill-black" />
-                <CarouselNext className="absolute right-[-20px] sm:right-[-50px] top-1/2 -translate-y-1/2 fill-black" />
+                <CarouselPrevious className="absolute left-0 sm:left-[-50px] top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80" />
+                <CarouselNext className="absolute right-0 sm:right-[-50px] top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80" />
               </Carousel>
           </div>
         </section>
@@ -564,7 +564,7 @@ export default function LandingPage() {
         </section>
       </main>
       <footer className="w-full shrink-0 border-t">
-         <div className="container mx-auto flex flex-col sm:flex-row h-auto sm:h-16 items-center justify-between gap-4 py-4 sm:py-0 px-4 md:px-6">
+         <div className="container mx-auto flex flex-col sm:flex-row h-auto sm:h-16 items-center justify-between gap-4 py-4 px-4 md:px-6">
             <p className="text-xs text-muted-foreground text-center sm:text-left">&copy; {new Date().getFullYear()} GigBillow. All rights reserved.</p>
             <div className="text-xs text-muted-foreground">
               Made with ❤️ by <a href="https://owaisabdullah.dev/" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">Owais Abdullah</a>
@@ -582,6 +582,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
 
