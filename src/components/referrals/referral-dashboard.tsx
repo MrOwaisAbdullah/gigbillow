@@ -39,6 +39,8 @@ export function ReferralDashboard() {
   const { toast } = useToast();
   const [isGranting, setIsGranting] = useState(false);
   
+  const ADMIN_USER_ID = "R7Hkky6alfgBwiofMmCVHo8HtLI3";
+
   useEffect(() => {
     async function fetchData() {
       if (!user) {
@@ -137,7 +139,7 @@ export function ReferralDashboard() {
                 is_subscribed: true,
             });
         }
-        toast({ title: 'Success!', description: `Granted ${TOKENS_TO_ADD} tokens to the user.` });
+        toast({ title: 'Success!', description: `Granted ${TOKENS_TO_ADD} tokens to the test user.` });
     } catch (error) {
         console.error("Failed to grant package", error);
         toast({ variant: 'destructive', title: 'Grant Failed', description: 'Could not grant the package.' });
@@ -236,12 +238,16 @@ export function ReferralDashboard() {
                 <p className="text-sm text-muted-foreground">It will be automatically applied to your next invoice.</p>
             </div>
         )}
-        <div className="border-t pt-4">
-            <Button onClick={handleGrantPackage} disabled={isGranting}>
-                {isGranting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Grant Package to Test User
-            </Button>
-        </div>
+        
+        {user?.uid === ADMIN_USER_ID && (
+          <div className="border-t pt-4">
+              <Button onClick={handleGrantPackage} disabled={isGranting}>
+                  {isGranting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Grant Package to Test User
+              </Button>
+          </div>
+        )}
+
       </CardContent>
     </Card>
   );
