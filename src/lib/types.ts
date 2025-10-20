@@ -73,6 +73,7 @@ export type UserProfile = {
     photoURL: string;
     referral_code: string;
     logoUrl?: string;
+    is_subscribed: boolean;
 }
 
 export type Expense = {

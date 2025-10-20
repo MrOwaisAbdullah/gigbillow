@@ -56,6 +56,17 @@ export default function SettingsPage() {
     async function onProfileSubmit(values: z.infer<typeof profileSchema>) {
         setIsSubmitting(true);
         try {
+            const currentProfile = await getUserProfile();
+            if (values.logoUrl && !currentProfile?.is_subscribed) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Subscription Required',
+                    description: 'Adding a logo is a premium feature. Please purchase a token pack to enable it.',
+                });
+                setIsSubmitting(false);
+                return;
+            }
+
             await updateUserProfile({
                 displayName: values.displayName,
                 logoUrl: values.logoUrl,
@@ -82,7 +93,7 @@ export default function SettingsPage() {
         });
     };
 
-    if (!user) {
+    if (!user || !profile) {
         return (
             <div className="flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -177,9 +188,9 @@ export default function SettingsPage() {
                     <div className='flex items-center justify-between p-4 rounded-lg bg-muted/50'>
                         <div>
                             <p className='font-semibold'>Current Plan</p>
-                            <p className='text-sm text-muted-foreground'>Starter Monthly</p>
+                            <p className='text-sm text-muted-foreground'>{profile.is_subscribed ? 'Pro Plan' : 'Free Plan'}</p>
                         </div>
-                        <p className='font-bold text-lg'>$15/mo</p>
+                        <p className='font-bold text-lg'>{profile.is_subscribed ? '$15/mo' : '$0/mo'}</p>
                     </div>
                      <Button onClick={() => handleAction('Billing portal')}>Manage Subscription</Button>
                 </CardContent>

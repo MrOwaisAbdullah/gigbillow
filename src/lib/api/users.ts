@@ -24,10 +24,18 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     return null;
 }
 
-export async function updateUserProfile(data: Partial<UserProfile>): Promise<void> {
+export async function updateUserProfile(data: Partial<Omit<UserProfile, 'is_subscribed'>>): Promise<void> {
     const docRef = getDocRef();
     if (!docRef) {
         throw new Error('User not authenticated');
     }
     await updateDoc(docRef, data);
+}
+
+export async function updateUserSubscriptionStatus(is_subscribed: boolean): Promise<void> {
+    const docRef = getDocRef();
+    if (!docRef) {
+        throw new Error('User not authenticated');
+    }
+    await updateDoc(docRef, { is_subscribed });
 }

@@ -42,6 +42,7 @@ async function initializeUser(user: User) {
             email: user.email,
             photoURL: user.photoURL,
             referral_code: referralCode,
+            is_subscribed: false,
         });
 
         await setDoc(tokenRef, {
@@ -67,6 +68,11 @@ async function initializeUser(user: User) {
         // Backfill referral code if missing
         if (!userData.referral_code) {
             updates.referral_code = generateReferralCode(6);
+        }
+        
+        // Backfill subscription status if missing
+        if (userData.is_subscribed === undefined) {
+            updates.is_subscribed = false;
         }
 
         // Sync latest profile info from auth provider

@@ -28,6 +28,11 @@
           "type": "string",
           "format": "uri",
           "description": "URL of the user's company or personal logo."
+        },
+        "is_subscribed": {
+          "type": "boolean",
+          "description": "Whether the user has an active subscription or purchased a token pack.",
+          "default": false
         }
       }
     },

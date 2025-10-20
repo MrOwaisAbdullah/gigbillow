@@ -101,7 +101,7 @@ async function generatePdf(fileName: string, title: string, removeWatermark: boo
 type GenerateInvoicePdfProps = {
     invoice: Invoice;
     client: Client;
-    user: Partial<UserProfile>;
+    user: UserProfile;
     removeWatermark?: boolean;
 };
 
@@ -283,14 +283,14 @@ export async function generateInvoicePdf({ invoice, client, user, removeWatermar
         }
     };
     
-    await generatePdf(invoice.invoiceNumber, 'INVOICE', removeWatermark, addContent, user.logoUrl);
+    await generatePdf(invoice.invoiceNumber, 'INVOICE', removeWatermark, addContent, user.is_subscribed ? user.logoUrl : undefined);
 }
 
 // --- PROPOSAL PDF ---
 type GenerateProposalPdfProps = {
     proposalText: string;
     clientName?: string;
-    user: Partial<UserProfile>;
+    user: UserProfile;
     removeWatermark?: boolean;
 };
 
@@ -317,7 +317,7 @@ export async function generateProposalPdf({ proposalText, clientName, user, remo
         textLines.forEach((line: string) => {
             if (y > doc.internal.pageSize.getHeight() - pageMargin - 40) {
                 doc.addPage();
-                addHeader(doc, 'Project Proposal', user.logoUrl);
+                addHeader(doc, 'Project Proposal', user.is_subscribed ? user.logoUrl : undefined);
                 y = pageMargin + 40;
             }
             doc.text(line, pageMargin, y);
@@ -329,7 +329,7 @@ export async function generateProposalPdf({ proposalText, clientName, user, remo
         });
     };
     const fileName = `Project-Proposal-${format(new Date(), 'yyyy-MM-dd')}`;
-    await generatePdf(fileName, 'Project Proposal', removeWatermark, addContent, user.logoUrl);
+    await generatePdf(fileName, 'Project Proposal', removeWatermark, addContent, user.is_subscribed ? user.logoUrl : undefined);
 }
 
 // --- REPORT PDF ---
@@ -343,7 +343,7 @@ type ReportData = {
   stats: ReportStats;
   revenueData: { name: string; total: number }[];
   hoursData: { name: string; value: number }[];
-  user: Partial<UserProfile>;
+  user: UserProfile;
 };
 
 export async function generateReportPdf({ stats, revenueData, hoursData, user }: ReportData) {
@@ -351,7 +351,7 @@ export async function generateReportPdf({ stats, revenueData, hoursData, user }:
   let y = pageMargin + 40;
   const fileName = `GigBillow-Report-${format(new Date(), 'yyyy-MM-dd')}`;
   
-  await addHeader(doc, 'Reports Summary', user.logoUrl);
+  await addHeader(doc, 'Reports Summary', user.is_subscribed ? user.logoUrl : undefined);
   
   doc.setFontSize(10);
   doc.setTextColor(...gray);

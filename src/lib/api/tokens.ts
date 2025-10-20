@@ -6,7 +6,8 @@ import { getAuth, type User } from 'firebase/auth';
 import { doc, getDoc, updateDoc, increment, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import type { UserToken } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
-import { differenceInDays, isAfter } from 'date-fns';
+import { isAfter } from 'date-fns';
+import { updateUserSubscriptionStatus } from './users';
 
 
 export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boolean, wasRefilled: boolean }> {
@@ -24,7 +25,13 @@ export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boo
   } 
   
   const tokenData = tokenSnap.data() as UserToken;
-  const lastRefill = (tokenData.last_refill_at as Timestamp).toDate();
+  const lastRefill = (tokenData.last_refill_at as Timestamp)?.toDate();
+
+  if (!lastRefill) {
+     await updateDoc(tokenRef, { last_refill_at: serverTimestamp() });
+     return { isNewUser: false, wasRefilled: false };
+  }
+
   const nextRefillDate = new Date(lastRefill.getTime());
   nextRefillDate.setDate(nextRefillDate.getDate() + 30);
 
@@ -134,7 +141,6 @@ export async function addTokens(amount: number): Promise<{ success: boolean, new
     if (tokenSnap.exists()) {
         await updateDoc(tokenRef, {
             balance: increment(amount),
-            // Simulate upgrading to a subscription plan by setting these fields
             is_subscribed: true,
             rollover_limit: 150,
         });
@@ -146,6 +152,9 @@ export async function addTokens(amount: number): Promise<{ success: boolean, new
             is_subscribed: true,
         });
     }
+
+    // Also update the main user profile to reflect subscription status
+    await updateUserSubscriptionStatus(true);
 
 
     const updatedSnap = await getDoc(tokenRef);
