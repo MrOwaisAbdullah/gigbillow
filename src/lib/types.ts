@@ -1,5 +1,6 @@
 
 
+
 export type Client = {
   id: string;
   name: string;
@@ -85,4 +86,12 @@ export type Expense = {
   category: 'Travel' | 'Software' | 'Office Supplies' | 'Marketing' | 'Meals' | 'Utilities' | 'Other';
   includeOnInvoice: boolean;
   invoiceId: string | null;
+};
+
+export type Feedback = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  feedbackText: string;
+  createdAt: Date;
 };

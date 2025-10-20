@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Loader2, MessageSquareHeart } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
+import { createFeedback } from '@/lib/api/feedback';
 
 const formSchema = z.object({
   feedback: z.string().min(10, 'Feedback must be at least 10 characters.'),
@@ -37,25 +38,39 @@ export default function FeedbackPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) {
+        toast({
+            variant: 'destructive',
+            title: 'Authentication Error',
+            description: 'You must be logged in to submit feedback.',
+        });
+        return;
+    }
+
     setIsSubmitting(true);
     
-    // In a real app, you would send this to a backend service.
-    // For this demo, we'll just log it to the console.
-    console.log('--- User Feedback Received ---');
-    console.log('User:', user?.email);
-    console.log('Feedback:', values.feedback);
-    console.log('-----------------------------');
+    try {
+        await createFeedback({
+            userId: user.uid,
+            userEmail: user.email || 'unknown',
+            feedbackText: values.feedback,
+        });
 
-    // Simulate an API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: 'Feedback Sent!',
-      description: "Thank you for helping us improve GigBillow. We've received your feedback.",
-    });
+        toast({
+            title: 'Feedback Sent!',
+            description: "Thank you for helping us improve GigBillow. We've received your feedback.",
+        });
+        form.reset();
 
-    form.reset();
-    setIsSubmitting(false);
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Submission Failed',
+            description: 'Could not send your feedback. Please try again later.',
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   return (
