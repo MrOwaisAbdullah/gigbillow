@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import { getExpenses } from "@/lib/api/expenses"
 import { useToast } from "@/hooks/use-toast"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import type { Expense, Project } from "@/lib/types"
 import { format } from "date-fns"
 import { Skeleton } from "../ui/skeleton"
@@ -31,9 +31,10 @@ import { Badge } from "../ui/badge";
 
 type ExpensesTableProps = {
   allProjects: Project[];
+  searchTerm: string;
 }
 
-export function ExpensesTable({ allProjects }: ExpensesTableProps) {
+export function ExpensesTable({ allProjects, searchTerm }: ExpensesTableProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,14 +46,23 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
 
   const fetchInitialExpenses = useCallback(async () => {
     setLoading(true);
-    const { expenses: expensesData, next, prev } = await getExpenses('first', null, 10);
+    const isSearching = searchTerm.trim() !== '';
+    const pageSize = isSearching ? 100 : 10;
+    
+    const { expenses: expensesData, next, prev } = await getExpenses('first', null, pageSize);
     setExpenses(expensesData);
-    setHasNextPage(!!next);
-    setLastVisible(next);
-    setFirstVisible(prev);
-    setCurrentPage(1);
+    
+    if(!isSearching) {
+        setHasNextPage(!!next);
+        setLastVisible(next);
+        setFirstVisible(prev);
+        setCurrentPage(1);
+    } else {
+        setHasNextPage(false);
+        setCurrentPage(1);
+    }
     setLoading(false);
-  }, []);
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchInitialExpenses();
@@ -82,6 +92,19 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
     setLoading(false);
   }
 
+  const filteredExpenses = useMemo(() => {
+    if (!searchTerm) return expenses;
+    const lowercasedFilter = searchTerm.toLowerCase();
+    return expenses.filter(expense => {
+      const project = allProjects.find(p => p.id === expense.projectId);
+      return (
+        expense.description.toLowerCase().includes(lowercasedFilter) ||
+        expense.category.toLowerCase().includes(lowercasedFilter) ||
+        String(expense.amount).includes(lowercasedFilter) ||
+        (project && project.name.toLowerCase().includes(lowercasedFilter))
+      );
+    });
+  }, [searchTerm, expenses, allProjects]);
 
   const handleSuccess = () => {
     fetchInitialExpenses();
@@ -151,8 +174,8 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
                   <TableCell><div className="flex justify-end"><Skeleton className="h-8 w-8" /></div></TableCell>
                 </TableRow>
               ))
-            ) : expenses.length > 0 ? (
-              expenses.map((expense) => {
+            ) : filteredExpenses.length > 0 ? (
+              filteredExpenses.map((expense) => {
                 const project = allProjects.find(p => p.id === expense.projectId);
                 return (
                   <TableRow key={expense.id}>
@@ -197,13 +220,15 @@ export function ExpensesTable({ allProjects }: ExpensesTableProps) {
           </TableBody>
         </Table>
       </div>
-      <PaginationControls
-        onNext={fetchNextPage}
-        onPrev={fetchPrevPage}
-        hasNextPage={hasNextPage}
-        hasPrevPage={currentPage > 1}
-        currentPage={currentPage}
-      />
+       {!searchTerm && (
+         <PaginationControls
+            onNext={fetchNextPage}
+            onPrev={fetchPrevPage}
+            hasNextPage={hasNextPage}
+            hasPrevPage={currentPage > 1}
+            currentPage={currentPage}
+          />
+       )}
       <ExpenseDialog
         projects={allProjects}
         expense={selectedExpense || undefined}

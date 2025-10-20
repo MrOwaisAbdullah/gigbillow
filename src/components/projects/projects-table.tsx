@@ -22,7 +22,7 @@ import { MoreHorizontal } from "lucide-react"
 import { getProjects, deleteProject } from "@/lib/api/projects"
 import { getClientById } from "@/lib/api/clients"
 import { useToast } from "@/hooks/use-toast"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import type { Project, Client } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
 import type { DocumentSnapshot } from "firebase/firestore"
@@ -34,7 +34,11 @@ const statusVariantMap: { [key in 'active' | 'completed' | 'on_hold']: 'default'
   on_hold: 'outline',
 }
 
-export function ProjectsTable() {
+type ProjectsTableProps = {
+    searchTerm: string;
+}
+
+export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [clients, setClients] = useState<{[key: string]: Client}>({});
   const [loading, setLoading] = useState(true);
@@ -45,6 +49,9 @@ export function ProjectsTable() {
 
   const fetchProjects = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
+    const isSearching = searchTerm.trim() !== '';
+    const pageSize = isSearching ? 100 : 10;
+    
     let cursor: DocumentSnapshot | null = null;
     if (page === 'next') {
         cursor = cursors[currentPage] || null;
@@ -52,7 +59,7 @@ export function ProjectsTable() {
         cursor = cursors[currentPage - 2] || null;
     }
 
-    const { projects: projectsData, next } = await getProjects(page, cursor, 10);
+    const { projects: projectsData, next } = await getProjects(page, cursor, pageSize);
     setProjects(projectsData);
 
     if(projectsData.length > 0) {
@@ -68,25 +75,42 @@ export function ProjectsTable() {
         }
     }
 
-    if (page === 'next') {
-        if (!cursors.includes(next)) {
-            setCursors(c => [...c, next]);
+    if (!isSearching) {
+        if (page === 'next') {
+            if (!cursors.includes(next)) {
+                setCursors(c => [...c, next]);
+            }
+            setCurrentPage(p => p + 1);
+        } else if (page === 'prev') {
+            setCurrentPage(p => Math.max(1, p - 1));
+        } else { // first
+            setCursors([null, next]);
+            setCurrentPage(1);
         }
-        setCurrentPage(p => p + 1);
-    } else if (page === 'prev') {
-        setCurrentPage(p => Math.max(1, p - 1));
-    } else { // first
-        setCursors([null, next]);
+        setHasNextPage(!!next);
+    } else {
+        setHasNextPage(false);
         setCurrentPage(1);
     }
-    setHasNextPage(!!next);
     setLoading(false);
-  }, [currentPage, cursors, clients]);
+  }, [currentPage, cursors, clients, searchTerm]);
 
   useEffect(() => {
     fetchProjects('first');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
+
+  const filteredProjects = useMemo(() => {
+    if (!searchTerm) return projects;
+    const lowercasedFilter = searchTerm.toLowerCase();
+    return projects.filter(project => {
+      const client = clients[project.clientId];
+      return (
+        project.name.toLowerCase().includes(lowercasedFilter) ||
+        (client && client.name.toLowerCase().includes(lowercasedFilter))
+      );
+    });
+  }, [searchTerm, projects, clients]);
 
   const handleDelete = async (id: string) => {
     const projectToDelete = projects.find(p => p.id === id);
@@ -170,8 +194,8 @@ export function ProjectsTable() {
                         </TableCell>
                     </TableRow>
                 ))
-            ) : projects.length > 0 ? (
-                projects.map((project) => {
+            ) : filteredProjects.length > 0 ? (
+                filteredProjects.map((project) => {
                     const client = clients[project.clientId];
                     return (
                     <TableRow key={project.id}>
@@ -210,13 +234,15 @@ export function ProjectsTable() {
         </TableBody>
       </Table>
     </div>
-    <PaginationControls
-        onNext={() => fetchProjects('next')}
-        onPrev={() => fetchProjects('prev')}
-        hasNextPage={hasNextPage}
-        hasPrevPage={currentPage > 1}
-        currentPage={currentPage}
-      />
+    {!searchTerm && (
+        <PaginationControls
+            onNext={() => fetchProjects('next')}
+            onPrev={() => fetchProjects('prev')}
+            hasNextPage={hasNextPage}
+            hasPrevPage={currentPage > 1}
+            currentPage={currentPage}
+        />
+    )}
     </>
   )
 }

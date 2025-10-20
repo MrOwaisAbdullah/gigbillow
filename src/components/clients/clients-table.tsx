@@ -21,13 +21,17 @@ import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import { getClients, deleteClient } from "@/lib/api/clients"
 import { useToast } from "@/hooks/use-toast"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import type { Client } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
 import type { DocumentSnapshot } from "firebase/firestore"
 import { PaginationControls } from "../pagination-controls"
 
-export function ClientsTable() {
+type ClientsTableProps = {
+    searchTerm: string;
+}
+
+export function ClientsTable({ searchTerm }: ClientsTableProps) {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,6 +42,9 @@ export function ClientsTable() {
   const fetchClients = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
     
+    const isSearching = searchTerm.trim() !== '';
+    const pageSize = isSearching ? 100 : 10;
+    
     let cursor: DocumentSnapshot | null = null;
     if (page === 'next') {
         cursor = cursors[currentPage] || null;
@@ -45,28 +52,44 @@ export function ClientsTable() {
         cursor = cursors[currentPage - 2] || null;
     }
 
-    const { clients: clientsData, next } = await getClients(page, cursor, 10);
+    const { clients: clientsData, next } = await getClients(page, cursor, pageSize);
     setClients(clientsData);
 
-    if (page === 'next') {
-        if (!cursors.includes(next)) {
-            setCursors(c => [...c, next]);
+    if (!isSearching) {
+        if (page === 'next') {
+            if (!cursors.includes(next)) {
+                setCursors(c => [...c, next]);
+            }
+            setCurrentPage(p => p + 1);
+        } else if (page === 'prev') {
+            setCurrentPage(p => Math.max(1, p - 1));
+        } else { // first
+            setCursors([null, next]);
+            setCurrentPage(1);
         }
-        setCurrentPage(p => p + 1);
-    } else if (page === 'prev') {
-        setCurrentPage(p => Math.max(1, p - 1));
-    } else { // first
-        setCursors([null, next]);
+        setHasNextPage(!!next);
+    } else {
+        setHasNextPage(false);
         setCurrentPage(1);
     }
-    setHasNextPage(!!next);
     setLoading(false);
-  }, [currentPage, cursors]);
+  }, [currentPage, cursors, searchTerm]);
 
   useEffect(() => {
     fetchClients('first');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
+
+  const filteredClients = useMemo(() => {
+    if (!searchTerm) return clients;
+    const lowercasedFilter = searchTerm.toLowerCase();
+    return clients.filter(client => {
+      return (
+        client.name.toLowerCase().includes(lowercasedFilter) ||
+        client.email.toLowerCase().includes(lowercasedFilter)
+      );
+    });
+  }, [searchTerm, clients]);
 
   const handleDelete = async (id: string, name: string) => {
     try {
@@ -148,8 +171,8 @@ export function ClientsTable() {
                   </TableCell>
               </TableRow>
           ))
-          ) : clients.length > 0 ? (
-            clients.map((client) => (
+          ) : filteredClients.length > 0 ? (
+            filteredClients.map((client) => (
               <TableRow key={client.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
@@ -188,13 +211,15 @@ export function ClientsTable() {
         </TableBody>
       </Table>
     </div>
-     <PaginationControls
-        onNext={() => fetchClients('next')}
-        onPrev={() => fetchClients('prev')}
-        hasNextPage={hasNextPage}
-        hasPrevPage={currentPage > 1}
-        currentPage={currentPage}
-      />
+     {!searchTerm && (
+        <PaginationControls
+            onNext={() => fetchClients('next')}
+            onPrev={() => fetchClients('prev')}
+            hasNextPage={hasNextPage}
+            hasPrevPage={currentPage > 1}
+            currentPage={currentPage}
+        />
+     )}
     </>
   )
 }
