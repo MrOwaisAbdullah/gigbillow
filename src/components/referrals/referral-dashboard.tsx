@@ -1,13 +1,12 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Copy } from 'lucide-react';
+import { Copy, Loader2 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth/auth-provider';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { UserProfile, Referral } from '@/lib/types';
 import { getReferrals } from '@/lib/api/referrals';
@@ -38,6 +37,7 @@ export function ReferralDashboard() {
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [isGranting, setIsGranting] = useState(false);
   
   useEffect(() => {
     async function fetchData() {
@@ -111,6 +111,41 @@ export function ReferralDashboard() {
     toast({ title: 'Referral link copied!' });
   };
   
+  const handleGrantPackage = async () => {
+    setIsGranting(true);
+    const USER_ID_TO_GRANT = 'R7Hkky6alfgBwiofMmCVHo8HtLI3';
+    const TOKENS_TO_ADD = 200;
+    const NEW_ROLLOVER_LIMIT = 150;
+
+    const userRef = doc(db, 'users', USER_ID_TO_GRANT);
+    const tokenRef = doc(db, 'user_tokens', USER_ID_TO_GRANT);
+    try {
+        await updateDoc(userRef, { is_subscribed: true });
+        
+        const tokenSnap = await getDoc(tokenRef);
+        if (tokenSnap.exists()) {
+            await updateDoc(tokenRef, {
+                balance: increment(TOKENS_TO_ADD),
+                is_subscribed: true,
+                rollover_limit: NEW_ROLLOVER_LIMIT,
+            });
+        } else {
+            await setDoc(tokenRef, {
+                balance: TOKENS_TO_ADD,
+                last_refill_at: serverTimestamp(),
+                rollover_limit: NEW_ROLLOVER_LIMIT,
+                is_subscribed: true,
+            });
+        }
+        toast({ title: 'Success!', description: `Granted ${TOKENS_TO_ADD} tokens to the user.` });
+    } catch (error) {
+        console.error("Failed to grant package", error);
+        toast({ variant: 'destructive', title: 'Grant Failed', description: 'Could not grant the package.' });
+    } finally {
+        setIsGranting(false);
+    }
+  }
+
   if (loading) {
       return (
           <Card>
@@ -201,6 +236,12 @@ export function ReferralDashboard() {
                 <p className="text-sm text-muted-foreground">It will be automatically applied to your next invoice.</p>
             </div>
         )}
+        <div className="border-t pt-4">
+            <Button onClick={handleGrantPackage} disabled={isGranting}>
+                {isGranting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Grant Package to Test User
+            </Button>
+        </div>
       </CardContent>
     </Card>
   );
