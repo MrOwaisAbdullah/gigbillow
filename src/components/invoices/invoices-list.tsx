@@ -47,7 +47,7 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
   const [data, setData] = useState<{ [key: string]: Client | Project }>({});
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [cursors, setCursors] = useState<(DocumentSnapshot | null)[]>([null]);
+  const [pageCursors, setPageCursors] = useState<(DocumentSnapshot | null)[]>([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
@@ -57,18 +57,21 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
     setLoading(true);
     let cursor: DocumentSnapshot | null = null;
     
-    // For search, we fetch a larger initial set. Pagination is disabled during search.
     const isSearching = searchTerm.trim() !== '';
     const pageSize = isSearching ? 100 : 10;
+    let pageToGo = 1;
 
     if (page === 'next') {
-        cursor = cursors[currentPage] || null;
+        cursor = pageCursors[currentPage] || null;
+        pageToGo = currentPage + 1;
     } else if (page === 'prev') {
-        cursor = cursors[currentPage - 2] || null;
+        cursor = pageCursors[currentPage - 2] || null;
+        pageToGo = currentPage - 1;
     }
 
-    const { invoices: invoicesData, next } = await getInvoices(page, cursor, pageSize);
+    const { invoices: invoicesData, nextCursor, hasNextPage: newHasNextPage } = await getInvoices('next', cursor, pageSize);
     setInvoices(invoicesData);
+    setHasNextPage(newHasNextPage);
 
     if (invoicesData.length > 0) {
         const clientIds = [...new Set(invoicesData.map(inv => inv.clientId))].filter(id => !data[id]);
@@ -93,24 +96,26 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
     }
 
     if (!isSearching) {
-        if (page === 'next') {
-            if (!cursors.includes(next)) {
-                setCursors(prev => [...prev, next]);
-            }
-            setCurrentPage(prevPage => prevPage + 1);
+       if (page === 'next') {
+            setPageCursors(prev => {
+                const newCursors = [...prev];
+                newCursors[pageToGo] = nextCursor;
+                return newCursors;
+            });
+            setCurrentPage(pageToGo);
         } else if (page === 'prev') {
-            setCurrentPage(prevPage => Math.max(1, prevPage - 1));
+            setCurrentPage(pageToGo);
         } else { // first
-            setCursors([null, next]);
+            setPageCursors([null, nextCursor]);
             setCurrentPage(1);
         }
-        setHasNextPage(!!next);
     } else {
         setHasNextPage(false);
         setCurrentPage(1);
+        setPageCursors([null]);
     }
     setLoading(false);
-  }, [cursors, currentPage, data, searchTerm]);
+  }, [pageCursors, currentPage, data, searchTerm]);
 
   useEffect(() => {
     fetchInvoices('first');

@@ -19,7 +19,6 @@ import {
   DocumentSnapshot,
   getDoc,
   writeBatch,
-  endBefore,
 } from 'firebase/firestore';
 import type { Expense } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
@@ -45,21 +44,17 @@ export async function getExpenses(
     page: 'first' | 'next' | 'prev' = 'first',
     cursor: DocumentSnapshot | null = null,
     pageSize: number = 10
-): Promise<{ expenses: Expense[], hasNextPage: boolean }> {
+): Promise<{ expenses: Expense[], nextCursor: DocumentSnapshot | null, hasNextPage: boolean }> {
     const collectionPath = getCollectionPath();
-    if (!collectionPath) return { expenses: [], hasNextPage: false };
+    if (!collectionPath) return { expenses: [], nextCursor: null, hasNextPage: false };
 
     const coll = collection(db, collectionPath);
+    const queryLimit = pageSize + 1; 
     let q;
     
-    // We fetch one more than the page size to check if there is a next page
-    const queryLimit = pageSize + 1; 
-
-    if (page === 'first') {
-        q = query(coll, orderBy('date', 'desc'), limit(queryLimit));
-    } else if (page === 'next' && cursor) {
+    if (page === 'next' && cursor) {
         q = query(coll, orderBy('date', 'desc'), startAfter(cursor), limit(queryLimit));
-    } else { // 'prev' is not needed with this new logic, but we keep the structure.
+    } else {
         q = query(coll, orderBy('date', 'desc'), limit(queryLimit));
     }
 
@@ -75,10 +70,10 @@ export async function getExpenses(
     const docs = querySnapshot.docs;
     const hasNextPage = docs.length > pageSize;
     
-    // Slice the array to only include the items for the current page
     const expenses = docs.slice(0, pageSize).map(docToExpense);
+    const lastVisible = docs.length > 0 ? docs[docs.length - (hasNextPage ? 2 : 1)] : null;
 
-    return { expenses, hasNextPage };
+    return { expenses, nextCursor: lastVisible, hasNextPage };
 }
 
 

@@ -1,6 +1,6 @@
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, limit, startAfter, endBefore, DocumentSnapshot, endBeforeLimit } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, limit, startAfter, DocumentSnapshot } from 'firebase/firestore';
 import type { Client } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
@@ -14,37 +14,39 @@ export async function getClients(
     page: 'first' | 'next' | 'prev' = 'first',
     cursor: DocumentSnapshot | null = null,
     pageSize: number = 10
-): Promise<{ clients: Client[], next: DocumentSnapshot | null, prev: DocumentSnapshot | null }> {
+): Promise<{ clients: Client[], nextCursor: DocumentSnapshot | null, hasNextPage: boolean }> {
   const collectionPath = getCollectionPath();
-  if (!collectionPath) return { clients: [], next: null, prev: null };
+  if (!collectionPath) return { clients: [], nextCursor: null, hasNextPage: false };
   try {
     const coll = collection(db, collectionPath);
+    const queryLimit = pageSize + 1;
     let q;
 
-    if (page === 'first') {
-        q = query(coll, orderBy('name'), limit(pageSize));
-    } else if (page === 'next' && cursor) {
-        q = query(coll, orderBy('name'), startAfter(cursor), limit(pageSize));
-    } else if (page === 'prev' && cursor) {
-        q = query(coll, orderBy('name'), endBefore(cursor), limit(pageSize));
-    } else {
-        q = query(coll, orderBy('name'), limit(pageSize));
+    if (page === 'next' && cursor) {
+        q = query(coll, orderBy('name'), startAfter(cursor), limit(queryLimit));
+    } else { // Works for 'first' and 'prev' logic will be handled by cursors in component
+        q = query(coll, orderBy('name'), limit(queryLimit));
     }
     
     const querySnapshot = await getDocs(q);
-    const clients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
+    const docs = querySnapshot.docs;
+    const hasNextPage = docs.length > pageSize;
     
-    const firstVisible = querySnapshot.docs[0];
-    const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+    const clients = docs.slice(0, pageSize).map(doc => ({ id: doc.id, ...doc.data() } as Client));
+    const nextCursor = hasNextPage ? docs[docs.length - 2] : null; // The second to last doc is the cursor for the next page
+    
+    // In this model, nextCursor for the *current* page's last item is what we need for the *next* "startAfter"
+    const lastVisible = docs.length > 0 ? docs[docs.length - (hasNextPage ? 2 : 1)] : null;
+
 
     return { 
-        clients, 
-        next: lastVisible,
-        prev: firstVisible,
+        clients,
+        nextCursor: lastVisible,
+        hasNextPage,
      };
   } catch (error) {
     console.error("Error fetching clients:", error);
-    return { clients: [], next: null, prev: null };
+    return { clients: [], nextCursor: null, hasNextPage: false };
   }
 }
 

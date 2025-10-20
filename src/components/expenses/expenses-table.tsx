@@ -49,28 +49,32 @@ export function ExpensesTable({ allProjects, searchTerm }: ExpensesTableProps) {
     const pageSize = isSearching ? 100 : 10;
     
     let cursor: DocumentSnapshot | null = null;
-    if (page === 'next' && pageCursors.length > currentPage) {
-        cursor = pageCursors[currentPage];
-    } else if (page === 'prev' && currentPage > 1) {
-        cursor = pageCursors[currentPage - 2];
+    let pageToGo = 1;
+    
+    if (page === 'next') {
+        cursor = pageCursors[currentPage] || null;
+        pageToGo = currentPage + 1;
+    } else if (page === 'prev') {
+        cursor = pageCursors[currentPage - 2] || null;
+        pageToGo = currentPage - 1;
     }
     
-    const { expenses: expensesData, hasNextPage: newHasNextPage } = await getExpenses(page, cursor, pageSize);
+    const { expenses: expensesData, nextCursor, hasNextPage: newHasNextPage } = await getExpenses('next', cursor, pageSize);
     setExpenses(expensesData);
+    setHasNextPage(newHasNextPage);
     
     if(!isSearching) {
-        setHasNextPage(newHasNextPage);
         if (page === 'next') {
-            const lastDoc = expensesData.length > 0 ? (await getDoc(doc(db, getCollectionPath()!, expensesData[expensesData.length-1].id))) : null;
-            if (lastDoc && !pageCursors.some(c => c?.id === lastDoc.id)) {
-                setPageCursors(prev => [...prev, lastDoc]);
-            }
-            setCurrentPage(p => p + 1);
+            setPageCursors(prev => {
+                const newCursors = [...prev];
+                newCursors[pageToGo] = nextCursor;
+                return newCursors;
+            });
+            setCurrentPage(pageToGo);
         } else if (page === 'prev') {
-            setCurrentPage(p => Math.max(1, p - 1));
+            setCurrentPage(pageToGo);
         } else { // first
-            const lastDoc = expensesData.length > 0 ? (await getDoc(doc(db, getCollectionPath()!, expensesData[expensesData.length-1].id))) : null;
-            setPageCursors([null, lastDoc]);
+            setPageCursors([null, nextCursor]);
             setCurrentPage(1);
         }
     } else {

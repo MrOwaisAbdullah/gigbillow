@@ -18,21 +18,18 @@ export async function getProjects(
     page: 'first' | 'next' | 'prev' = 'first',
     cursor: DocumentSnapshot | null = null,
     pageSize: number = 10
-): Promise<{ projects: Project[], next: DocumentSnapshot | null, prev: DocumentSnapshot | null }> {
+): Promise<{ projects: Project[], nextCursor: DocumentSnapshot | null, hasNextPage: boolean }> {
   const collectionPath = getCollectionPath();
-  if (!collectionPath) return { projects: [], next: null, prev: null };
+  if (!collectionPath) return { projects: [], nextCursor: null, hasNextPage: false };
   
     const coll = collection(db, collectionPath);
+    const queryLimit = pageSize + 1;
     let q;
 
-    if (page === 'first') {
-        q = query(coll, orderBy('name'), limit(pageSize));
-    } else if (page === 'next' && cursor) {
-        q = query(coll, orderBy('name'), startAfter(cursor), limit(pageSize));
-    } else if (page === 'prev' && cursor) {
-        q = query(coll, orderBy('name'), endBefore(cursor), limit(pageSize));
+    if (page === 'next' && cursor) {
+        q = query(coll, orderBy('name'), startAfter(cursor), limit(queryLimit));
     } else {
-        q = query(coll, orderBy('name'), limit(pageSize));
+        q = query(coll, orderBy('name'), limit(queryLimit));
     }
     
     const querySnapshot = await getDocs(q).catch((serverError) => {
@@ -44,15 +41,16 @@ export async function getProjects(
         throw permissionError;
     });
 
-    const projects = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
-    
-    const firstVisible = querySnapshot.docs[0];
-    const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+    const docs = querySnapshot.docs;
+    const hasNextPage = docs.length > pageSize;
+
+    const projects = docs.slice(0, pageSize).map(doc => ({ id: doc.id, ...doc.data() } as Project));
+    const lastVisible = docs.length > 0 ? docs[docs.length - (hasNextPage ? 2 : 1)] : null;
     
     return { 
         projects, 
-        next: lastVisible,
-        prev: firstVisible
+        nextCursor: lastVisible,
+        hasNextPage
     };
 }
 

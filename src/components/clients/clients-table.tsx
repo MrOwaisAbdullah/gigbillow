@@ -35,7 +35,7 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [cursors, setCursors] = useState<(DocumentSnapshot | null)[]>([null]);
+  const [pageCursors, setPageCursors] = useState<(DocumentSnapshot | null)[]>([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
 
@@ -46,34 +46,41 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
     const pageSize = isSearching ? 100 : 10;
     
     let cursor: DocumentSnapshot | null = null;
+    let pageToGo = 1;
+
     if (page === 'next') {
-        cursor = cursors[currentPage] || null;
+        cursor = pageCursors[currentPage] || null;
+        pageToGo = currentPage + 1;
     } else if (page === 'prev') {
-        cursor = cursors[currentPage - 2] || null;
+        cursor = pageCursors[currentPage - 2] || null;
+        pageToGo = currentPage - 1;
     }
 
-    const { clients: clientsData, next } = await getClients(page, cursor, pageSize);
+    const { clients: clientsData, nextCursor, hasNextPage: newHasNextPage } = await getClients('next', cursor, pageSize);
     setClients(clientsData);
+    setHasNextPage(newHasNextPage);
 
     if (!isSearching) {
-        if (page === 'next') {
-            if (!cursors.includes(next)) {
-                setCursors(c => [...c, next]);
-            }
-            setCurrentPage(p => p + 1);
+       if (page === 'next') {
+            setPageCursors(prev => {
+                const newCursors = [...prev];
+                newCursors[pageToGo] = nextCursor;
+                return newCursors;
+            });
+            setCurrentPage(pageToGo);
         } else if (page === 'prev') {
-            setCurrentPage(p => Math.max(1, p - 1));
+            setCurrentPage(pageToGo);
         } else { // first
-            setCursors([null, next]);
+            setPageCursors([null, nextCursor]);
             setCurrentPage(1);
         }
-        setHasNextPage(!!next);
     } else {
-        setHasNextPage(false);
         setCurrentPage(1);
+        setPageCursors([null]);
     }
+
     setLoading(false);
-  }, [currentPage, cursors, searchTerm]);
+  }, [currentPage, pageCursors, searchTerm]);
 
   useEffect(() => {
     fetchClients('first');

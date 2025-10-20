@@ -1,6 +1,6 @@
 import { db } from '@/lib/firebase';
 import { getAuth } from 'firebase/auth';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, Timestamp, limit, startAfter, DocumentSnapshot, endBefore } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, Timestamp, limit, startAfter, DocumentSnapshot } from 'firebase/firestore';
 import type { Invoice, Client, Project, UserProfile } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
@@ -19,26 +19,26 @@ export async function getInvoices(
     page: 'first' | 'next' | 'prev' = 'first',
     cursor: DocumentSnapshot | null = null,
     pageSize: number = 10
-): Promise<{ invoices: Invoice[], next: DocumentSnapshot | null, prev: DocumentSnapshot | null }> {
+): Promise<{ invoices: Invoice[], nextCursor: DocumentSnapshot | null, hasNextPage: boolean }> {
   const collectionPath = getCollectionPath();
-  if (!collectionPath) return { invoices: [], next: null, prev: null };
+  if (!collectionPath) return { invoices: [], nextCursor: null, hasNextPage: false };
 
   try {
     const coll = collection(db, collectionPath);
+    const queryLimit = pageSize + 1;
     let q;
 
-    if (page === 'first') {
-        q = query(coll, orderBy('issuedDate', 'desc'), limit(pageSize));
-    } else if (page === 'next' && cursor) {
-        q = query(coll, orderBy('issuedDate', 'desc'), startAfter(cursor), limit(pageSize));
-    } else if (page === 'prev' && cursor) {
-        q = query(coll, orderBy('issuedDate', 'desc'), endBefore(cursor), limit(pageSize));
+    if (page === 'next' && cursor) {
+        q = query(coll, orderBy('issuedDate', 'desc'), startAfter(cursor), limit(queryLimit));
     } else {
-        q = query(coll, orderBy('issuedDate', 'desc'), limit(pageSize));
+        q = query(coll, orderBy('issuedDate', 'desc'), limit(queryLimit));
     }
     
     const querySnapshot = await getDocs(q);
-    const invoices = querySnapshot.docs.map(doc => {
+    const docs = querySnapshot.docs;
+    const hasNextPage = docs.length > pageSize;
+
+    const invoices = docs.slice(0, pageSize).map(doc => {
       const data = doc.data();
       return {
           id: doc.id,
@@ -54,18 +54,17 @@ export async function getInvoices(
       } as Invoice
     });
 
-    const firstVisible = querySnapshot.docs[0];
-    const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+    const lastVisible = docs.length > 0 ? docs[docs.length - (hasNextPage ? 2 : 1)] : null;
 
     return { 
         invoices, 
-        next: lastVisible,
-        prev: firstVisible
+        nextCursor: lastVisible,
+        hasNextPage
     };
 
   } catch (error) {
       console.error("Failed to fetch invoices:", error);
-      return { invoices: [], next: null, prev: null };
+      return { invoices: [], nextCursor: null, hasNextPage: false };
   }
 }
 
