@@ -15,8 +15,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { createClient } from '@/lib/api/clients';
-import { useState } from 'react';
+import { createClient, updateClient } from '@/lib/api/clients';
+import { useState, useEffect } from 'react';
 import type { Client } from '@/lib/types';
 
 const formSchema = z.object({
@@ -26,11 +26,12 @@ const formSchema = z.object({
 });
 
 type ClientFormProps = {
-  onSuccess: (newClient: Client) => void;
+  onSuccess: (client: Client) => void;
   onCancel?: () => void;
+  client?: Client | null;
 }
 
-export function ClientForm({ onSuccess, onCancel }: ClientFormProps) {
+export function ClientForm({ onSuccess, onCancel, client }: ClientFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,15 +44,32 @@ export function ClientForm({ onSuccess, onCancel }: ClientFormProps) {
     },
   });
 
+  useEffect(() => {
+    if (client) {
+      form.reset({
+        name: client.name,
+        email: client.email,
+        avatarUrl: client.avatarUrl || '',
+      });
+    }
+  }, [client, form]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     try {
-      const newClient = await createClient(values);
-      toast({
-        title: 'Client Created',
-        description: `Client "${values.name}" has been successfully created.`,
-      });
-      onSuccess(newClient);
+      if (client) {
+        const updatedClient = { ...client, ...values };
+        await updateClient(client.id, values);
+        toast({ title: 'Client Updated' });
+        onSuccess(updatedClient);
+      } else {
+        const newClient = await createClient(values);
+        toast({
+            title: 'Client Created',
+            description: `Client "${values.name}" has been successfully created.`,
+        });
+        onSuccess(newClient);
+      }
     } catch (error) {
         // API handles error toast
     } finally {
@@ -114,12 +132,10 @@ export function ClientForm({ onSuccess, onCancel }: ClientFormProps) {
           {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Client
+            {client ? 'Save Changes' : 'Create Client'}
           </Button>
         </div>
       </form>
     </Form>
   );
 }
-
-    

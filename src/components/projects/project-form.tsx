@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { createProject } from '@/lib/api/projects';
+import { createProject, updateProject } from '@/lib/api/projects';
 import type { Client, Project } from '@/lib/types';
 import { useState, useEffect } from 'react';
 import { SelectWithCreate } from '../select-with-create';
@@ -43,9 +43,10 @@ type ProjectFormProps = {
   onSuccess: (newProject: Project) => void;
   onCancel?: () => void;
   onClientCreated: () => void;
+  project?: Project | null;
 }
 
-export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onClientCreated }: ProjectFormProps) {
+export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onClientCreated, project }: ProjectFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { openDialog } = useToken();
@@ -61,26 +62,42 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
   });
 
   useEffect(() => {
-    if (initialClientId) {
+    if (project) {
+      form.reset({
+        name: project.name,
+        clientId: project.clientId,
+        rate: project.rate,
+        status: project.status,
+      });
+    } else if (initialClientId) {
       form.setValue('clientId', initialClientId);
     }
-  }, [initialClientId, form]);
+  }, [project, initialClientId, form]);
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-
-    const hasEnoughTokens = await canAfford('project');
-    if (!hasEnoughTokens && !initialClientId) { // Don't check if it's from invoice page
-      openDialog();
-      setIsSubmitting(false);
-      return;
+    
+    if (!project) { // Only check for tokens on creation
+        const hasEnoughTokens = await canAfford('project');
+        if (!hasEnoughTokens && !initialClientId) { // Don't check if it's from invoice page
+            openDialog();
+            setIsSubmitting(false);
+            return;
+        }
     }
 
     try {
-      const newProject = await createProject(values);
-      // The parent component will handle the success message and token charge
-      onSuccess(newProject);
+      if (project) {
+        const updatedProject = { ...project, ...values };
+        await updateProject(project.id, values);
+        toast({ title: 'Project Updated' });
+        onSuccess(updatedProject);
+      } else {
+        const newProject = await createProject(values);
+        // The parent component will handle the success message and token charge for new projects
+        onSuccess(newProject);
+      }
     } catch (error) {
       // API handles error toast
     } finally {
@@ -119,9 +136,9 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
                     dialogTitle="Create New Client"
                     dialogDescription="Add a new client to your records."
                     onCreated={onClientCreated}
-                    disabled={!!initialClientId}
+                    disabled={!!initialClientId || !!project}
                   >
-                      <ClientForm onSuccess={() => {}} />
+                      <ClientForm onSuccess={() => {}} onCancel={() => {}} />
                   </SelectWithCreate>
                 <FormMessage />
               </FormItem>
@@ -150,6 +167,7 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
               <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value}
+                value={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -170,7 +188,7 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
           {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
           <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Project (-1 Token)
+              {project ? 'Save Changes' : 'Create Project (-1 Token)'}
           </Button>
         </div>
       </form>

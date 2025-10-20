@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
-import { getProjects, deleteProject } from "@/lib/api/projects"
+import { getProjects } from "@/lib/api/projects"
 import { getClientById } from "@/lib/api/clients"
 import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState, useCallback, useMemo } from "react"
@@ -27,6 +27,7 @@ import type { Project, Client } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
 import type { DocumentSnapshot } from "firebase/firestore"
 import { PaginationControls } from "../pagination-controls"
+import { ProjectDialog } from "./project-dialog"
 
 const statusVariantMap: { [key in 'active' | 'completed' | 'on_hold']: 'default' | 'secondary' | 'outline' } = {
   active: 'default',
@@ -46,6 +47,8 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
   const [pageCursors, setPageCursors] = useState<(DocumentSnapshot | null)[]>([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const fetchProjects = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
@@ -119,24 +122,15 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
     });
   }, [searchTerm, projects, clients]);
 
-  const handleDelete = async (id: string) => {
-    const projectToDelete = projects.find(p => p.id === id);
-    if (!projectToDelete) return;
-
-    try {
-      await deleteProject(id);
-      toast({
-        title: 'Project Deleted',
-        description: `Project "${projectToDelete.name}" has been deleted.`,
-      });
-      fetchProjects('first');
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Failed to delete project',
-        description: 'Please try again later.',
-      });
-    }
+  const handleEdit = (project: Project) => {
+    setSelectedProject(project);
+    setIsDialogOpen(true);
+  };
+  
+  const handleSuccess = () => {
+    setIsDialogOpen(false);
+    setSelectedProject(null);
+    fetchProjects('first');
   };
   
   if (loading && projects.length === 0) {
@@ -223,8 +217,8 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDelete(project.id)}>Delete</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleEdit(project)}>Edit</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleEdit(project)}>Delete</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                         </TableCell>
@@ -250,6 +244,15 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
             currentPage={currentPage}
         />
     )}
+    <ProjectDialog
+        project={selectedProject}
+        clients={Object.values(clients)}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSuccess={handleSuccess}
+        onClose={() => setSelectedProject(null)}
+        onClientCreated={() => {}}
+      />
     </>
   )
 }

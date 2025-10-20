@@ -19,13 +19,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
-import { getClients, deleteClient } from "@/lib/api/clients"
+import { getClients } from "@/lib/api/clients"
 import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import type { Client } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
 import type { DocumentSnapshot } from "firebase/firestore"
 import { PaginationControls } from "../pagination-controls"
+import { ClientDialog } from "./client-dialog"
 
 type ClientsTableProps = {
     searchTerm: string;
@@ -38,6 +39,8 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
   const [pageCursors, setPageCursors] = useState<(DocumentSnapshot | null)[]>([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const fetchClients = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
@@ -98,19 +101,17 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
     });
   }, [searchTerm, clients]);
 
-  const handleDelete = async (id: string, name: string) => {
-    try {
-      await deleteClient(id);
-      toast({
-        title: 'Client Deleted',
-        description: `Client "${name}" has been deleted.`,
-      });
-      fetchClients('first');
-    } catch (error) {
-      // API handles error toast
-    }
+  const handleEdit = (client: Client) => {
+    setSelectedClient(client);
+    setIsDialogOpen(true);
   };
   
+  const handleSuccess = () => {
+    setIsDialogOpen(false);
+    setSelectedClient(null);
+    fetchClients('first');
+  };
+
   if (loading && clients.length === 0) {
     return (
         <div className="rounded-lg border overflow-x-auto">
@@ -201,8 +202,8 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDelete(client.id, client.name)}>Delete</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleEdit(client)}>Edit</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleEdit(client)}>Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -227,6 +228,13 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
             currentPage={currentPage}
         />
      )}
+     <ClientDialog
+      client={selectedClient}
+      open={isDialogOpen}
+      onOpenChange={setIsDialogOpen}
+      onSuccess={handleSuccess}
+      onClose={() => setSelectedClient(null)}
+    />
     </>
   )
 }
