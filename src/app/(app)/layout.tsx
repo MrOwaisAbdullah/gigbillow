@@ -14,6 +14,7 @@ import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { WelcomeTour } from '@/components/welcome-tour';
 import { TourProvider, useTour } from '@/components/tour-provider';
 import { TimedFeedbackDialog } from '@/components/feedback/timed-feedback-dialog';
+import { Logo } from '@/components/logo';
 
 const FEEDBACK_TIMER_DURATION = 1000 * 60 * 15; // 15 minutes
 const FEEDBACK_STORAGE_KEY = 'gigbillow-feedback-prompt-dismissed';
@@ -60,10 +61,16 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p>Loading your workspace...</p>
+      <div className="flex h-screen w-screen flex-col items-center justify-center p-4">
+        <div className="flex-grow flex flex-col items-center justify-center gap-6">
+            <Logo className="h-16 w-16 text-primary" />
+            <div className='flex items-center gap-4 text-muted-foreground'>
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <p className='text-lg'>Loading your workspace...</p>
+            </div>
+        </div>
+        <div className="pb-4 text-sm text-muted-foreground">
+            Made with ❤️ by <a href="https://owaisabdullah.dev/" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">Owais Abdullah</a>
         </div>
       </div>
     );
