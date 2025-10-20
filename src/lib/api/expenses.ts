@@ -176,5 +176,3 @@ export async function markExpensesAsInvoiced(expenseIds: string[], invoiceId: st
         throw permissionError;
     });
 }
-
-    

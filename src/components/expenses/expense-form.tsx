@@ -59,7 +59,7 @@ export function ExpenseForm({ projects, expense, onSuccess }: ExpenseFormProps) 
     defaultValues: {
       description: expense?.description || '',
       amount: expense?.amount || 0,
-      date: expense?.date || new Date(),
+      date: expense?.date ? new Date(expense.date) : new Date(),
       category: expense?.category || 'Software',
       projectId: expense?.projectId || null,
     },
