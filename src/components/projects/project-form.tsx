@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -54,10 +55,10 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      clientId: initialClientId || '',
-      rate: 0,
-      status: 'active',
+      name: project?.name || '',
+      clientId: project?.clientId || initialClientId || '',
+      rate: project?.rate || 0,
+      status: project?.status || 'active',
     },
   });
 
@@ -69,8 +70,13 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
         rate: project.rate,
         status: project.status,
       });
-    } else if (initialClientId) {
-      form.setValue('clientId', initialClientId);
+    } else {
+       form.reset({
+        name: '',
+        clientId: initialClientId || '',
+        rate: 0,
+        status: 'active',
+      });
     }
   }, [project, initialClientId, form]);
 
@@ -136,7 +142,7 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
                     dialogTitle="Create New Client"
                     dialogDescription="Add a new client to your records."
                     onCreated={onClientCreated}
-                    disabled={!!initialClientId || !!project}
+                    disabled={!!project}
                   >
                       <ClientForm onSuccess={() => {}} onCancel={() => {}} />
                   </SelectWithCreate>
