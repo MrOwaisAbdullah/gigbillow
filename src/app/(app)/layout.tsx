@@ -9,7 +9,7 @@ import { AuthProvider, useAuth } from '@/components/auth/auth-provider';
 import { TokenProvider } from '@/components/token/token-provider';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { WelcomeTour } from '@/components/welcome-tour';
 import { TourProvider, useTour } from '@/components/tour-provider';
@@ -19,11 +19,54 @@ import { Logo } from '@/components/logo';
 const FEEDBACK_TIMER_DURATION = 1000 * 60 * 15; // 15 minutes
 const FEEDBACK_STORAGE_KEY = 'gigbillow-feedback-prompt-dismissed';
 
+const loadingMessages: { [key: string]: string[] } = {
+  invoices: [
+    'Brewing some fresh invoices...',
+    'Calculating your earnings...',
+    'Getting those numbers crunched...',
+    'Polishing your payment links...',
+  ],
+  projects: [
+    'Organizing your project boards...',
+    'Assembling your creative briefs...',
+    'Checking project statuses...',
+    'Lining up your next big thing...',
+  ],
+  proposals: [
+    'Warming up the AI copywriter...',
+    'Finding winning words...',
+    'Crafting your next job-winning proposal...',
+    'Getting ready to impress clients...',
+  ],
+  reports: [
+    'Analyzing your performance...',
+    'Generating insightful charts...',
+    'Turning data into dollars...',
+    'Preparing your business overview...',
+  ],
+  track: [
+    'Winding up the timers...',
+    'Syncing your billable hours...',
+    'Making every second count...',
+    'Preparing the stopwatch...',
+  ],
+  default: [
+    'Loading your workspace...',
+    'Polishing the pixels...',
+    'Reticulating splines...',
+    'Empowering your freelance journey...',
+    'Streamlining your hustle...',
+  ],
+};
+
+
 function AppContent({ children }: { children: React.ReactNode }) {
   const { loading, isNewUser } = useAuth();
   const searchParams = useSearchParams();
   const { setOpen, isTourOpen } = useTour();
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const [currentMessage, setCurrentMessage] = useState('Loading your workspace...');
+  const pathname = usePathname();
 
   useEffect(() => {
     const refCode = searchParams.get('ref');
@@ -50,6 +93,23 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
     return () => clearTimeout(timer);
   }, []);
+  
+  useEffect(() => {
+    if (loading) {
+      const pageKey = Object.keys(loadingMessages).find(key => pathname.includes(key)) || 'default';
+      const messages = loadingMessages[pageKey];
+      let messageIndex = 0;
+      setCurrentMessage(messages[messageIndex]);
+
+      const interval = setInterval(() => {
+        messageIndex = (messageIndex + 1) % messages.length;
+        setCurrentMessage(messages[messageIndex]);
+      }, 2500); // Change message every 2.5 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [loading, pathname]);
+
 
   const handleDialogClose = (dontShowAgain: boolean) => {
     setShowFeedbackDialog(false);
@@ -66,7 +126,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
             <Logo className="h-16 w-16 text-primary" />
             <div className='flex items-center gap-4 text-muted-foreground'>
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <p className='text-lg'>Loading your workspace...</p>
+                <p className='text-lg'>{currentMessage}</p>
             </div>
         </div>
         <div className="pb-4 text-sm text-muted-foreground">
