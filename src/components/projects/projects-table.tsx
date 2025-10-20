@@ -72,7 +72,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
     let pageToGo = 1;
 
     if (page === 'next') {
-        cursor = pageCursors[currentPage];
+        cursor = pageCursors[currentPage] || null;
         pageToGo = currentPage + 1;
     } else if (page === 'prev') {
         cursor = pageCursors[currentPage - 2] || null;
@@ -97,8 +97,8 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
     }
 
     if (!isSearching) {
-        if (page === 'next') {
-             setPageCursors(prev => {
+       if (page === 'next') {
+            setPageCursors(prev => {
                 const newCursors = [...prev];
                 newCursors[pageToGo] = nextCursor;
                 return newCursors;
@@ -116,7 +116,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
         setPageCursors([null]);
     }
     setLoading(false);
-  }, [currentPage, pageCursors, clients, searchTerm]);
+  }, [pageCursors, currentPage, clients, searchTerm]);
 
   useEffect(() => {
     fetchProjects('first');
@@ -285,7 +285,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
         onOpenChange={setIsDialogOpen}
         onSuccess={handleSuccess}
         onClose={() => setSelectedProject(null)}
-        onClientCreated={() => {}}
+        onClientCreated={handleSuccess}
       />
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
           <AlertDialogContent>
