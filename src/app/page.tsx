@@ -389,7 +389,6 @@ export default function LandingPage() {
                    <ul className="space-y-3 text-muted-foreground flex-grow">
                     <li className="font-semibold text-foreground">Everything in Free, plus...</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 200 tokens</li>
-                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Branded PDFs (with your logo) at no extra token cost</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 3 months</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
                   </ul>
@@ -581,6 +580,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
 
