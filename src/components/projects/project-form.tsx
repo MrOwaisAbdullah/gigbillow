@@ -64,7 +64,6 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
 
   useEffect(() => {
     if (project) {
-      // Logic for editing an existing project
       form.reset({
         name: project.name,
         clientId: project.clientId,
@@ -72,7 +71,6 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
         status: project.status,
       });
     } else {
-       // Logic for creating a new project
        form.reset({
         name: '',
         clientId: initialClientId || '',
@@ -80,7 +78,7 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
         status: 'active',
       });
     }
-  }, [project, initialClientId, form]);
+  }, [project, initialClientId, form, clients]);
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
