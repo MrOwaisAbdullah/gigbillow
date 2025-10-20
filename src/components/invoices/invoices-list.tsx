@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -22,7 +23,7 @@ import { getInvoices, deleteInvoice, updateInvoice } from "@/lib/api/invoices"
 import { getClientById } from "@/lib/api/clients"
 import { getProjectById } from "@/lib/api/projects"
 import { useToast } from "@/hooks/use-toast"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import type { Invoice, Client, Project } from "@/lib/types"
 import { format } from "date-fns"
 import { Skeleton } from "../ui/skeleton"
@@ -37,7 +38,11 @@ const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 's
   overdue: 'destructive',
 }
 
-export function InvoicesList() {
+type InvoicesListProps = {
+    searchTerm: string;
+}
+
+export function InvoicesList({ searchTerm }: InvoicesListProps) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [data, setData] = useState<{ [key: string]: Client | Project }>({});
   const [loading, setLoading] = useState(true);
@@ -52,13 +57,17 @@ export function InvoicesList() {
     setLoading(true);
     let cursor: DocumentSnapshot | null = null;
     
+    // For search, we fetch a larger initial set. Pagination is disabled during search.
+    const isSearching = searchTerm.trim() !== '';
+    const pageSize = isSearching ? 100 : 10;
+
     if (page === 'next') {
         cursor = cursors[currentPage] || null;
     } else if (page === 'prev') {
         cursor = cursors[currentPage - 2] || null;
     }
 
-    const { invoices: invoicesData, next } = await getInvoices(page, cursor, 10);
+    const { invoices: invoicesData, next } = await getInvoices(page, cursor, pageSize);
     setInvoices(invoicesData);
 
     if (invoicesData.length > 0) {
@@ -83,25 +92,45 @@ export function InvoicesList() {
         }
     }
 
-    if (page === 'next') {
-        if (!cursors.includes(next)) {
-            setCursors(prev => [...prev, next]);
+    if (!isSearching) {
+        if (page === 'next') {
+            if (!cursors.includes(next)) {
+                setCursors(prev => [...prev, next]);
+            }
+            setCurrentPage(prevPage => prevPage + 1);
+        } else if (page === 'prev') {
+            setCurrentPage(prevPage => Math.max(1, prevPage - 1));
+        } else { // first
+            setCursors([null, next]);
+            setCurrentPage(1);
         }
-        setCurrentPage(prevPage => prevPage + 1);
-    } else if (page === 'prev') {
-        setCurrentPage(prevPage => Math.max(1, prevPage - 1));
-    } else { // first
-        setCursors([null, next]);
+        setHasNextPage(!!next);
+    } else {
+        setHasNextPage(false);
         setCurrentPage(1);
     }
-    setHasNextPage(!!next);
     setLoading(false);
-  }, [currentPage, cursors, data]);
+  }, [cursors, currentPage, data, searchTerm]);
 
   useEffect(() => {
     fetchInvoices('first');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // We listen to searchTerm changes to re-fetch.
+  }, [searchTerm, fetchInvoices]);
+
+  const filteredInvoices = useMemo(() => {
+    if (!searchTerm) return invoices;
+    const lowercasedFilter = searchTerm.toLowerCase();
+    return invoices.filter(invoice => {
+      const client = data[invoice.clientId] as Client;
+      const project = data[invoice.projectId] as Project;
+      return (
+        invoice.invoiceNumber.toLowerCase().includes(lowercasedFilter) ||
+        client?.name.toLowerCase().includes(lowercasedFilter) ||
+        project?.name.toLowerCase().includes(lowercasedFilter) ||
+        String(invoice.amount).includes(lowercasedFilter)
+      );
+    });
+  }, [searchTerm, invoices, data]);
 
   const handleDelete = async (id: string) => {
     const invoiceToDelete = invoices.find(inv => inv.id === id);
@@ -207,17 +236,17 @@ export function InvoicesList() {
                     <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                 </TableRow>
             ))
-          ) : invoices.length > 0 ? (
-            invoices.map((invoice) => {
+          ) : filteredInvoices.length > 0 ? (
+            filteredInvoices.map((invoice) => {
               const client = data[invoice.clientId] as Client;
               const project = data[invoice.projectId] as Project;
               return (
-                <TableRow key={invoice.id} onClick={() => router.push(`/invoices/${invoice.id}`)} className="cursor-pointer">
-                  <TableCell className="font-medium">
-                     <Link href={`/invoices/${invoice.id}`} className="hover:underline text-primary">
+                <TableRow key={invoice.id} className="cursor-pointer" onClick={() => router.push(`/invoices/${invoice.id}`)}>
+                    <TableCell className="font-medium">
+                        <Link href={`/invoices/${invoice.id}`} className="hover:underline text-primary" onClick={(e) => e.stopPropagation()}>
                         {invoice.invoiceNumber}
-                     </Link>
-                  </TableCell>
+                        </Link>
+                    </TableCell>
                   <TableCell>{client?.name}</TableCell>
                   <TableCell>{project?.name}</TableCell>
                   <TableCell>${(invoice.amount || 0).toFixed(2)}</TableCell>
@@ -241,8 +270,8 @@ export function InvoicesList() {
                         <DropdownMenuItem asChild>
                           <Link href={`/invoices/${invoice.id}`}>View Details</Link>
                         </DropdownMenuItem>
-                         {invoice.status !== 'paid' && <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice.id)}>Mark as Paid</DropdownMenuItem>}
-                        <DropdownMenuItem onClick={() => handleDelete(invoice.id)}>Delete</DropdownMenuItem>
+                         {invoice.status !== 'paid' && <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMarkAsPaid(invoice.id);}}>Mark as Paid</DropdownMenuItem>}
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(invoice.id);}}>Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -259,13 +288,15 @@ export function InvoicesList() {
         </TableBody>
       </Table>
     </div>
-    <PaginationControls
-        onNext={() => fetchInvoices('next')}
-        onPrev={() => fetchInvoices('prev')}
-        hasNextPage={hasNextPage}
-        hasPrevPage={currentPage > 1}
-        currentPage={currentPage}
-      />
+    {!searchTerm && (
+        <PaginationControls
+            onNext={() => fetchInvoices('next')}
+            onPrev={() => fetchInvoices('prev')}
+            hasNextPage={hasNextPage}
+            hasPrevPage={currentPage > 1}
+            currentPage={currentPage}
+        />
+    )}
     </>
   )
 }
