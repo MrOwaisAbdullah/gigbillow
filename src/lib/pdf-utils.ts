@@ -1,5 +1,6 @@
 
 
+
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
@@ -44,24 +45,13 @@ const pageMargin = 40;
 async function addHeader(doc: jsPDF, title: string, logoUrl?: string) {
     if (logoUrl) {
         try {
-            // This is a simplified fetch. A real app might need a proxy for robust CORS handling.
-            const response = await fetch(logoUrl, { 
-                mode: 'cors',
-            });
-            const blob = await response.blob();
-            const reader = new FileReader();
-            await new Promise((resolve, reject) => {
-                reader.onload = resolve;
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
-            const logoData = reader.result as string;
-            const imgProps = doc.getImageProperties(logoData);
+            // Let jsPDF handle the image loading, which has better CORS handling for images.
+            // We need to provide dimensions. We'll assume a standard logo height.
             const logoHeight = 40;
-            const logoWidth = (imgProps.width * logoHeight) / imgProps.height;
-            doc.addImage(logoData, 'PNG', pageMargin, pageMargin - 15, logoWidth, logoHeight);
+            const logoWidth = 40; // Default width, can be adjusted if we know the aspect ratio
+            await doc.addImage(logoUrl, 'PNG', pageMargin, pageMargin - 15, logoWidth, logoHeight);
         } catch (error) {
-            console.error("Failed to load logo image:", error);
+            console.error("Failed to load logo image with jsPDF:", error);
             // Fallback to text header if logo fails
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(28);
