@@ -26,8 +26,7 @@
         },
         "logoUrl": {
           "type": "string",
-          "format": "uri",
-          "description": "URL of the user's company or personal logo."
+          "description": "Data URI of the user's company or personal logo."
         },
         "is_subscribed": {
           "type": "boolean",

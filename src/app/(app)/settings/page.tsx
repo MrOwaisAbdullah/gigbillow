@@ -14,11 +14,12 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { updateUserProfile, getUserProfile } from '@/lib/api/users';
 import { useEffect, useState } from 'react';
 import type { UserProfile } from '@/lib/types';
+import { Textarea } from '@/components/ui/textarea';
 
 
 const profileSchema = z.object({
   displayName: z.string().min(2, 'Name must be at least 2 characters.'),
-  logoUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
+  logoUrl: z.string().optional().or(z.literal('')),
 });
 
 
@@ -62,6 +63,16 @@ export default function SettingsPage() {
                     variant: 'destructive',
                     title: 'Subscription Required',
                     description: 'Adding a logo is a premium feature. Please purchase a token pack to enable it.',
+                });
+                setIsSubmitting(false);
+                return;
+            }
+
+            if (values.logoUrl && !values.logoUrl.startsWith('data:image/')) {
+                 toast({
+                    variant: 'destructive',
+                    title: 'Invalid Format',
+                    description: 'Please provide a valid Data URI for the logo.',
                 });
                 setIsSubmitting(false);
                 return;
@@ -141,11 +152,14 @@ export default function SettingsPage() {
                                 name="logoUrl"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Logo URL</FormLabel>
+                                        <FormLabel>Logo Data URI</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="https://your-company.com/logo.png" {...field} />
+                                            <Textarea placeholder="data:image/png;base64,iVBORw0KGgo..." {...field} className="min-h-[100px] font-mono text-xs" />
                                         </FormControl>
-                                        <FormDescription>Must be a direct link to an image file (e.g., PNG, JPG).</FormDescription>
+                                        <FormDescription>
+                                            Paste the full Data URI for your logo. You can use a free online converter like {' '}
+                                            <a href="https://www.base64-image.de/" target="_blank" rel="noopener noreferrer" className="text-primary underline">base64-image.de</a> to get the URI from an image file.
+                                        </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}

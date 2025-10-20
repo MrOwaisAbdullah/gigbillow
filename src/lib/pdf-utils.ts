@@ -1,4 +1,5 @@
 
+
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
@@ -51,21 +52,20 @@ async function addHeader(doc: jsPDF, title: string, logoUrl?: string) {
 
     if (logoUrl) {
         try {
+            // Data URI is passed directly to addImage
             const img = new Image();
-            img.crossOrigin = 'Anonymous';
-            
+            img.src = logoUrl;
             await new Promise<void>((resolve, reject) => {
                 img.onload = () => resolve();
-                img.onerror = (err) => reject(err);
-                img.src = logoUrl;
+                img.onerror = reject;
             });
-
+            
             const logoHeight = 40;
             const logoWidth = (img.width * logoHeight) / img.height;
-            doc.addImage(img, pageMargin, pageMargin - 15, logoWidth, logoHeight);
+            doc.addImage(logoUrl, pageMargin, pageMargin - 15, logoWidth, logoHeight);
 
         } catch (error) {
-            console.error("Failed to load logo image:", error);
+            console.error("Failed to load logo image from Data URI:", error);
             fallbackHeader();
         }
     } else {
