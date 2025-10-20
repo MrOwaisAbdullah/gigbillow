@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -23,7 +24,7 @@ type InsufficientTokensDialogProps = {
 const packs = [
     { name: 'Mini Pack', price: '$5', amount: 50 },
     { name: 'Standard Pack', price: '$15', amount: 200 },
-    { name: 'Max Pack', price: '$30', amount: 500 },
+    { name: 'Agency Pack', price: '$30', amount: 500 },
 ];
 
 export function InsufficientTokensDialog({ open, onOpenChange }: InsufficientTokensDialogProps) {
