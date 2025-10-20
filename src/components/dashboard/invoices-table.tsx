@@ -18,9 +18,9 @@ import type { Invoice, Client, Project } from "@/lib/types"
 import { format } from "date-fns"
 import { Skeleton } from "../ui/skeleton"
 
-const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
-  paid: 'default',
-  unpaid: 'secondary',
+const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'success' | 'warning' | 'destructive' } = {
+  paid: 'success',
+  unpaid: 'warning',
   overdue: 'destructive',
 };
 

@@ -28,9 +28,9 @@ import {
 import { toTitleCase } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
-const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
-  paid: 'default',
-  unpaid: 'secondary',
+const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'success' | 'warning' | 'destructive' } = {
+  paid: 'success',
+  unpaid: 'warning',
   overdue: 'destructive',
 };
 

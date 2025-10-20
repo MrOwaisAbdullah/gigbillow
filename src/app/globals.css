@@ -29,6 +29,13 @@ body {
     --ring: 180 100% 25%;
     --radius: 0.5rem;
 
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 142.1 76.2% 96.3%;
+    --info: 221.2 83.2% 53.3%;
+    --info-foreground: 221.2 83.2% 97.3%;
+    --warning: 47.9 95.8% 53.1%;
+    --warning-foreground: 47.9 95.8% 97.1%;
+
     --chart-1: 180 100% 30%;
     --chart-2: 220 50% 50%;
     --chart-3: 20 80% 50%;
@@ -66,6 +73,13 @@ body {
     --input: 215 28% 17%;
     --ring: 173 39% 45%;
     --radius: 0.5rem;
+
+    --success: 142.1 70.2% 46.3%;
+    --success-foreground: 142.1 70.2% 6.3%;
+    --info: 211.2 83.2% 63.3%;
+    --info-foreground: 211.2 83.2% 3.3%;
+    --warning: 37.9 95.8% 63.1%;
+    --warning-foreground: 37.9 95.8% 3.1%;
 
     --chart-1: 180 100% 40%;
     --chart-2: 220 60% 60%;

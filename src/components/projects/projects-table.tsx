@@ -39,10 +39,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-const statusVariantMap: { [key in 'active' | 'completed' | 'on_hold']: 'default' | 'secondary' | 'outline' } = {
-  active: 'default',
-  completed: 'secondary',
-  on_hold: 'secondary',
+const statusVariantMap: { [key in 'active' | 'completed' | 'on_hold']: 'success' | 'info' | 'warning' } = {
+  active: 'success',
+  completed: 'info',
+  on_hold: 'warning',
 }
 
 type ProjectsTableProps = {

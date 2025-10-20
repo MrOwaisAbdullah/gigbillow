@@ -21,9 +21,9 @@ import type { Invoice, Client, Project, UserProfile } from '@/lib/types';
 import { getPublicInvoiceData } from '@/lib/api/invoices';
 import { Logo } from '@/components/logo';
 
-const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
-  paid: 'default',
-  unpaid: 'secondary',
+const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'success' | 'warning' | 'destructive' } = {
+  paid: 'success',
+  unpaid: 'warning',
   overdue: 'destructive',
 };
 
