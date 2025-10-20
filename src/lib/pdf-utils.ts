@@ -1,6 +1,7 @@
 
 
 
+
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
@@ -49,7 +50,7 @@ async function addHeader(doc: jsPDF, title: string, logoUrl?: string) {
             // We need to provide dimensions. We'll assume a standard logo height.
             const logoHeight = 40;
             const logoWidth = 40; // Default width, can be adjusted if we know the aspect ratio
-            await doc.addImage(logoUrl, 'PNG', pageMargin, pageMargin - 15, logoWidth, logoHeight);
+            await doc.addImage(logoUrl, undefined, pageMargin, pageMargin - 15, logoWidth, logoHeight);
         } catch (error) {
             console.error("Failed to load logo image with jsPDF:", error);
             // Fallback to text header if logo fails
