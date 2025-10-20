@@ -42,14 +42,14 @@ async function initializeUser(user: User) {
             email: user.email,
             photoURL: user.photoURL,
             referral_code: referralCode,
-            is_subscribed: false,
+            is_subscribed: true, // Beta user is subscribed
         });
 
         await setDoc(tokenRef, {
-            balance: 10,
+            balance: 50, // Beta user gets 50 tokens
             last_refill_at: serverTimestamp(),
-            rollover_limit: 10,
-            is_subscribed: false,
+            rollover_limit: 50,
+            is_subscribed: true,
         });
         
         // Handle referral

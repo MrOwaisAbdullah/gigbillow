@@ -16,10 +16,10 @@ export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boo
   
   if (!tokenSnap.exists()) {
     await setDoc(tokenRef, {
-      balance: 10,
+      balance: 50, // Beta: 50 tokens
       last_refill_at: serverTimestamp(),
-      rollover_limit: 10,
-      is_subscribed: false,
+      rollover_limit: 50,
+      is_subscribed: true, // Beta: everyone is subscribed
     });
     return { isNewUser: true, wasRefilled: false };
   } 
@@ -36,26 +36,17 @@ export async function checkAndRefillTokens(user: User): Promise<{ isNewUser: boo
   nextRefillDate.setDate(nextRefillDate.getDate() + 30);
 
   if (isAfter(new Date(), nextRefillDate)) {
-    if (tokenData.is_subscribed) {
-      // Handle rollover for subscribed users
-      const currentBalance = tokenData.balance;
-      const rolloverAmount = Math.min(currentBalance, tokenData.rollover_limit);
-      const newBalance = rolloverAmount + 150; // Starter pack amount
-       await updateDoc(tokenRef, {
-        balance: newBalance,
-        last_refill_at: serverTimestamp()
-      });
-      toast({ title: '🎉 Subscription Tokens Added!', description: `Your 150 tokens have been added. ${rolloverAmount} unused tokens were rolled over.` });
-
-    } else {
-      // Handle reset for free users
-      await updateDoc(tokenRef, {
-        balance: 10,
-        last_refill_at: serverTimestamp()
-      });
-       toast({ title: '🎉 Your monthly credits are here!', description: 'Your 10 free tokens have been refilled.' });
-    }
-     return { isNewUser: false, wasRefilled: true };
+    // During beta, everyone is treated as subscribed
+    const currentBalance = tokenData.balance;
+    const rolloverAmount = Math.min(currentBalance, tokenData.rollover_limit);
+    const newBalance = rolloverAmount + 50; // Beta refill amount
+    await updateDoc(tokenRef, {
+      balance: newBalance,
+      last_refill_at: serverTimestamp()
+    });
+    toast({ title: '🎉 Monthly Beta Tokens Added!', description: `Your 50 tokens have been added. ${rolloverAmount} unused tokens were rolled over.` });
+    
+    return { isNewUser: false, wasRefilled: true };
   }
 
   return { isNewUser: false, wasRefilled: false };

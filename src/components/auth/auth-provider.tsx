@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsNewUser(isNewUser);
 
         if (isNewUser) {
-           toast({ title: '🎉 Welcome to GigBillow!', description: 'You have been credited with 10 free tokens to get you started.' });
+           toast({ title: '🎉 Welcome to our Beta!', description: "You've received 50 bonus tokens for free. Enjoy, and please share your feedback!" });
         } else if (wasRefilled) {
             // Toast is handled in checkAndRefillTokens for refills
         }
