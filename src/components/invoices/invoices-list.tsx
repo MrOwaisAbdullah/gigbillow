@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
+import { Loader2, MoreHorizontal } from "lucide-react"
 import { getInvoices, deleteInvoice, updateInvoice } from "@/lib/api/invoices"
 import { getClientById } from "@/lib/api/clients"
 import { getProjectById } from "@/lib/api/projects"
@@ -31,6 +31,16 @@ import Link from "next/link";
 import type { DocumentSnapshot } from "firebase/firestore"
 import { PaginationControls } from "../pagination-controls"
 import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
   paid: 'default',
@@ -51,14 +61,17 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
 
   const fetchInvoices = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
-    let cursor: DocumentSnapshot | null = null;
     
     const isSearching = searchTerm.trim() !== '';
     const pageSize = isSearching ? 100 : 10;
+    let cursor: DocumentSnapshot | null = null;
     let pageToGo = 1;
 
     if (page === 'next') {
@@ -119,7 +132,6 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
 
   useEffect(() => {
     fetchInvoices('first');
-    // We only want to re-run this effect when the search term changes, not the whole fetchInvoices function.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
@@ -131,22 +143,27 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
       const project = data[invoice.projectId] as Project;
       return (
         invoice.invoiceNumber.toLowerCase().includes(lowercasedFilter) ||
-        client?.name.toLowerCase().includes(lowercasedFilter) ||
-        project?.name.toLowerCase().includes(lowercasedFilter) ||
+        (client && client.name.toLowerCase().includes(lowercasedFilter)) ||
+        (project && project.name.toLowerCase().includes(lowercasedFilter)) ||
         String(invoice.amount).includes(lowercasedFilter)
       );
     });
   }, [searchTerm, invoices, data]);
 
-  const handleDelete = async (id: string) => {
-    const invoiceToDelete = invoices.find(inv => inv.id === id);
-    if (!invoiceToDelete) return;
+  const handleDeleteConfirm = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setIsAlertOpen(true);
+  };
 
+  const handleDelete = async () => {
+    if (!selectedInvoice) return;
+
+    setIsDeleting(true);
     try {
-      await deleteInvoice(id);
+      await deleteInvoice(selectedInvoice.id);
       toast({
         title: 'Invoice Deleted',
-        description: `Invoice "${invoiceToDelete.invoiceNumber}" has been deleted.`,
+        description: `Invoice "${selectedInvoice.invoiceNumber}" has been deleted.`,
       });
       fetchInvoices('first');
     } catch (error) {
@@ -155,6 +172,10 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
         title: 'Failed to delete invoice',
         description: 'Please try again later.',
       });
+    } finally {
+      setIsDeleting(false);
+      setIsAlertOpen(false);
+      setSelectedInvoice(null);
     }
   };
 
@@ -277,7 +298,7 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
                           <Link href={`/invoices/${invoice.id}`}>View Details</Link>
                         </DropdownMenuItem>
                          {invoice.status !== 'paid' && <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMarkAsPaid(invoice.id);}}>Mark as Paid</DropdownMenuItem>}
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(invoice.id);}}>Delete</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleDeleteConfirm(invoice)} className="text-destructive">Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -303,6 +324,23 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
             currentPage={currentPage}
         />
     )}
+     <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This will permanently delete invoice "{selectedInvoice?.invoiceNumber}". This action cannot be undone.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setSelectedInvoice(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90" disabled={isDeleting}>
+                    {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Delete
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     </>
   )
 }

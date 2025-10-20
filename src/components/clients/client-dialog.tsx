@@ -9,6 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ClientForm } from './client-form';
@@ -80,7 +81,7 @@ export function ClientDialog({ client, trigger, onSuccess, open, onOpenChange, o
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <ClientForm client={client} onSuccess={handleSuccess} />
+          <ClientForm client={client} onSuccess={handleSuccess} onCancel={() => onOpenChange(false)} />
         </div>
         {client && (
           <DialogFooter className="justify-start border-t pt-4">
@@ -101,7 +102,7 @@ export function ClientDialog({ client, trigger, onSuccess, open, onOpenChange, o
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
           <AlertDialogContent>
               <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
                       This will permanently delete the client and all associated projects and invoices. This action cannot be undone.
                   </AlertDialogDescription>

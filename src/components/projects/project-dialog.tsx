@@ -9,6 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ProjectForm } from './project-form';
@@ -82,7 +83,7 @@ export function ProjectDialog({ clients, project, trigger, onSuccess, open, onOp
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <ProjectForm project={project} clients={clients} onSuccess={handleSuccess} onClientCreated={onClientCreated} />
+          <ProjectForm project={project} clients={clients} onSuccess={handleSuccess} onClientCreated={onClientCreated} onCancel={() => onOpenChange(false)} />
         </div>
         {project && (
           <DialogFooter className="justify-start border-t pt-4">
@@ -103,7 +104,7 @@ export function ProjectDialog({ clients, project, trigger, onSuccess, open, onOp
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
           <AlertDialogContent>
               <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
                       This will permanently delete the project and all its associated time entries and invoices. This action cannot be undone.
                   </AlertDialogDescription>

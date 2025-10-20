@@ -203,7 +203,7 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem onSelect={() => handleEdit(client)}>Edit</DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => handleEdit(client)}>Delete</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleEdit(client)} className="text-destructive">Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

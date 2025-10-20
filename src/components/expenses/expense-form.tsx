@@ -48,9 +48,10 @@ type ExpenseFormProps = {
   projects: Project[];
   expense?: Expense;
   onSuccess: () => void;
+  onCancel?: () => void;
 };
 
-export function ExpenseForm({ projects, expense, onSuccess }: ExpenseFormProps) {
+export function ExpenseForm({ projects, expense, onSuccess, onCancel }: ExpenseFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -196,6 +197,7 @@ export function ExpenseForm({ projects, expense, onSuccess }: ExpenseFormProps) 
           />
         </div>
         <div className="flex justify-end gap-2">
+          {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {expense ? 'Save Changes' : 'Create Expense'}

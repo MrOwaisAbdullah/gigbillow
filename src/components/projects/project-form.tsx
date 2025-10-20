@@ -55,10 +55,10 @@ export function ProjectForm({ clients, initialClientId, onSuccess, onCancel, onC
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: project?.name || '',
-      clientId: project?.clientId || initialClientId || '',
-      rate: project?.rate || 0,
-      status: project?.status || 'active',
+      name: '',
+      clientId: '',
+      rate: 0,
+      status: 'active',
     },
   });
 

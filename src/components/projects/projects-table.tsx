@@ -218,7 +218,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
                             <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem onSelect={() => handleEdit(project)}>Edit</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleEdit(project)}>Delete</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleEdit(project)} className="text-destructive">Delete</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                         </TableCell>

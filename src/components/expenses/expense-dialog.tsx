@@ -82,7 +82,7 @@ export function ExpenseDialog({ projects, expense, trigger, onSuccess, open, onO
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <ExpenseForm projects={projects} expense={expense} onSuccess={handleSuccess} />
+          <ExpenseForm projects={projects} expense={expense} onSuccess={handleSuccess} onCancel={() => onOpenChange(false)} />
         </div>
         {expense && (
           <DialogFooter className="justify-start border-t pt-4">
@@ -103,7 +103,7 @@ export function ExpenseDialog({ projects, expense, trigger, onSuccess, open, onO
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
           <AlertDialogContent>
               <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
                       This will permanently delete the expense. This action cannot be undone.
                   </AlertDialogDescription>
