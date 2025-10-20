@@ -42,7 +42,7 @@ import {
 const statusVariantMap: { [key in 'active' | 'completed' | 'on_hold']: 'default' | 'secondary' | 'outline' } = {
   active: 'default',
   completed: 'secondary',
-  on_hold: 'outline',
+  on_hold: 'secondary',
 }
 
 type ProjectsTableProps = {

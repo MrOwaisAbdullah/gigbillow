@@ -18,6 +18,12 @@ import type { Invoice, Client, Project } from "@/lib/types"
 import { format } from "date-fns"
 import { Skeleton } from "../ui/skeleton"
 
+const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'default' | 'secondary' | 'destructive' } = {
+  paid: 'default',
+  unpaid: 'secondary',
+  overdue: 'destructive',
+};
+
 export function InvoicesTable() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [data, setData] = useState<{ [key: string]: Client | Project }>({});
@@ -110,7 +116,7 @@ export function InvoicesTable() {
                   <TableCell>${invoice.amount.toFixed(2)}</TableCell>
                   <TableCell>{format(new Date(invoice.dueDate), 'PPP')}</TableCell>
                   <TableCell>
-                     <Badge variant={invoice.status === 'overdue' ? 'destructive' : 'secondary'} className="capitalize">
+                     <Badge variant={statusVariantMap[invoice.status]} className="capitalize">
                       {invoice.status}
                     </Badge>
                   </TableCell>
