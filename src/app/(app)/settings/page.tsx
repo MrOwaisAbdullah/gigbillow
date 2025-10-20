@@ -1,18 +1,79 @@
-
 'use client';
 
 import { useAuth } from '@/components/auth/auth-provider';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { updateUserProfile, getUserProfile } from '@/lib/api/users';
+import { useEffect, useState } from 'react';
+import type { UserProfile } from '@/lib/types';
+
+
+const profileSchema = z.object({
+  displayName: z.string().min(2, 'Name must be at least 2 characters.'),
+  logoUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
+});
+
 
 export default function SettingsPage() {
     const { user } = useAuth();
     const { toast } = useToast();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+
+     const form = useForm<z.infer<typeof profileSchema>>({
+        resolver: zodResolver(profileSchema),
+        defaultValues: {
+            displayName: '',
+            logoUrl: '',
+        },
+    });
+
+    useEffect(() => {
+        async function fetchProfile() {
+            if (user) {
+                const userProfile = await getUserProfile();
+                if (userProfile) {
+                    setProfile(userProfile);
+                    form.reset({
+                        displayName: userProfile.displayName || '',
+                        logoUrl: userProfile.logoUrl || '',
+                    });
+                }
+            }
+        }
+        fetchProfile();
+    }, [user, form]);
+
+
+    async function onProfileSubmit(values: z.infer<typeof profileSchema>) {
+        setIsSubmitting(true);
+        try {
+            await updateUserProfile({
+                displayName: values.displayName,
+                logoUrl: values.logoUrl,
+            });
+            toast({
+                title: 'Profile Updated',
+                description: 'Your profile has been successfully updated.',
+            });
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Update Failed',
+                description: 'Could not update your profile. Please try again.',
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
 
     const handleAction = (actionName: string) => {
         toast({
@@ -34,20 +95,59 @@ export default function SettingsPage() {
              <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
 
              <Card>
-                <CardHeader>
-                    <CardTitle>Profile</CardTitle>
-                    <CardDescription>Manage your public profile and account information.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="displayName">Display Name</Label>
-                        <Input id="displayName" defaultValue={user.displayName || ''} />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input id="email" type="email" defaultValue={user.email || ''} readOnly disabled />
-                    </div>
-                </CardContent>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onProfileSubmit)}>
+                        <CardHeader>
+                            <CardTitle>Profile</CardTitle>
+                            <CardDescription>Manage your public profile and account information.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <FormField
+                                control={form.control}
+                                name="displayName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Display Name</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <div className="space-y-2">
+                                <Label htmlFor="email">Email Address</Label>
+                                <Input id="email" type="email" defaultValue={user.email || ''} readOnly disabled />
+                            </div>
+                        </CardContent>
+                        <CardHeader>
+                            <CardTitle>Branding</CardTitle>
+                            <CardDescription>Add your company logo to be displayed on invoices and proposals. This requires a purchased token pack.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             <FormField
+                                control={form.control}
+                                name="logoUrl"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Logo URL</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="https://your-company.com/logo.png" {...field} />
+                                        </FormControl>
+                                        <FormDescription>Must be a direct link to an image file (e.g., PNG, JPG).</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </CardContent>
+                        <CardFooter>
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save Changes
+                            </Button>
+                        </CardFooter>
+                    </form>
+                </Form>
              </Card>
 
              <Card>

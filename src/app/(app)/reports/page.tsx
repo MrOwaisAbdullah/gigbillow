@@ -10,6 +10,7 @@ import { getInvoices } from '@/lib/api/invoices';
 import { getProjects } from '@/lib/api/projects';
 import { getTimeEntries } from '@/lib/api/time-entries';
 import { getExpenses } from '@/lib/api/expenses';
+import { getUserProfile } from '@/lib/api/users';
 import { subDays, subMonths, format, startOfMonth, isThisWeek } from 'date-fns';
 import { generateReportPdf, generateReportCsv } from '@/lib/pdf-utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,6 +18,7 @@ import { SummaryStats } from '@/components/dashboard/summary-stats';
 import { useAuth } from '@/components/auth/auth-provider';
 import { useToken } from '@/components/token/token-provider';
 import { canAfford, chargeFor } from '@/lib/api/tokens';
+import type { UserProfile } from '@/lib/types';
 
 type Stats = {
   outstandingRevenue: number;
@@ -31,6 +33,7 @@ export default function ReportsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [revenueData, setRevenueData] = useState<{name: string, total: number}[]>([]);
   const [hoursData, setHoursData] = useState<{name: string, value: number}[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -38,16 +41,18 @@ export default function ReportsPage() {
     async function fetchAllReportData() {
       setLoading(true);
 
-      const [invoicesResult, projectsResult, timeEntriesResult, expensesResult] = await Promise.all([
+      const [invoicesResult, projectsResult, timeEntriesResult, expensesResult, profileResult] = await Promise.all([
         getInvoices('first', null, 9999),
         getProjects('first', null, 9999),
         getTimeEntries(null, 9999),
-        getExpenses('first', null, 9999)
+        getExpenses('first', null, 9999),
+        getUserProfile(),
       ]);
       const invoicesData = invoicesResult.invoices;
       const projectsData = projectsResult.projects;
       const timeEntriesData = timeEntriesResult.entries;
       const expensesData = expensesResult.expenses;
+      setUserProfile(profileResult);
 
       // Process Stats
       const thirtyDaysAgo = subDays(new Date(), 30);
@@ -122,12 +127,12 @@ export default function ReportsPage() {
       return;
     }
 
-    if (!stats || !user) {
+    if (!stats || !userProfile) {
         setIsExporting(false);
         return;
     };
     
-    exportFn({ stats, revenueData, hoursData, user });
+    exportFn({ stats, revenueData, hoursData, user: userProfile });
     await chargeFor('report_export');
     setIsExporting(false);
   };

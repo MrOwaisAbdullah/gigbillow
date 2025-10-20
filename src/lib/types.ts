@@ -72,6 +72,7 @@ export type UserProfile = {
     email: string;
     photoURL: string;
     referral_code: string;
+    logoUrl?: string;
 }
 
 export type Expense = {

@@ -48,6 +48,8 @@ import { generateProposalPdf } from '@/lib/pdf-utils';
 import { useAuth } from '@/components/auth/auth-provider';
 import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
+import { getUserProfile } from '@/lib/api/users';
+import type { UserProfile } from '@/lib/types';
 
 const formSchema = z.object({
   jobPostText: z
@@ -70,6 +72,7 @@ export default function ProposalGeneratorPage() {
   const [generatedProposal, setGeneratedProposal] = useState('');
   const { tokens, openDialog } = useToken();
   const { user, loading: authLoading } = useAuth();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const router = useRouter();
 
   const form = useForm<ProposalFormValues>({
@@ -81,6 +84,16 @@ export default function ProposalGeneratorPage() {
       removeWatermark: false,
     },
   });
+
+  useEffect(() => {
+    async function fetchProfile() {
+      if (user) {
+        const profile = await getUserProfile();
+        setUserProfile(profile);
+      }
+    }
+    fetchProfile();
+  }, [user]);
 
   // Load from local storage
   useEffect(() => {
@@ -167,9 +180,14 @@ export default function ProposalGeneratorPage() {
   };
 
   const handleDownload = () => {
+    if (!userProfile) {
+        toast({ variant: 'destructive', title: 'Could not download', description: 'User profile not found.' });
+        return;
+    }
     generateProposalPdf({
       proposalText: generatedProposal,
       clientName: form.getValues('clientName'),
+      user: userProfile,
       removeWatermark: form.getValues('removeWatermark'),
     });
     toast({ title: 'Download started!' });

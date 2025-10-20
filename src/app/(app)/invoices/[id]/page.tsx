@@ -13,8 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getInvoiceById, updateInvoice } from '@/lib/api/invoices';
 import { getClientById } from '@/lib/api/clients';
 import { getProjectById } from '@/lib/api/projects';
+import { getUserProfile } from '@/lib/api/users';
 import { generateInvoicePdf } from '@/lib/pdf-utils';
-import type { Invoice, Client, Project } from '@/lib/types';
+import type { Invoice, Client, Project, UserProfile } from '@/lib/types';
 import { useAuth } from '@/components/auth/auth-provider';
 import {
   Table,
@@ -40,13 +41,14 @@ export default function InvoiceDetailPage() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [client, setClient] = useState<Client | null>(null);
   const [project, setProject] = useState<Project | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !user) return;
     
     async function fetchInvoiceDetails() {
       try {
@@ -57,13 +59,15 @@ export default function InvoiceDetailPage() {
         }
         setInvoice(invoiceData);
 
-        const [clientData, projectData] = await Promise.all([
+        const [clientData, projectData, profileData] = await Promise.all([
           getClientById(invoiceData.clientId),
           getProjectById(invoiceData.projectId),
+          getUserProfile(),
         ]);
 
         setClient(clientData);
         setProject(projectData);
+        setUserProfile(profileData);
       } catch (error) {
         console.error("Failed to fetch invoice details", error);
       } finally {
@@ -72,7 +76,7 @@ export default function InvoiceDetailPage() {
     }
 
     fetchInvoiceDetails();
-  }, [id, router]);
+  }, [id, router, user]);
 
   const handleMarkAsPaid = async () => {
     if (!invoice) return;
@@ -93,11 +97,11 @@ export default function InvoiceDetailPage() {
   };
   
   const handleDownloadPdf = () => {
-    if (invoice && client && user) {
+    if (invoice && client && userProfile) {
         generateInvoicePdf({
             invoice,
             client,
-            user: { displayName: user.displayName, email: user.email },
+            user: userProfile,
         });
     }
   }
@@ -167,8 +171,8 @@ export default function InvoiceDetailPage() {
                     <p className="text-muted-foreground"># {invoice.invoiceNumber}</p>
                 </div>
                 <div className="text-left sm:text-right w-full sm:w-auto">
-                    <p className="font-semibold">{user?.displayName}</p>
-                    <p className="text-sm text-muted-foreground">{user?.email}</p>
+                    <p className="font-semibold">{userProfile?.displayName}</p>
+                    <p className="text-sm text-muted-foreground">{userProfile?.email}</p>
                 </div>
             </div>
         </CardHeader>
@@ -344,7 +348,3 @@ function InvoiceDetailSkeleton() {
         </div>
     )
 }
-
-    
-
-    

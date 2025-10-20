@@ -348,7 +348,7 @@ export default function LandingPage() {
         </section>
 
 
-       <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 bg-background">
+       <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30">
           <div className="container mx-auto px-4 md:px-6">
             <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -360,7 +360,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-12">
-              <Card className="flex flex-col bg-secondary/30">
+              <Card className="flex flex-col bg-background">
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Free</CardTitle>
                   <p className="text-4xl font-extrabold mt-2">$0</p>
@@ -378,7 +378,7 @@ export default function LandingPage() {
                   <Button variant="outline" className="w-full" asChild><Link href="/register">Get Started</Link></Button>
                 </CardContent>
               </Card>
-              <Card className="border-primary border-2 relative flex flex-col bg-secondary/30">
+              <Card className="border-primary border-2 relative flex flex-col bg-background">
                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap">Most Popular</div>
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Standard Pack</CardTitle>
@@ -389,13 +389,14 @@ export default function LandingPage() {
                    <ul className="space-y-3 text-muted-foreground flex-grow">
                     <li className="font-semibold text-foreground">Everything in Free, plus...</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> 200 tokens</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Branded PDFs (with your logo) at no extra token cost</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Valid for 3 months</li>
                     <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0"/> Priority email support</li>
                   </ul>
                   <Button className="w-full" asChild><Link href="/register">Buy Standard Pack</Link></Button>
                 </CardContent>
               </Card>
-              <Card className="flex flex-col bg-secondary/30">
+              <Card className="flex flex-col bg-background">
                 <CardHeader className="text-center p-6">
                   <CardTitle className="text-xl">Mini Pack</CardTitle>
                   <p className="text-4xl font-extrabold mt-2">$5</p>
@@ -413,7 +414,7 @@ export default function LandingPage() {
               </Card>
             </div>
             
-            <Card className="max-w-5xl mx-auto mt-8 p-6 md:p-8 bg-secondary/30">
+            <Card className="max-w-5xl mx-auto mt-8 p-6 md:p-8 bg-background">
               <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6">
                 <div className="md:col-span-2">
                     <h3 className="text-xl font-bold">Agency Pack</h3>
@@ -580,9 +581,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-
-
-
-
-

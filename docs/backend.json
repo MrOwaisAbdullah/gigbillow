@@ -23,6 +23,11 @@
         "referral_code": {
           "type": "string",
           "description": "A unique code to refer other users."
+        },
+        "logoUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's company or personal logo."
         }
       }
     },

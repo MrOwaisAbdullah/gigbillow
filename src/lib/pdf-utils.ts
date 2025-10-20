@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
-import type { Invoice, Client, User } from './types';
+import type { Invoice, Client, UserProfile } from './types';
 import { toTitleCase } from './utils';
 
 // HSL to RGB conversion
@@ -39,11 +39,37 @@ const borderGray = [226, 232, 240];
 const brandName = 'GigBillow';
 const pageMargin = 40;
 
-function addHeader(doc: jsPDF, title: string) {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(28);
-    doc.setTextColor(...primaryRgb);
-    doc.text(title, pageMargin, pageMargin, { align: 'left' });
+async function addHeader(doc: jsPDF, title: string, logoUrl?: string) {
+    if (logoUrl) {
+        try {
+            // This is a simplified fetch. A real app might need CORS handling or a proxy.
+            const response = await fetch(logoUrl);
+            const blob = await response.blob();
+            const reader = new FileReader();
+            await new Promise((resolve, reject) => {
+                reader.onload = resolve;
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+            const logoData = reader.result as string;
+            const imgProps = doc.getImageProperties(logoData);
+            const logoHeight = 40;
+            const logoWidth = (imgProps.width * logoHeight) / imgProps.height;
+            doc.addImage(logoData, 'PNG', pageMargin, pageMargin - 15, logoWidth, logoHeight);
+        } catch (error) {
+            console.error("Failed to load logo image:", error);
+            // Fallback to text header if logo fails
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(28);
+            doc.setTextColor(...primaryRgb);
+            doc.text(title, pageMargin, pageMargin, { align: 'left' });
+        }
+    } else {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(28);
+        doc.setTextColor(...primaryRgb);
+        doc.text(title, pageMargin, pageMargin, { align: 'left' });
+    }
 }
 
 function addWatermark(doc: jsPDF) {
@@ -58,11 +84,11 @@ function addWatermark(doc: jsPDF) {
     }
 }
 
-function generatePdf(fileName: string, title: string, removeWatermark: boolean, addContent: (doc: jsPDF) => void) {
+async function generatePdf(fileName: string, title: string, removeWatermark: boolean, addContent: (doc: jsPDF) => void, logoUrl?: string) {
     const doc = new jsPDF('p', 'pt', 'a4');
     doc.setFont('helvetica');
 
-    addHeader(doc, title);
+    await addHeader(doc, title, logoUrl);
     addContent(doc);
     if (!removeWatermark) {
         addWatermark(doc);
@@ -75,11 +101,11 @@ function generatePdf(fileName: string, title: string, removeWatermark: boolean, 
 type GenerateInvoicePdfProps = {
     invoice: Invoice;
     client: Client;
-    user: { displayName?: string | null; email?: string | null };
+    user: Partial<UserProfile>;
     removeWatermark?: boolean;
 };
 
-export function generateInvoicePdf({ invoice, client, user, removeWatermark = false }: GenerateInvoicePdfProps) {
+export async function generateInvoicePdf({ invoice, client, user, removeWatermark = false }: GenerateInvoicePdfProps) {
     const addContent = (doc: jsPDF) => {
         let y = pageMargin + 60;
         const sectionGap = 20;
@@ -257,17 +283,18 @@ export function generateInvoicePdf({ invoice, client, user, removeWatermark = fa
         }
     };
     
-    generatePdf(invoice.invoiceNumber, 'INVOICE', removeWatermark, addContent);
+    await generatePdf(invoice.invoiceNumber, 'INVOICE', removeWatermark, addContent, user.logoUrl);
 }
 
 // --- PROPOSAL PDF ---
 type GenerateProposalPdfProps = {
     proposalText: string;
     clientName?: string;
+    user: Partial<UserProfile>;
     removeWatermark?: boolean;
 };
 
-export function generateProposalPdf({ proposalText, clientName, removeWatermark = false }: GenerateProposalPdfProps) {
+export async function generateProposalPdf({ proposalText, clientName, user, removeWatermark = false }: GenerateProposalPdfProps) {
     const addContent = (doc: jsPDF) => {
         let y = pageMargin + 80;
 
@@ -290,7 +317,7 @@ export function generateProposalPdf({ proposalText, clientName, removeWatermark 
         textLines.forEach((line: string) => {
             if (y > doc.internal.pageSize.getHeight() - pageMargin - 40) {
                 doc.addPage();
-                addHeader(doc, 'Project Proposal');
+                addHeader(doc, 'Project Proposal', user.logoUrl);
                 y = pageMargin + 40;
             }
             doc.text(line, pageMargin, y);
@@ -302,7 +329,7 @@ export function generateProposalPdf({ proposalText, clientName, removeWatermark 
         });
     };
     const fileName = `Project-Proposal-${format(new Date(), 'yyyy-MM-dd')}`;
-    generatePdf(fileName, 'Project Proposal', removeWatermark, addContent);
+    await generatePdf(fileName, 'Project Proposal', removeWatermark, addContent, user.logoUrl);
 }
 
 // --- REPORT PDF ---
@@ -316,15 +343,15 @@ type ReportData = {
   stats: ReportStats;
   revenueData: { name: string; total: number }[];
   hoursData: { name: string; value: number }[];
-  user: { displayName?: string | null };
+  user: Partial<UserProfile>;
 };
 
-export function generateReportPdf({ stats, revenueData, hoursData, user }: ReportData) {
+export async function generateReportPdf({ stats, revenueData, hoursData, user }: ReportData) {
   const doc = new jsPDF('p', 'pt', 'a4');
   let y = pageMargin + 40;
   const fileName = `GigBillow-Report-${format(new Date(), 'yyyy-MM-dd')}`;
   
-  addHeader(doc, 'Reports Summary');
+  await addHeader(doc, 'Reports Summary', user.logoUrl);
   
   doc.setFontSize(10);
   doc.setTextColor(...gray);

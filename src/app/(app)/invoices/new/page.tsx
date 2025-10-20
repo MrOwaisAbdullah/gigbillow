@@ -42,7 +42,7 @@ import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import type { Client, Project, Expense } from '@/lib/types';
+import type { Client, Project, Expense, UserProfile } from '@/lib/types';
 import { SelectWithCreate } from '@/components/select-with-create';
 import { ClientForm } from '@/components/clients/client-form';
 import { ProjectForm } from '@/components/projects/project-form';
@@ -54,6 +54,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { getUserProfile } from '@/lib/api/users';
 
 
 const lineItemSchema = z.object({
@@ -96,6 +97,7 @@ export default function NewInvoicePage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [uninvoicedExpenses, setUninvoicedExpenses] = useState<Expense[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(formSchema),
@@ -165,11 +167,21 @@ export default function NewInvoicePage() {
     return projectsData;
   }, []);
 
-
   useEffect(() => {
-    fetchClients();
-    fetchProjects();
-  }, [fetchClients, fetchProjects]);
+    async function fetchInitialData() {
+        if(user) {
+            const [clientsData, projectsData, profileData] = await Promise.all([
+                fetchClients(),
+                fetchProjects(),
+                getUserProfile()
+            ]);
+            setClients(clientsData);
+            setAllProjects(projectsData);
+            setUserProfile(profileData);
+        }
+    }
+    fetchInitialData();
+  }, [user, fetchClients, fetchProjects]);
   
   useEffect(() => {
     if (watchedValues.clientId) {
@@ -303,7 +315,7 @@ export default function NewInvoicePage() {
 
         const client = clients.find(c => c.id === values.clientId);
 
-        if (!client || !user) {
+        if (!client || !userProfile) {
             toast({ variant: 'destructive', title: 'Error', description: 'Could not find client or user information.' });
             setIsSubmitting(false);
             return;
@@ -316,7 +328,7 @@ export default function NewInvoicePage() {
 
         const enhancementResult = await enhanceInvoice({
             clientName: client.name,
-            userName: user.displayName || 'Freelancer',
+            userName: userProfile.displayName || 'Freelancer',
             lineItems: finalLineItems, // Pass all line items to AI
             totalAmount: Number(totalAmount),
             dueDate: format(values.dueDate, 'PPP')
@@ -325,10 +337,10 @@ export default function NewInvoicePage() {
         const updatedInvoiceData = { ...newInvoice, enhancedSummary: enhancementResult.summary, discountValue: values.discountValue || 0, discountType: values.discountType || 'fixed' };
         await updateInvoice(newInvoice.id, { enhancedSummary: enhancementResult.summary });
 
-        generateInvoicePdf({
+        await generateInvoicePdf({
           invoice: updatedInvoiceData,
           client: client,
-          user: { displayName: user.displayName, email: user.email },
+          user: userProfile,
           removeWatermark: values.removeWatermark,
         });
         
