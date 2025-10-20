@@ -149,7 +149,7 @@ export default function LandingPage() {
         <div className="container mx-auto flex h-14 items-center px-2 sm:px-4">
           <Link href="#" className="mr-auto flex items-center gap-2" prefetch={false}>
             <Logo className="h-8 w-8 text-primary" />
-            <span className="hidden sm:inline font-bold text-lg text-primary">GigBillow</span>
+            <span className="hidden min-[320px]:inline font-bold text-lg text-primary">GigBillow</span>
           </Link>
           <nav className="hidden sm:flex flex-1">
             {/* Can add nav links here later */}
@@ -160,6 +160,7 @@ export default function LandingPage() {
                 size="icon"
                 aria-label="Toggle Theme"
                 onClick={toggleTheme}
+                className="h-9 w-9 sm:h-10 sm:w-10"
               >
               <Sun className="h-6 w-6 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-6 w-6 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -202,17 +203,17 @@ export default function LandingPage() {
                 GigBillow is the all-in-one toolkit for modern freelancers. Stop juggling apps and start streamlining your business with AI-powered proposals, 1-click invoicing, and dead-simple time tracking.
               </p>
             </div>
-            <div className="flex flex-col gap-2 min-[400px]:flex-row">
+            <div className="flex w-full flex-col gap-2 min-[400px]:flex-row max-w-md">
               {user ? (
-                  <Button asChild size="lg" className="flex-1">
+                  <Button asChild size="lg" className="flex-1 h-12">
                     <Link href="/dashboard">Go to Dashboard</Link>
                   </Button>
               ) : (
-                  <Button asChild size="lg" className="flex-1">
+                  <Button asChild size="lg" className="flex-1 h-12">
                     <Link href="/register">Get Started Free</Link>
                   </Button>
               )}
-              <Button asChild variant="outline" size="lg" className="flex-1">
+              <Button asChild variant="outline" size="lg" className="flex-1 h-12">
                 <Link href="/proposal-generator">Generate a Proposal</Link>
               </Button>
             </div>
@@ -439,7 +440,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30 overflow-x-hidden">
           <div className="container mx-auto px-4 md:px-6">
               <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-4 text-center">
                   <div className="space-y-2">
@@ -489,8 +490,8 @@ export default function LandingPage() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="absolute left-[-50px] top-1/2 -translate-y-1/2 fill-black" />
-                <CarouselNext className="absolute right-[-50px] top-1/2 -translate-y-1/2 fill-black" />
+                <CarouselPrevious className="absolute left-[-20px] sm:left-[-50px] top-1/2 -translate-y-1/2 fill-black" />
+                <CarouselNext className="absolute right-[-20px] sm:right-[-50px] top-1/2 -translate-y-1/2 fill-black" />
               </Carousel>
           </div>
         </section>
@@ -563,8 +564,8 @@ export default function LandingPage() {
         </section>
       </main>
       <footer className="w-full shrink-0 border-t">
-         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-            <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} GigBillow. All rights reserved.</p>
+         <div className="container mx-auto flex flex-col sm:flex-row h-auto sm:h-16 items-center justify-between gap-4 py-4 sm:py-0 px-4 md:px-6">
+            <p className="text-xs text-muted-foreground text-center sm:text-left">&copy; {new Date().getFullYear()} GigBillow. All rights reserved.</p>
             <div className="text-xs text-muted-foreground">
               Made with ❤️ by <a href="https://owaisabdullah.dev/" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">Owais Abdullah</a>
             </div>
@@ -581,3 +582,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
