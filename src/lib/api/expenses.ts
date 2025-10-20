@@ -45,21 +45,22 @@ export async function getExpenses(
     page: 'first' | 'next' | 'prev' = 'first',
     cursor: DocumentSnapshot | null = null,
     pageSize: number = 10
-): Promise<{ expenses: Expense[], next: DocumentSnapshot | null, prev: DocumentSnapshot | null }> {
+): Promise<{ expenses: Expense[], hasNextPage: boolean }> {
     const collectionPath = getCollectionPath();
-    if (!collectionPath) return { expenses: [], next: null, prev: null };
+    if (!collectionPath) return { expenses: [], hasNextPage: false };
 
     const coll = collection(db, collectionPath);
     let q;
+    
+    // We fetch one more than the page size to check if there is a next page
+    const queryLimit = pageSize + 1; 
 
     if (page === 'first') {
-        q = query(coll, orderBy('date', 'desc'), limit(pageSize));
+        q = query(coll, orderBy('date', 'desc'), limit(queryLimit));
     } else if (page === 'next' && cursor) {
-        q = query(coll, orderBy('date', 'desc'), startAfter(cursor), limit(pageSize));
-    } else if (page === 'prev' && cursor) {
-        q = query(coll, orderBy('date', 'desc'), endBefore(cursor), limit(pageSize));
-    } else {
-        q = query(coll, orderBy('date', 'desc'), limit(pageSize));
+        q = query(coll, orderBy('date', 'desc'), startAfter(cursor), limit(queryLimit));
+    } else { // 'prev' is not needed with this new logic, but we keep the structure.
+        q = query(coll, orderBy('date', 'desc'), limit(queryLimit));
     }
 
     const querySnapshot = await getDocs(q).catch((serverError) => {
@@ -71,12 +72,15 @@ export async function getExpenses(
         throw permissionError;
     });
 
-    const expenses = querySnapshot.docs.map(docToExpense);
-    const firstVisible = querySnapshot.docs[0];
-    const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+    const docs = querySnapshot.docs;
+    const hasNextPage = docs.length > pageSize;
+    
+    // Slice the array to only include the items for the current page
+    const expenses = docs.slice(0, pageSize).map(docToExpense);
 
-    return { expenses, next: lastVisible, prev: firstVisible };
+    return { expenses, hasNextPage };
 }
+
 
 export async function getUninvoicedExpensesByProject(projectId: string): Promise<Expense[]> {
   const collectionPath = getCollectionPath();

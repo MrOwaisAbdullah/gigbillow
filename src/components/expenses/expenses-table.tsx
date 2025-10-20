@@ -38,59 +38,53 @@ export function ExpensesTable({ allProjects, searchTerm }: ExpensesTableProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [lastVisible, setLastVisible] = useState<DocumentSnapshot | null>(null);
-  const [firstVisible, setFirstVisible] = useState<DocumentSnapshot | null>(null);
+  const [pageCursors, setPageCursors] = useState<(DocumentSnapshot | null)[]>([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const fetchInitialExpenses = useCallback(async () => {
+  const fetchExpenses = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
     const isSearching = searchTerm.trim() !== '';
     const pageSize = isSearching ? 100 : 10;
     
-    const { expenses: expensesData, next, prev } = await getExpenses('first', null, pageSize);
+    let cursor: DocumentSnapshot | null = null;
+    if (page === 'next' && pageCursors.length > currentPage) {
+        cursor = pageCursors[currentPage];
+    } else if (page === 'prev' && currentPage > 1) {
+        cursor = pageCursors[currentPage - 2];
+    }
+    
+    const { expenses: expensesData, hasNextPage: newHasNextPage } = await getExpenses(page, cursor, pageSize);
     setExpenses(expensesData);
     
     if(!isSearching) {
-        setHasNextPage(!!next);
-        setLastVisible(next);
-        setFirstVisible(prev);
-        setCurrentPage(1);
+        setHasNextPage(newHasNextPage);
+        if (page === 'next') {
+            const lastDoc = expensesData.length > 0 ? (await getDoc(doc(db, getCollectionPath()!, expensesData[expensesData.length-1].id))) : null;
+            if (lastDoc && !pageCursors.some(c => c?.id === lastDoc.id)) {
+                setPageCursors(prev => [...prev, lastDoc]);
+            }
+            setCurrentPage(p => p + 1);
+        } else if (page === 'prev') {
+            setCurrentPage(p => Math.max(1, p - 1));
+        } else { // first
+            const lastDoc = expensesData.length > 0 ? (await getDoc(doc(db, getCollectionPath()!, expensesData[expensesData.length-1].id))) : null;
+            setPageCursors([null, lastDoc]);
+            setCurrentPage(1);
+        }
     } else {
         setHasNextPage(false);
         setCurrentPage(1);
     }
     setLoading(false);
-  }, [searchTerm]);
+  }, [searchTerm, currentPage, pageCursors]);
 
   useEffect(() => {
-    fetchInitialExpenses();
-  }, [fetchInitialExpenses]);
+    fetchExpenses('first');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
 
-  const fetchNextPage = async () => {
-    if (!hasNextPage) return;
-    setLoading(true);
-    const { expenses: expensesData, next, prev } = await getExpenses('next', lastVisible, 10);
-    setExpenses(expensesData);
-    setHasNextPage(!!next);
-    setLastVisible(next);
-    setFirstVisible(prev);
-    setCurrentPage(prev => prev + 1);
-    setLoading(false);
-  }
-
-  const fetchPrevPage = async () => {
-     if (currentPage <= 1) return;
-    setLoading(true);
-    const { expenses: expensesData, next, prev } = await getExpenses('prev', firstVisible, 10);
-    setExpenses(expensesData);
-    setHasNextPage(!!next);
-    setLastVisible(next);
-    setFirstVisible(prev);
-    setCurrentPage(prev => prev - 1);
-    setLoading(false);
-  }
 
   const filteredExpenses = useMemo(() => {
     if (!searchTerm) return expenses;
@@ -107,7 +101,7 @@ export function ExpensesTable({ allProjects, searchTerm }: ExpensesTableProps) {
   }, [searchTerm, expenses, allProjects]);
 
   const handleSuccess = () => {
-    fetchInitialExpenses();
+    fetchExpenses('first');
     setIsDialogOpen(false);
     setSelectedExpense(null);
   }
@@ -222,8 +216,8 @@ export function ExpensesTable({ allProjects, searchTerm }: ExpensesTableProps) {
       </div>
        {!searchTerm && (
          <PaginationControls
-            onNext={fetchNextPage}
-            onPrev={fetchPrevPage}
+            onNext={() => fetchExpenses('next')}
+            onPrev={() => fetchExpenses('prev')}
             hasNextPage={hasNextPage}
             hasPrevPage={currentPage > 1}
             currentPage={currentPage}
