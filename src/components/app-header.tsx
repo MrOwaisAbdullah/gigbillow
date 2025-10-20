@@ -26,6 +26,7 @@ import {
   Zap,
   Moon,
   Sun,
+  MessageSquareHeart,
 } from "lucide-react"
 import { usePathname } from 'next/navigation'
 import React from "react"
@@ -139,6 +140,12 @@ export function AppHeader() {
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/support">Support</Link>
+          </DropdownMenuItem>
+           <DropdownMenuItem asChild>
+             <Link href="/support/feedback">
+                <MessageSquareHeart className="mr-2 h-4 w-4" />
+                Feedback
+             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setTourOpen(true)}>
             Welcome Tour

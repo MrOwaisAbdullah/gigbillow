@@ -8,16 +8,21 @@ import { FloatingTrackerButton } from '@/components/floating-tracker-button';
 import { AuthProvider, useAuth } from '@/components/auth/auth-provider';
 import { TokenProvider } from '@/components/token/token-provider';
 import { Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { WelcomeTour } from '@/components/welcome-tour';
 import { TourProvider, useTour } from '@/components/tour-provider';
+import { TimedFeedbackDialog } from '@/components/feedback/timed-feedback-dialog';
+
+const FEEDBACK_TIMER_DURATION = 1000 * 60 * 15; // 15 minutes
+const FEEDBACK_STORAGE_KEY = 'gigbillow-feedback-prompt-dismissed';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const { loading, isNewUser } = useAuth();
   const searchParams = useSearchParams();
   const { setOpen, isTourOpen } = useTour();
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
 
   useEffect(() => {
     const refCode = searchParams.get('ref');
@@ -31,6 +36,26 @@ function AppContent({ children }: { children: React.ReactNode }) {
       setOpen(true);
     }
   }, [isNewUser, setOpen]);
+  
+  useEffect(() => {
+    const dialogDismissed = localStorage.getItem(FEEDBACK_STORAGE_KEY);
+    if (dialogDismissed) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setShowFeedbackDialog(true);
+    }, FEEDBACK_TIMER_DURATION);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleDialogClose = (dontShowAgain: boolean) => {
+    setShowFeedbackDialog(false);
+    if (dontShowAgain) {
+      localStorage.setItem(FEEDBACK_STORAGE_KEY, 'true');
+    }
+  };
 
 
   if (loading) {
@@ -56,6 +81,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
       </div>
       <FloatingTrackerButton />
       <WelcomeTour open={isTourOpen} onOpenChange={setOpen} />
+      <TimedFeedbackDialog open={showFeedbackDialog} onClose={handleDialogClose} />
     </div>
   );
 }
