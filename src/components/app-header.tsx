@@ -27,6 +27,10 @@ import {
   Moon,
   Sun,
   MessageSquareHeart,
+  Settings,
+  LifeBuoy,
+  BookOpen,
+  LogOut,
 } from "lucide-react"
 import { usePathname } from 'next/navigation'
 import React from "react"
@@ -136,10 +140,16 @@ export function AppHeader() {
           <DropdownMenuLabel>{user?.displayName || 'My Account'}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link href="/settings">Settings</Link>
+            <Link href="/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/support">Support</Link>
+            <Link href="/support">
+                <LifeBuoy className="mr-2 h-4 w-4" />
+                Support
+            </Link>
           </DropdownMenuItem>
            <DropdownMenuItem asChild>
              <Link href="/support/feedback">
@@ -148,6 +158,7 @@ export function AppHeader() {
              </Link>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setTourOpen(true)}>
+            <BookOpen className="mr-2 h-4 w-4" />
             Welcome Tour
           </DropdownMenuItem>
           <DropdownMenuItem onClick={toggleTheme}>
@@ -155,7 +166,10 @@ export function AppHeader() {
             Toggle Theme
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => signOut()}>Logout</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => signOut()}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
