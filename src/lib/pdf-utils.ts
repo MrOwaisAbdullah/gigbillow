@@ -1,5 +1,3 @@
-
-
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
@@ -41,6 +39,7 @@ const borderGray = [226, 232, 240];
 const brandName = 'GigBillow';
 const pageMargin = 40;
 
+
 async function addHeader(doc: jsPDF, title: string, dataUri?: string) {
     const fallbackHeader = () => {
         doc.setFont('helvetica', 'bold');
@@ -57,7 +56,7 @@ async function addHeader(doc: jsPDF, title: string, dataUri?: string) {
     try {
         const img = new Image();
         img.src = dataUri;
-
+        
         await new Promise<void>((resolve, reject) => {
             img.onload = () => resolve();
             img.onerror = (err) => reject(err);
@@ -73,6 +72,7 @@ async function addHeader(doc: jsPDF, title: string, dataUri?: string) {
     }
 }
 
+
 function addWatermark(doc: jsPDF) {
     const pageCount = (doc as any).internal.getNumberOfPages();
     doc.setFontSize(8);
@@ -85,34 +85,9 @@ function addWatermark(doc: jsPDF) {
     }
 }
 
-async function urlToDataUri(url: string): Promise<string> {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
-}
-
-async function generatePdf(fileName: string, title: string, removeWatermark: boolean, addContent: (doc: jsPDF) => void, logoUrl?: string) {
+async function generatePdf(fileName: string, title: string, removeWatermark: boolean, addContent: (doc: jsPDF) => void, logoDataUri?: string) {
     const doc = new jsPDF('p', 'pt', 'a4');
     doc.setFont('helvetica');
-
-    let logoDataUri: string | undefined;
-    if (logoUrl) {
-        try {
-            if (logoUrl.startsWith('data:image/')) {
-                logoDataUri = logoUrl;
-            } else {
-                logoDataUri = await urlToDataUri(logoUrl);
-            }
-        } catch (error) {
-            console.error("Failed to convert logo URL to Data URI:", error);
-            // Proceed without logo
-        }
-    }
 
     await addHeader(doc, title, logoDataUri);
     addContent(doc);
@@ -309,7 +284,7 @@ export async function generateInvoicePdf({ invoice, client, user, removeWatermar
         }
     };
     
-    await generatePdf(`Invoice-${invoice.invoiceNumber}`, 'INVOICE', !!removeWatermark, addContent, user.is_subscribed ? user.logoUrl : undefined);
+    await generatePdf(`Invoice-${invoice.invoiceNumber}`, 'INVOICE', !!removeWatermark, addContent, user.is_subscribed ? user.logoDataUrl : undefined);
 }
 
 // --- PROPOSAL PDF ---
@@ -343,7 +318,7 @@ export async function generateProposalPdf({ proposalText, clientName, user, remo
         textLines.forEach((line: string) => {
             if (y > doc.internal.pageSize.getHeight() - pageMargin - 40) {
                 doc.addPage();
-                addHeader(doc, 'Project Proposal', user.is_subscribed ? user.logoUrl : undefined);
+                addHeader(doc, 'Project Proposal', user.is_subscribed ? user.logoDataUrl : undefined);
                 y = pageMargin + 40;
             }
             doc.text(line, pageMargin, y);
@@ -355,7 +330,7 @@ export async function generateProposalPdf({ proposalText, clientName, user, remo
         });
     };
     const fileName = `Project-Proposal-${format(new Date(), 'yyyy-MM-dd')}`;
-    await generatePdf(fileName, 'Project Proposal', !!removeWatermark, addContent, user.is_subscribed ? user.logoUrl : undefined);
+    await generatePdf(fileName, 'Project Proposal', !!removeWatermark, addContent, user.is_subscribed ? user.logoDataUrl : undefined);
 }
 
 // --- REPORT PDF ---
@@ -431,7 +406,7 @@ export async function generateReportPdf({ stats, revenueData, hoursData, user }:
         headStyles: { fillColor: primaryRgb },
         styles: { fontSize: 10 },
     });
-  }, user.is_subscribed ? user.logoUrl : undefined);
+  }, user.is_subscribed ? user.logoDataUrl : undefined);
 }
 
 // --- CSV EXPORT ---

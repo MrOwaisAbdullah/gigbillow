@@ -29,6 +29,10 @@
           "format": "uri",
           "description": "URL to the user's company or personal logo."
         },
+        "logoDataUrl": {
+          "type": "string",
+          "description": "The user's logo, stored as a Base64 data URI for reliable PDF embedding."
+        },
         "is_subscribed": {
           "type": "boolean",
           "description": "Whether the user has an active subscription or purchased a token pack.",

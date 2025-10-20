@@ -3,6 +3,7 @@
 
 
 
+
 export type Client = {
   id: string;
   name: string;
@@ -28,7 +29,7 @@ export type TimeEntry = {
 };
 
 export type Invoice = {
-  id: string;
+  id:string;
   invoiceNumber: string;
   clientId: string;
   projectId: string;
@@ -76,6 +77,7 @@ export type UserProfile = {
     photoURL: string;
     referral_code: string;
     logoUrl?: string;
+    logoDataUrl?: string;
     is_subscribed: boolean;
 }
 

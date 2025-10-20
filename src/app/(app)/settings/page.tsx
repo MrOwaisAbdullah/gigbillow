@@ -22,6 +22,23 @@ const profileSchema = z.object({
   logoUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
 });
 
+async function urlToDataUri(url: string): Promise<string> {
+    if (!url) return '';
+    try {
+        const response = await fetch(url, { mode: 'cors' });
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.error("Failed to convert URL to Data URI:", error);
+        throw new Error("Could not fetch or convert the image from the provided URL. Please check the URL and ensure it allows cross-origin access.");
+    }
+}
+
 
 export default function SettingsPage() {
     const { user } = useAuth();
@@ -68,9 +85,25 @@ export default function SettingsPage() {
                 return;
             }
 
+            let logoDataUrl = '';
+            if (values.logoUrl) {
+                try {
+                    logoDataUrl = await urlToDataUri(values.logoUrl);
+                } catch(e: any) {
+                    toast({
+                        variant: 'destructive',
+                        title: 'Logo Conversion Failed',
+                        description: e.message || 'Could not process the logo from the provided URL.',
+                    });
+                    setIsSubmitting(false);
+                    return;
+                }
+            }
+
             await updateUserProfile({
                 displayName: values.displayName,
                 logoUrl: values.logoUrl,
+                logoDataUrl: logoDataUrl,
             });
             toast({
                 title: 'Profile Updated',
