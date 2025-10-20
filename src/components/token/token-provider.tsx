@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { UserToken } from '@/lib/types';
 import { InsufficientTokensDialog } from './insufficient-tokens-dialog';
