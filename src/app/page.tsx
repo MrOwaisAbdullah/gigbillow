@@ -146,15 +146,15 @@ export default function LandingPage() {
   return (
     <div className="flex min-h-[100dvh] flex-col bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-14 items-center">
-          <Link href="#" className="mr-6 flex items-center gap-2" prefetch={false}>
+        <div className="container mx-auto flex h-14 items-center px-2 sm:px-4">
+          <Link href="#" className="mr-auto flex items-center gap-2" prefetch={false}>
             <Logo className="h-8 w-8 text-primary" />
-            <span className="font-bold text-lg text-primary">GigBillow</span>
+            <span className="hidden sm:inline font-bold text-lg text-primary">GigBillow</span>
           </Link>
-          <nav className="flex-1">
+          <nav className="hidden sm:flex flex-1">
             {/* Can add nav links here later */}
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <Button
                 variant="ghost"
                 size="icon"
@@ -166,10 +166,10 @@ export default function LandingPage() {
             </Button>
             {user === null ? (
                <>
-                 <Button variant="ghost" asChild>
+                 <Button variant="ghost" asChild size="sm">
                   <Link href="/login">Log In</Link>
                 </Button>
-                <Button asChild>
+                <Button asChild size="sm">
                   <Link href="/register">Sign Up</Link>
                 </Button>
               </>
@@ -179,10 +179,10 @@ export default function LandingPage() {
               </Button>
             ) : (
               <>
-                 <Button variant="ghost" asChild>
+                 <Button variant="ghost" asChild size="sm">
                   <Link href="/login">Log In</Link>
                 </Button>
-                <Button asChild>
+                <Button asChild size="sm">
                   <Link href="/register">Sign Up</Link>
                 </Button>
               </>
