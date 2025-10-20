@@ -8,6 +8,7 @@
 
 - Unlimited time-tracking (start/stop across all projects)  
 - Unlimited projects, clients, expense entries  
+- **10 tokens per month** (for premium actions)
 - Add your **logo URL** on every PDF (no file upload needed)  
 - View & share invoices/proposals online 
 - Community support + public roadmap access  

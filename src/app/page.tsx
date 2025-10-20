@@ -205,15 +205,15 @@ export default function LandingPage() {
             </div>
             <div className="flex w-full flex-col gap-2 min-[400px]:flex-row max-w-md">
               {user ? (
-                  <Button asChild size="lg" className="flex-1 h-12">
+                  <Button asChild size="lg" className="flex-1 py-3 min-h-12">
                     <Link href="/dashboard">Go to Dashboard</Link>
                   </Button>
               ) : (
-                  <Button asChild size="lg" className="flex-1 h-12">
+                  <Button asChild size="lg" className="flex-1 py-3 min-h-12">
                     <Link href="/register">Get Started Free</Link>
                   </Button>
               )}
-              <Button asChild variant="outline" size="lg" className="flex-1 h-12">
+              <Button asChild variant="outline" size="lg" className="flex-1 py-3 min-h-12">
                 <Link href="/proposal-generator">Generate a Proposal</Link>
               </Button>
             </div>
@@ -582,4 +582,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
