@@ -10,7 +10,7 @@ import { Loader2 } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { updateUserProfile, getUserProfile } from '@/lib/api/users';
 import { useEffect, useState } from 'react';
 import type { UserProfile } from '@/lib/types';
