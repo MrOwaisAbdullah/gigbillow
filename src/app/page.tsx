@@ -146,7 +146,7 @@ export default function LandingPage() {
   return (
     <div className="flex min-h-[100dvh] flex-col bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-14 items-center px-2 sm:px-4">
+        <div className="container mx-auto flex h-14 items-center px-4">
           <Link href="#" className="mr-auto flex items-center gap-2" prefetch={false}>
             <Logo className="h-8 w-8 text-primary" />
             <span className="hidden min-[320px]:inline font-bold text-lg text-primary">GigBillow</span>
@@ -160,7 +160,7 @@ export default function LandingPage() {
                 size="icon"
                 aria-label="Toggle Theme"
                 onClick={toggleTheme}
-                className="h-9 w-9 sm:h-10 sm:w-10"
+                className="h-10 w-10"
               >
               <Sun className="h-6 w-6 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-6 w-6 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -229,7 +229,7 @@ export default function LandingPage() {
                     {carouselImages.map((image, index) => (
                       <CarouselItem key={index}>
                         <Card className='border-none shadow-none'>
-                          <CardContent className="flex aspect-[4/3] md:aspect-[21/10] items-center justify-center p-0">
+                          <CardContent className="flex aspect-video md:aspect-[21/10] items-center justify-center p-0">
                             <Image
                                 src={image.src}
                                 alt={`App Screenshot ${index + 1}`}
@@ -582,6 +582,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
 
