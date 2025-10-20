@@ -459,7 +459,7 @@ export default function LandingPage() {
                   <Carousel 
                     opts={{ loop: true }}
                     plugins={[testimonialCarouselPlugin.current]}
-                    className="w-full max-w-4xl mx-auto mt-12"
+                    className="w-full max-w-4xl mx-auto mt-12 pb-12 sm:pb-0"
                     onMouseEnter={testimonialCarouselPlugin.current.stop}
                     onMouseLeave={testimonialCarouselPlugin.current.reset}
                     >
@@ -491,8 +491,8 @@ export default function LandingPage() {
                         </CarouselItem>
                       ))}
                     </CarouselContent>
-                    <CarouselPrevious className="absolute left-0 sm:left-[-50px] top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80" />
-                    <CarouselNext className="absolute right-0 sm:right-[-50px] top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80" />
+                    <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 sm:left-[-50px] bottom-[-2.5rem] sm:bottom-auto sm:top-1/2" />
+                    <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 sm:right-[-50px] bottom-[-2.5rem] sm:bottom-auto sm:top-1/2" />
                   </Carousel>
               </div>
           </div>
@@ -584,6 +584,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
 
