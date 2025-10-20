@@ -1,4 +1,5 @@
 
+
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
@@ -289,7 +290,7 @@ export async function generateInvoicePdf({ invoice, client, user, removeWatermar
         }
     };
     
-    await generatePdf(invoice.invoiceNumber, 'INVOICE', removeWatermark, user.is_subscribed ? user.logoUrl : undefined);
+    await generatePdf(invoice.invoiceNumber, 'INVOICE', !!removeWatermark, addContent, user.is_subscribed ? user.logoUrl : undefined);
 }
 
 // --- PROPOSAL PDF ---
@@ -335,7 +336,7 @@ export async function generateProposalPdf({ proposalText, clientName, user, remo
         });
     };
     const fileName = `Project-Proposal-${format(new Date(), 'yyyy-MM-dd')}`;
-    await generatePdf(fileName, 'Project Proposal', removeWatermark, addContent, user.is_subscribed ? user.logoUrl : undefined);
+    await generatePdf(fileName, 'Project Proposal', !!removeWatermark, addContent, user.is_subscribed ? user.logoUrl : undefined);
 }
 
 // --- REPORT PDF ---
