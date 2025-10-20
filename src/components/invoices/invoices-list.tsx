@@ -114,8 +114,9 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
 
   useEffect(() => {
     fetchInvoices('first');
-    // We listen to searchTerm changes to re-fetch.
-  }, [searchTerm, fetchInvoices]);
+    // We only want to re-run this effect when the search term changes, not the whole fetchInvoices function.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
 
   const filteredInvoices = useMemo(() => {
     if (!searchTerm) return invoices;
