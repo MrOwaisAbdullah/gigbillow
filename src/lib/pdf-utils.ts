@@ -40,7 +40,7 @@ const brandName = 'GigBillow';
 const pageMargin = 40;
 
 
-async function addHeader(doc: jsPDF, title: string, dataUri?: string) {
+async function addHeader(doc: jsPDF, title: string, logoDataUrl?: string) {
     const fallbackHeader = () => {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(28);
@@ -48,14 +48,14 @@ async function addHeader(doc: jsPDF, title: string, dataUri?: string) {
         doc.text(title, pageMargin, pageMargin, { align: 'left' });
     };
 
-    if (!dataUri) {
+    if (!logoDataUrl) {
         fallbackHeader();
         return;
     }
 
     try {
         const img = new Image();
-        img.src = dataUri;
+        img.src = logoDataUrl;
         
         await new Promise<void>((resolve, reject) => {
             img.onload = () => resolve();
@@ -85,11 +85,11 @@ function addWatermark(doc: jsPDF) {
     }
 }
 
-async function generatePdf(fileName: string, title: string, removeWatermark: boolean, addContent: (doc: jsPDF) => void, logoDataUri?: string) {
+async function generatePdf(fileName: string, title: string, removeWatermark: boolean, addContent: (doc: jsPDF) => void, logoDataUrl?: string) {
     const doc = new jsPDF('p', 'pt', 'a4');
     doc.setFont('helvetica');
 
-    await addHeader(doc, title, logoDataUri);
+    await addHeader(doc, title, logoDataUrl);
     addContent(doc);
     if (!removeWatermark) {
         addWatermark(doc);

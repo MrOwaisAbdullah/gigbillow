@@ -14,13 +14,12 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { updateUserProfile, getUserProfile } from '@/lib/api/users';
 import { useEffect, useState } from 'react';
 import type { UserProfile } from '@/lib/types';
-import { Textarea } from '@/components/ui/textarea';
-
 
 const profileSchema = z.object({
   displayName: z.string().min(2, 'Name must be at least 2 characters.'),
   logoUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
 });
+
 
 async function urlToDataUri(url: string): Promise<string> {
     if (!url) return '';
@@ -35,7 +34,7 @@ async function urlToDataUri(url: string): Promise<string> {
         });
     } catch (error) {
         console.error("Failed to convert URL to Data URI:", error);
-        throw new Error("Could not fetch or convert the image from the provided URL. Please check the URL and ensure it allows cross-origin access.");
+        throw new Error("Could not fetch the image from the provided URL. This may be due to browser security restrictions (CORS). Please try a different URL from a public image host, or convert your image to a Data URI manually.");
     }
 }
 
@@ -87,16 +86,21 @@ export default function SettingsPage() {
 
             let logoDataUrl = '';
             if (values.logoUrl) {
-                try {
-                    logoDataUrl = await urlToDataUri(values.logoUrl);
-                } catch(e: any) {
-                    toast({
-                        variant: 'destructive',
-                        title: 'Logo Conversion Failed',
-                        description: e.message || 'Could not process the logo from the provided URL.',
-                    });
-                    setIsSubmitting(false);
-                    return;
+                 if (values.logoUrl.startsWith('data:image')) {
+                    logoDataUrl = values.logoUrl;
+                } else {
+                    try {
+                        logoDataUrl = await urlToDataUri(values.logoUrl);
+                    } catch(e: any) {
+                        toast({
+                            variant: 'destructive',
+                            title: 'Logo Conversion Failed',
+                            description: e.message || 'Could not process the logo from the provided URL.',
+                            duration: 9000,
+                        });
+                        setIsSubmitting(false);
+                        return;
+                    }
                 }
             }
 
@@ -180,7 +184,7 @@ export default function SettingsPage() {
                                             <Input placeholder="https://your-company.com/logo.png" {...field} />
                                         </FormControl>
                                         <FormDescription>
-                                           Paste a public URL to your logo. It will be automatically embedded in your PDFs.
+                                           Paste a public URL to your logo. We will attempt to convert it for embedding. If this fails due to CORS, please use a URL from a provider that allows cross-origin requests.
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
