@@ -1,7 +1,4 @@
 
-
-
-
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
@@ -44,26 +41,35 @@ const brandName = 'GigBillow';
 const pageMargin = 40;
 
 async function addHeader(doc: jsPDF, title: string, logoUrl?: string) {
-    if (logoUrl) {
-        try {
-            // Let jsPDF handle the image loading, which has better CORS handling for images.
-            // We need to provide dimensions. We'll assume a standard logo height.
-            const logoHeight = 40;
-            const logoWidth = 40; // Default width, can be adjusted if we know the aspect ratio
-            await doc.addImage(logoUrl, undefined, pageMargin, pageMargin - 15, logoWidth, logoHeight);
-        } catch (error) {
-            console.error("Failed to load logo image with jsPDF:", error);
-            // Fallback to text header if logo fails
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(28);
-            doc.setTextColor(...primaryRgb);
-            doc.text(title, pageMargin, pageMargin, { align: 'left' });
-        }
-    } else {
+    // Fallback text header
+    const fallbackHeader = () => {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(28);
         doc.setTextColor(...primaryRgb);
         doc.text(title, pageMargin, pageMargin, { align: 'left' });
+    };
+
+    if (logoUrl) {
+        try {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            
+            await new Promise<void>((resolve, reject) => {
+                img.onload = () => resolve();
+                img.onerror = (err) => reject(err);
+                img.src = logoUrl;
+            });
+
+            const logoHeight = 40;
+            const logoWidth = (img.width * logoHeight) / img.height;
+            doc.addImage(img, pageMargin, pageMargin - 15, logoWidth, logoHeight);
+
+        } catch (error) {
+            console.error("Failed to load logo image:", error);
+            fallbackHeader();
+        }
+    } else {
+        fallbackHeader();
     }
 }
 
@@ -278,7 +284,7 @@ export async function generateInvoicePdf({ invoice, client, user, removeWatermar
         }
     };
     
-    await generatePdf(invoice.invoiceNumber, 'INVOICE', !!removeWatermark, addContent, user.is_subscribed ? user.logoUrl : undefined);
+    await generatePdf(`Invoice-${invoice.invoiceNumber}`, 'INVOICE', !!removeWatermark, addContent, user.is_subscribed ? user.logoUrl : undefined);
 }
 
 // --- PROPOSAL PDF ---
