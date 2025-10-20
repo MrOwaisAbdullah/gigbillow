@@ -50,22 +50,27 @@ async function addHeader(doc: jsPDF, title: string, logoUrl?: string) {
         doc.text(title, pageMargin, pageMargin, { align: 'left' });
     };
 
-    if (logoUrl) {
+    if (logoUrl && logoUrl.startsWith('data:image/')) {
         try {
-            // Create an Image object and load the data URI
+            // Extract format from data URI, e.g., "image/png" -> "PNG"
+            const formatMatch = logoUrl.match(/data:image\/(.+?);/);
+            const imageFormat = formatMatch ? formatMatch[1].toUpperCase() : 'UNKNOWN';
+
+            if (imageFormat === 'UNKNOWN') {
+                throw new Error('Could not determine image format from data URI.');
+            }
+
             const img = new Image();
             img.src = logoUrl;
-            
-            // Wait for the image to load
+
             await new Promise<void>((resolve, reject) => {
                 img.onload = () => resolve();
                 img.onerror = (err) => reject(err);
             });
-            
+
             const logoHeight = 40;
             const logoWidth = (img.width * logoHeight) / img.height;
-            // Pass the loaded image object, not the URL, to addImage
-            doc.addImage(img, pageMargin, pageMargin - 15, logoWidth, logoHeight);
+            doc.addImage(logoUrl, imageFormat, pageMargin, pageMargin - 15, logoWidth, logoHeight);
 
         } catch (error) {
             console.error("Failed to load logo image from Data URI:", error);
