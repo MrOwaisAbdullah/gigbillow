@@ -19,10 +19,10 @@ import { format } from "date-fns"
 import { Skeleton } from "../ui/skeleton"
 import { cn } from "@/lib/utils"
 
-const statusClasses: { [key in Invoice['status']]: string } = {
-  paid: 'bg-success text-success-foreground',
-  unpaid: 'bg-warning text-warning-foreground',
-  overdue: 'bg-destructive text-destructive-foreground',
+const statusVariants: { [key in Invoice['status']]: 'success' | 'warning' | 'destructive' } = {
+  paid: 'success',
+  unpaid: 'warning',
+  overdue: 'destructive',
 };
 
 export function InvoicesTable() {
@@ -117,7 +117,7 @@ export function InvoicesTable() {
                   <TableCell>${invoice.amount.toFixed(2)}</TableCell>
                   <TableCell>{format(new Date(invoice.dueDate), 'PPP')}</TableCell>
                   <TableCell>
-                     <Badge className={cn(statusClasses[invoice.status], 'capitalize')}>
+                     <Badge variant={statusVariants[invoice.status]} className='capitalize'>
                       {invoice.status}
                     </Badge>
                   </TableCell>

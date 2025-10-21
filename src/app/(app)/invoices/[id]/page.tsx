@@ -28,10 +28,10 @@ import {
 import { toTitleCase, cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
-const statusClasses: { [key in Invoice['status']]: string } = {
-  paid: 'bg-success text-success-foreground',
-  unpaid: 'bg-warning text-warning-foreground',
-  overdue: 'bg-destructive text-destructive-foreground',
+const statusVariants: { [key in Invoice['status']]: 'success' | 'warning' | 'destructive' } = {
+  paid: 'success',
+  unpaid: 'warning',
+  overdue: 'destructive',
 };
 
 export default function InvoiceDetailPage() {
@@ -160,7 +160,7 @@ export default function InvoiceDetailPage() {
           </Link>
         </Button>
         <h1 className="text-3xl font-bold tracking-tight">Invoice {invoice.invoiceNumber}</h1>
-        <Badge className={cn(statusClasses[invoice.status], 'ml-auto h-7 capitalize')}>{invoice.status}</Badge>
+        <Badge variant={statusVariants[invoice.status]} className='ml-auto h-7 capitalize'>{invoice.status}</Badge>
       </div>
 
       <Card className="max-w-4xl mx-auto w-full">

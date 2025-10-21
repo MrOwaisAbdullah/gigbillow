@@ -40,10 +40,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils";
 
-const statusClasses: { [key in Project['status']]: string } = {
-  active: 'bg-success text-success-foreground',
-  completed: 'bg-info text-info-foreground',
-  on_hold: 'bg-warning text-warning-foreground',
+const statusVariants: { [key in Project['status']]: 'success' | 'info' | 'warning' } = {
+  active: 'success',
+  completed: 'info',
+  on_hold: 'warning',
 };
 
 
@@ -239,7 +239,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
                         <TableCell className="font-medium">{project.name}</TableCell>
                         <TableCell>{client?.name}</TableCell>
                         <TableCell>
-                        <Badge className={cn(statusClasses[project.status], 'capitalize')}>
+                        <Badge variant={statusVariants[project.status]} className="capitalize">
                             {project.status.replace('_', ' ')}
                         </Badge>
                         </TableCell>

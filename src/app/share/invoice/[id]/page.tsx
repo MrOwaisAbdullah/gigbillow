@@ -21,10 +21,10 @@ import type { Invoice, Client, Project, UserProfile } from '@/lib/types';
 import { getPublicInvoiceData } from '@/lib/api/invoices';
 import { Logo } from '@/components/logo';
 
-const statusClasses: { [key in Invoice['status']]: string } = {
-  paid: 'bg-success text-success-foreground',
-  unpaid: 'bg-warning text-warning-foreground',
-  overdue: 'bg-destructive text-destructive-foreground',
+const statusVariants: { [key in Invoice['status']]: 'success' | 'warning' | 'destructive' } = {
+  paid: 'success',
+  unpaid: 'warning',
+  overdue: 'destructive',
 };
 
 type PublicInvoiceData = {
@@ -100,7 +100,7 @@ export default function PublicInvoicePage() {
                 <Logo className="h-7 w-7 text-primary" />
                 <span>GigBillow</span>
             </div>
-            <Badge className={cn(statusClasses[invoice.status], 'capitalize h-7')}>{invoice.status}</Badge>
+            <Badge variant={statusVariants[invoice.status]} className="capitalize h-7">{invoice.status}</Badge>
         </div>
 
 
