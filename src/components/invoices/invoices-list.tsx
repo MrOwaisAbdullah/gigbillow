@@ -41,12 +41,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { cn } from "@/lib/utils";
 
-const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'success' | 'warning' | 'destructive' } = {
-  paid: 'success',
-  unpaid: 'warning',
-  overdue: 'destructive',
-}
+const statusClasses: { [key in Invoice['status']]: string } = {
+  paid: 'bg-success text-success-foreground',
+  unpaid: 'bg-warning text-warning-foreground',
+  overdue: 'bg-destructive text-destructive-foreground',
+};
 
 type InvoicesListProps = {
     searchTerm: string;
@@ -280,7 +281,7 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
                   <TableCell>{format(new Date(invoice.issuedDate), 'PPP')}</TableCell>
                   <TableCell>{format(new Date(invoice.dueDate), 'PPP')}</TableCell>
                   <TableCell>
-                    <Badge variant={statusVariantMap[invoice.status]} className="capitalize">
+                    <Badge className={cn(statusClasses[invoice.status], 'capitalize')}>
                       {invoice.status}
                     </Badge>
                   </TableCell>

@@ -38,12 +38,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { cn } from "@/lib/utils";
 
-const statusVariantMap: { [key in 'active' | 'completed' | 'on_hold']: 'success' | 'info' | 'warning' } = {
-  active: 'success',
-  completed: 'info',
-  on_hold: 'warning',
-}
+const statusClasses: { [key in Project['status']]: string } = {
+  active: 'bg-success text-success-foreground',
+  completed: 'bg-info text-info-foreground',
+  on_hold: 'bg-warning text-warning-foreground',
+};
+
 
 type ProjectsTableProps = {
     searchTerm: string;
@@ -237,7 +239,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
                         <TableCell className="font-medium">{project.name}</TableCell>
                         <TableCell>{client?.name}</TableCell>
                         <TableCell>
-                        <Badge variant={statusVariantMap[project.status]} className="capitalize">
+                        <Badge className={cn(statusClasses[project.status], 'capitalize')}>
                             {project.status.replace('_', ' ')}
                         </Badge>
                         </TableCell>

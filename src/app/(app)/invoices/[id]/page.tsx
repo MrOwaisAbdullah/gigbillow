@@ -25,13 +25,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { toTitleCase } from '@/lib/utils';
+import { toTitleCase, cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
-const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'success' | 'warning' | 'destructive' } = {
-  paid: 'success',
-  unpaid: 'warning',
-  overdue: 'destructive',
+const statusClasses: { [key in Invoice['status']]: string } = {
+  paid: 'bg-success text-success-foreground',
+  unpaid: 'bg-warning text-warning-foreground',
+  overdue: 'bg-destructive text-destructive-foreground',
 };
 
 export default function InvoiceDetailPage() {
@@ -160,7 +160,7 @@ export default function InvoiceDetailPage() {
           </Link>
         </Button>
         <h1 className="text-3xl font-bold tracking-tight">Invoice {invoice.invoiceNumber}</h1>
-        <Badge variant={statusVariantMap[invoice.status]} className="capitalize ml-auto h-7">{invoice.status}</Badge>
+        <Badge className={cn(statusClasses[invoice.status], 'ml-auto h-7 capitalize')}>{invoice.status}</Badge>
       </div>
 
       <Card className="max-w-4xl mx-auto w-full">

@@ -17,11 +17,12 @@ import { useEffect, useState } from "react"
 import type { Invoice, Client, Project } from "@/lib/types"
 import { format } from "date-fns"
 import { Skeleton } from "../ui/skeleton"
+import { cn } from "@/lib/utils"
 
-const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'success' | 'warning' | 'destructive' } = {
-  paid: 'success',
-  unpaid: 'warning',
-  overdue: 'destructive',
+const statusClasses: { [key in Invoice['status']]: string } = {
+  paid: 'bg-success text-success-foreground',
+  unpaid: 'bg-warning text-warning-foreground',
+  overdue: 'bg-destructive text-destructive-foreground',
 };
 
 export function InvoicesTable() {
@@ -116,7 +117,7 @@ export function InvoicesTable() {
                   <TableCell>${invoice.amount.toFixed(2)}</TableCell>
                   <TableCell>{format(new Date(invoice.dueDate), 'PPP')}</TableCell>
                   <TableCell>
-                     <Badge variant={statusVariantMap[invoice.status]} className="capitalize">
+                     <Badge className={cn(statusClasses[invoice.status], 'capitalize')}>
                       {invoice.status}
                     </Badge>
                   </TableCell>

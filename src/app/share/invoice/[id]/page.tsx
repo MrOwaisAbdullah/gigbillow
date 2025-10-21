@@ -15,16 +15,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { toTitleCase } from '@/lib/utils';
+import { toTitleCase, cn } from '@/lib/utils';
 import { CreditCard, Loader2 } from 'lucide-react';
 import type { Invoice, Client, Project, UserProfile } from '@/lib/types';
 import { getPublicInvoiceData } from '@/lib/api/invoices';
 import { Logo } from '@/components/logo';
 
-const statusVariantMap: { [key in 'paid' | 'unpaid' | 'overdue']: 'success' | 'warning' | 'destructive' } = {
-  paid: 'success',
-  unpaid: 'warning',
-  overdue: 'destructive',
+const statusClasses: { [key in Invoice['status']]: string } = {
+  paid: 'bg-success text-success-foreground',
+  unpaid: 'bg-warning text-warning-foreground',
+  overdue: 'bg-destructive text-destructive-foreground',
 };
 
 type PublicInvoiceData = {
@@ -100,7 +100,7 @@ export default function PublicInvoicePage() {
                 <Logo className="h-7 w-7 text-primary" />
                 <span>GigBillow</span>
             </div>
-            <Badge variant={statusVariantMap[invoice.status]} className="capitalize h-7">{invoice.status}</Badge>
+            <Badge className={cn(statusClasses[invoice.status], 'capitalize h-7')}>{invoice.status}</Badge>
         </div>
 
 
