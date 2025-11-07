@@ -93,8 +93,8 @@ export function AppHeader() {
                     <div className="bg-primary p-2 rounded-full">
                         <Logo className="h-5 w-5 transition-all group-hover:scale-110" />
                     </div>
-                    <span>GigBillow</span>
-                    <span className="sr-only">GigBillow</span>
+                    <span>OwFlex</span>
+                    <span className="sr-only">OwFlex</span>
                 </Link>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto custom-scrollbar">

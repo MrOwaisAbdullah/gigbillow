@@ -97,7 +97,7 @@ export function AppSidebarNav({ isCollapsed = false, onLinkClick }: AppSidebarNa
                 className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
             >
                 <Logo className="h-4 w-4 transition-all group-hover:scale-110 text-primary-foreground" />
-                <span className="sr-only">GigBillow</span>
+                <span className="sr-only">OwFlex</span>
             </Link>
             {mainNavItems.map(renderLink)}
             <Separator className="my-2 bg-sidebar-border" />

@@ -58,7 +58,7 @@ export default function FeedbackPage() {
 
         toast({
             title: 'Feedback Sent!',
-            description: "Thank you for helping us improve GigBillow. We've received your feedback.",
+            description: "Thank you for helping us improve OwFlex. We've received your feedback.",
         });
         form.reset();
 

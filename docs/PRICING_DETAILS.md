@@ -1,4 +1,4 @@
-# GigBillow Pricing – Detailed Packages  
+# OwFlex Pricing – Detailed Packages  
 *(Copy-paste ready for your landing page)*
 
 ---
@@ -50,7 +50,7 @@
 - 1 branded PDF invoice (with your logo URL)  
 - 1 AI-generated proposal (marketplace or private client)  
 - 1 consolidated report export (PDF + CSV)  
-- Remove GigBillow watermark from 1 PDF (3 tokens)  
+- Remove OwFlex watermark from 1 PDF (3 tokens)  
 
 *Timer, projects, clients, expense logging = **free forever**.*
 

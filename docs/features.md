@@ -1,6 +1,6 @@
-# GigBillow Implemented Features
+# OwFlex Implemented Features
 
-This document provides a clear overview of the features that are currently implemented and functional within the GigBillow application.
+This document provides a clear overview of the features that are currently implemented and functional within the OwFlex application.
 
 ---
 

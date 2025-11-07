@@ -113,7 +113,7 @@ export function WelcomeTour({ open, onOpenChange }: WelcomeTourProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-4">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Welcome to GigBillow!</DialogTitle>
+          <DialogTitle className="text-2xl">Welcome to OwFlex!</DialogTitle>
           <DialogDescription>
             Here’s a quick tour of how to get the most out of your new workspace.
           </DialogDescription>

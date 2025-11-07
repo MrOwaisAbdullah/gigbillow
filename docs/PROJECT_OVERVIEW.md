@@ -1,9 +1,9 @@
 
-# GigBillow: Project Overview & Documentation
+# OwFlex: Project Overview & Documentation
 
-## 1. The Idea: What is GigBillow?
+## 1. The Idea: What is OwFlex?
 
-**GigBillow** is an all-in-one toolkit designed to streamline the administrative side of freelancing. The core idea is to consolidate the essential but time-consuming tasks of running a freelance business into a single, intelligent, and easy-to-use application.
+**OwFlex** is an all-in-one toolkit designed to streamline the administrative side of freelancing. The core idea is to consolidate the essential but time-consuming tasks of running a freelance business into a single, intelligent, and easy-to-use application.
 
 ### The Problem It Solves
 
@@ -15,7 +15,7 @@ Freelancers often struggle with:
 
 ### The Solution We've Built
 
-GigBillow tackles these problems by offering a unified platform with the following core pillars:
+OwFlex tackles these problems by offering a unified platform with the following core pillars:
 - **Track Everything:** Accurately log time and expenses.
 - **Get Hired:** Create professional, AI-assisted proposals quickly.
 - **Get Paid:** Generate polished PDF invoices and manage their status.
@@ -25,7 +25,7 @@ GigBillow tackles these problems by offering a unified platform with the followi
 
 ## 2. Core Features & Functionality
 
-We have successfully implemented a rich set of features that form the foundation of the GigBillow application.
+We have successfully implemented a rich set of features that form the foundation of the OwFlex application.
 
 #### a. Authentication & Onboarding
 - **Implementation:** Uses Firebase Authentication with support for Google Sign-In and traditional Email/Password.
@@ -54,7 +54,7 @@ We have successfully implemented a rich set of features that form the foundation
     - **Auto-fill:** Can auto-populate line items from logged time entries for a project.
     - **AI Summary:** Uses Genkit (`enhanceInvoice` flow) to write a professional and friendly summary for the invoice body.
     - **Expense Integration:** Seamlessly adds selected uninvoiced expenses to the total.
-    - **PDF Generation:** Generates a professional, branded PDF of the invoice (`src/lib/pdf-utils.ts`), which costs 1 token. Users can pay extra to remove the GigBillow watermark.
+    - **PDF Generation:** Generates a professional, branded PDF of the invoice (`src/lib/pdf-utils.ts`), which costs 1 token. Users can pay extra to remove the OwFlex watermark.
     - **Public Share Link:** Generates a shareable public URL for clients to view the invoice (`/share/invoice/[id]`).
 
 #### g. Reporting Dashboard

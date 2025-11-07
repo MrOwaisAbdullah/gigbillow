@@ -6,17 +6,17 @@ import { AuthProvider } from '@/components/auth/auth-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'GigBillow — Free Time-Tracking, Invoices & Proposals',
+  title: 'OwFlex — Free Time-Tracking, Invoices & Proposals',
   description: 'Track billable hours, create PDF invoices, and write client-winning proposals with AI. 10 free credits monthly.',
   openGraph: {
-    title: 'GigBillow — Free Time-Tracking, Invoices & Proposals',
+    title: 'OwFlex — Free Time-Tracking, Invoices & Proposals',
     description: 'Track billable hours, create PDF invoices, and write client-winning proposals with AI. 10 free credits monthly.',
     images: [
       {
         url: '/og-promanflow.png',
         width: 1200,
         height: 630,
-        alt: 'GigBillow Banner',
+        alt: 'OwFlex Banner',
       },
     ],
   },

@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
             </CardHeader>
             <CardContent className="space-y-6">
             <p className="leading-relaxed text-muted-foreground">
-                Welcome to GigBillow. We are committed to protecting your privacy. This Privacy Policy explains how
+                Welcome to OwFlex. We are committed to protecting your privacy. This Privacy Policy explains how
                 we collect, use, disclose, and safeguard your information when you use our application.
             </p>
 
@@ -108,7 +108,7 @@ export default function PrivacyPolicyPage() {
             <div>
                 <h2 className="text-xl font-semibold mb-2">7. Contact Us</h2>
                 <p className="leading-relaxed text-muted-foreground">
-                    If you have questions or comments about this Privacy Policy, please contact us at: <a href="mailto:support@gigbillow.com" className="text-primary hover:underline">support@gigbillow.com</a>.
+                    If you have questions or comments about this Privacy Policy, please contact us at: <a href="mailto:support@owflex.com" className="text-primary hover:underline">support@owflex.com</a>.
                 </p>
             </div>
             <div className="text-center mt-8">

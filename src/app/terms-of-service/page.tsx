@@ -13,7 +13,7 @@ export default function TermsOfServicePage() {
             </CardHeader>
             <CardContent className="space-y-6">
             
-            <p className="leading-relaxed text-muted-foreground">Please read these Terms of Service ("Terms", "Terms of Service") carefully before using the GigBillow application (the "Service") operated by us.</p>
+            <p className="leading-relaxed text-muted-foreground">Please read these Terms of Service ("Terms", "Terms of Service") carefully before using the OwFlex application (the "Service") operated by us.</p>
             
             <p className="leading-relaxed text-muted-foreground">Your access to and use of the Service is conditioned on your acceptance of and compliance with these Terms. These Terms apply to all visitors, users, and others who access or use the Service.</p>
 
@@ -25,7 +25,7 @@ export default function TermsOfServicePage() {
             
             <div>
                 <h2 className="text-xl font-semibold mb-2">2. Use of the Service</h2>
-                <p className="leading-relaxed text-muted-foreground">GigBillow provides a suite of tools for freelancers. You agree not to misuse the Service. For example, you must not, and must not attempt to, do the following things:</p>
+                <p className="leading-relaxed text-muted-foreground">OwFlex provides a suite of tools for freelancers. You agree not to misuse the Service. For example, you must not, and must not attempt to, do the following things:</p>
                 <ul className="list-disc list-inside space-y-2 mt-2 pl-4 text-muted-foreground">
                     <li>Use the Service for any unlawful purposes or for promotion of illegal activities.</li>
                     <li>Post any content on the Service in violation of any applicable law, including intellectual property laws and right of privacy or publicity laws, or any contractual obligation.</li>
@@ -52,7 +52,7 @@ export default function TermsOfServicePage() {
 
             <div>
                 <h2 className="text-xl font-semibold mb-2">6. Limitation Of Liability</h2>
-                <p className="leading-relaxed text-muted-foreground">In no event shall GigBillow, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p>
+                <p className="leading-relaxed text-muted-foreground">In no event shall OwFlex, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p>
             </div>
 
             <div>
@@ -62,7 +62,7 @@ export default function TermsOfServicePage() {
             
             <div>
                 <h2 className="text-xl font-semibold mb-2">8. Contact Us</h2>
-                <p className="leading-relaxed text-muted-foreground">If you have any questions about these Terms, please contact us at: <a href="mailto:support@gigbillow.com" className="text-primary hover:underline">support@gigbillow.com</a>.</p>
+                <p className="leading-relaxed text-muted-foreground">If you have any questions about these Terms, please contact us at: <a href="mailto:support@owflex.com" className="text-primary hover:underline">support@owflex.com</a>.</p>
             </div>
             
             <div className="text-center mt-8">

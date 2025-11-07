@@ -46,7 +46,7 @@ export default function LandingPage() {
   
   const testimonials = [
     {
-      quote: "GigBillow recovered $340 in unbilled hours my first week! The background timer is a lifesaver.",
+      quote: "OwFlex recovered $340 in unbilled hours my first week! The background timer is a lifesaver.",
       name: "Alex Rivera",
       role: "UX Freelancer",
       avatar: "https://picsum.photos/seed/alex/100"
@@ -64,7 +64,7 @@ export default function LandingPage() {
       avatar: "https://picsum.photos/seed/david/100"
     },
     {
-      quote: "As a visual artist, managing invoices was my biggest nightmare. GigBillow made it simple and beautiful. The reports help me see where my time really goes.",
+      quote: "As a visual artist, managing invoices was my biggest nightmare. OwFlex made it simple and beautiful. The reports help me see where my time really goes.",
       name: "Maria Rodriguez",
       role: "Illustrator & Designer",
       avatar: "https://picsum.photos/seed/maria/100"
@@ -123,7 +123,7 @@ export default function LandingPage() {
     },
     {
       question: "Is there a subscription plan?",
-      answer: "No, GigBillow is proudly subscription-free. We believe freelancers need flexibility, not another recurring bill. You can buy token packs as one-time purchases whenever you need to perform premium actions."
+      answer: "No, OwFlex is proudly subscription-free. We believe freelancers need flexibility, not another recurring bill. You can buy token packs as one-time purchases whenever you need to perform premium actions."
     },
     {
       question: "How do I add my logo to invoices?",
@@ -149,7 +149,7 @@ export default function LandingPage() {
         <div className="container mx-auto flex h-14 items-center px-4">
           <Link href="#" className="mr-auto flex items-center gap-2" prefetch={false}>
             <Logo className="h-8 w-8 text-primary" />
-            <span className="hidden min-[320px]:inline font-bold text-lg text-primary">GigBillow</span>
+            <span className="hidden min-[320px]:inline font-bold text-lg text-primary">OwFlex</span>
           </Link>
           <nav className="hidden sm:flex flex-1">
             {/* Can add nav links here later */}
@@ -200,7 +200,7 @@ export default function LandingPage() {
                 Track time, write proposals, and get paid.
               </h1>
               <p className="mx-auto max-w-3xl text-muted-foreground md:text-xl">
-                GigBillow is the all-in-one toolkit for modern freelancers. Stop juggling apps and start streamlining your business with AI-powered proposals, 1-click invoicing, and dead-simple time tracking.
+                OwFlex is the all-in-one toolkit for modern freelancers. Stop juggling apps and start streamlining your business with AI-powered proposals, 1-click invoicing, and dead-simple time tracking.
               </p>
             </div>
             <div className="flex w-full flex-col gap-2 min-[400px]:flex-row max-w-md">
@@ -256,7 +256,7 @@ export default function LandingPage() {
                 <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Key Features</div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Everything you need. Nothing you don’t.</h2>
                 <p className="text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  GigBillow was built from the ground up to replace your messy stack of admin tools. It’s powerful, fast, and refreshingly simple.
+                  OwFlex was built from the ground up to replace your messy stack of admin tools. It’s powerful, fast, and refreshingly simple.
                 </p>
               </div>
               <div className="grid gap-6">
@@ -567,7 +567,7 @@ export default function LandingPage() {
       </main>
       <footer className="w-full shrink-0 border-t">
          <div className="container mx-auto flex flex-col sm:flex-row h-auto sm:h-16 items-center justify-between gap-4 py-4 px-4 md:px-6">
-            <p className="text-xs text-muted-foreground text-center sm:text-left">&copy; {new Date().getFullYear()} GigBillow. All rights reserved.</p>
+            <p className="text-xs text-muted-foreground text-center sm:text-left">&copy; {new Date().getFullYear()} OwFlex. All rights reserved.</p>
             <div className="text-xs text-muted-foreground">
               Made with ❤️ by <a href="https://owaisabdullah.dev/" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">Owais Abdullah</a>
             </div>
@@ -584,6 +584,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
 

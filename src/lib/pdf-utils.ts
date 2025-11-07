@@ -36,7 +36,7 @@ const lightGray = [241, 245, 249]; // A light gray for table backgrounds
 const white = [255, 255, 255];
 const borderGray = [226, 232, 240];
 
-const brandName = 'GigBillow';
+const brandName = 'OwFlex';
 const pageMargin = 40;
 
 
@@ -356,7 +356,7 @@ type ReportData = {
 export async function generateReportPdf({ stats, revenueData, hoursData, user }: ReportData) {
   const doc = new jsPDF('p', 'pt', 'a4');
   let y = pageMargin + 40;
-  const fileName = `GigBillow-Report-${format(new Date(), 'yyyy-MM-dd')}`;
+  const fileName = `OwFlex-Report-${format(new Date(), 'yyyy-MM-dd')}`;
   
   await generatePdf(fileName, 'Reports Summary', false, (doc) => {
     doc.setFontSize(10);
@@ -472,6 +472,6 @@ export function generateReportCsv({ stats, revenueData, hoursData }: CsvReportDa
     csvContent += 'Hours by Project (This Month)\n';
     csvContent += convertToCSV(hoursData.map(d => ({ project: d.name, hours_logged: d.value.toFixed(2) })));
 
-    const fileName = `GigBillow-Report-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    const fileName = `OwFlex-Report-${format(new Date(), 'yyyy-MM-dd')}.csv`;
     downloadCSV(csvContent, fileName);
 }
