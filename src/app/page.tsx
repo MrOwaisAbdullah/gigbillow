@@ -197,10 +197,10 @@ export default function LandingPage() {
           <div className="container mx-auto flex max-w-6xl flex-col items-center justify-center space-y-8 px-4 text-center md:px-6">
             <div className="space-y-4">
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl max-w-4xl">
-                Track time, write proposals, and get paid.
+                Own Your Time. Own Your Invoices. Own Your Proposals.
               </h1>
               <p className="mx-auto max-w-3xl text-muted-foreground md:text-xl">
-                OwFlex is the all-in-one toolkit for modern freelancers. Stop juggling apps and start streamlining your business with AI-powered proposals, 1-click invoicing, and dead-simple time tracking.
+                Stop context-switching between tools. OwFlex gives you full control with one simple, powerful app for time tracking, invoicing, and AI-powered proposals.
               </p>
             </div>
             <div className="flex w-full flex-col gap-2 min-[400px]:flex-row max-w-md">
@@ -280,8 +280,8 @@ export default function LandingPage() {
         <section className="py-16 md:py-28 bg-secondary/30">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto space-y-4">
-              <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Why It Matters</div>
-              <h2 className="text-3xl font-bold">Sound Familiar?</h2>
+              <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">Replace Toggl + Wave + PandaDoc</div>
+              <h2 className="text-3xl font-bold">One Tool. Full Control.</h2>
               <p className="text-muted-foreground mt-4 text-lg">Freelancing has its headaches. We're here to help.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-12">
@@ -584,6 +584,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
 

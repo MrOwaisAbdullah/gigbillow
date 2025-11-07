@@ -6,11 +6,11 @@ import { AuthProvider } from '@/components/auth/auth-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'OwFlex — Free Time-Tracking, Invoices & Proposals',
-  description: 'Track billable hours, create PDF invoices, and write client-winning proposals with AI. 10 free credits monthly.',
+  title: 'OwFlex — Own Your Time. Own Your Invoices. Own Your Proposals.',
+  description: 'Replace Toggl, Wave, and PandaDoc with a single, powerful tool for freelancers. AI Proposals, Invoicing, and Time-Tracking. 10 free credits monthly.',
   openGraph: {
-    title: 'OwFlex — Free Time-Tracking, Invoices & Proposals',
-    description: 'Track billable hours, create PDF invoices, and write client-winning proposals with AI. 10 free credits monthly.',
+    title: 'OwFlex — Own Your Time. Own Your Invoices. Own Your Proposals.',
+    description: 'Replace Toggl, Wave, and PandaDoc with a single, powerful tool for freelancers. AI Proposals, Invoicing, and Time-Tracking. 10 free credits monthly.',
     images: [
       {
         url: '/og-promanflow.png',
