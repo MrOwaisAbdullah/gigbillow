@@ -1,4 +1,5 @@
 
+
 # OwFlex: Project Overview & Documentation
 
 ## 1. The Idea: What is OwFlex?
@@ -82,8 +83,6 @@ The app's economy is built on a "token" system, which is managed in `src/lib/api
 - **Earning Tokens & Refills:**
     - **Free Plan:** All users receive 10 free tokens every 30 days. These tokens **do not roll over**.
     - **Subscribed Plan:** After purchasing any token pack, a user is considered "subscribed". Subscribed users receive **150 tokens** every 30 days. They can also **roll over up to 150 unused tokens** from the previous month.
-- **Token Pack Validity (UI vs. Backend):**
-    - The landing page mentions validity periods (e.g., 1 month, 3 months) for purchased packs. This is currently part of the UI/marketing and is **not programmatically enforced** in the `checkAndRefillTokens` logic. The current backend logic operates on a simpler 30-day refill cycle for all users.
 
 ---
 
@@ -111,9 +110,4 @@ While the application is highly functional, several key pieces are either simula
     - Move critical logic to a secure backend (Firebase Cloud Functions). For example, a function like `chargeForAction(action, userId)` would validate and decrement tokens on the server, not the client.
 
 #### d. General Enhancements
-- **Editing Functionality:** Most "Edit" actions (e.g., for projects, clients) are placeholders and need to be implemented.
-- **Password Reset:** The "Update Password" feature is not implemented.
-- **Data Deletion:** The "Delete My Account" feature is a placeholder. This would require a backend function to delete all associated user data from Firestore and Firebase Auth, as well as cancel their Stripe subscription.
-- **Dark Mode:** While the CSS variables for a dark theme exist in `globals.css`, a theme toggler has not been implemented.
-- **Real-time Updates:** Some tables could be converted to use real-time listeners (`onSnapshot`) for a more dynamic feel, though this would increase Firestore read costs.
 - **"Early Access" Feature:** The landing page mentions "Early access to new beta features" for the Agency Pack. This is a marketing placeholder and there is currently no backend logic to enable or disable features based on this status.

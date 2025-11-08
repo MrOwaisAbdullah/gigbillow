@@ -17,11 +17,10 @@
 ---
 
 ## ② Token Packs – One-Time Purchase  
-**Pay only when you download • Tokens auto-apply to any premium action**
+**Pay only when you download • Tokens never expire**
 
 ### A. Mini Pack – $5  
 - **50 tokens**  
-- **1-month validity** (expires 30 days after purchase)  
 - **10 ¢ per PDF** (invoice, proposal, report)  
 - Priority email support  
 
@@ -29,7 +28,6 @@
 
 ### B. Standard Pack – $15  
 - **200 tokens**  
-- **3-month validity** (expires 90 days after purchase)  
 - **7.5 ¢ per PDF**  
 - Priority email support  
 
@@ -37,7 +35,6 @@
 
 ### C. Agency Pack – $30  
 - **500 tokens**  
-- **12-month validity** (expires 365 days after purchase)  
 - **6 ¢ per PDF**  
 - Priority email support  
 
@@ -66,10 +63,10 @@
 
 ## ⑤ Common Questions
 **Q: Can I buy multiple packs?**  
-A: Yes – tokens stack and each pack keeps its own expiry date.
+A: Yes – purchased tokens stack and never expire.
 
-**Q: What happens when a pack expires?**  
-A: Only **unused tokens** from that pack disappear; your account and free features remain active.
+**Q: Do my free monthly tokens expire?**  
+A: Yes, your free 10 monthly tokens reset every 30 days and do not roll over. However, any tokens you purchase will never expire.
 
 **Q: Do you store my logo file?**  
 A: Not yet – paste a **public URL** (Google Drive, Dropbox, etc.) and we embed it instantly.
@@ -80,7 +77,7 @@ A: **No.** Buy tokens only when you have work to bill.
 ---
 
 ## ⑥ Money-Back Guarantee
-If you don’t use a single token within 7 days of purchase, email us for a full refund – no questions asked.
+If you don’t use a single token from a purchased pack within 7 days of purchase, email us for a full refund – no questions asked.
 
 ----------------------------------------------------
 Call-to-action strip
