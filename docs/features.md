@@ -31,16 +31,16 @@ This document provides a clear overview of the features that are currently imple
     - **Time Log History:** A "History" sheet shows a paginated log of all past time entries.
 
 ### 4. Client & Project Management
-- **Status:** Partially Implemented
+- **Status:** Fully Implemented
 - **Details:**
-    - **Create & View:** Users can create, view, and delete clients and projects.
+    - **Create, View, Edit, Delete:** Users can create, view, edit, and delete clients and projects.
     - **Project-Client Linking:** Projects are correctly linked to clients.
     - **Token Cost:** Creating a new project costs 1 token.
 
 ### 5. Expense Tracking
-- **Status:** Partially Implemented
+- **Status:** Fully Implemented
 - **Details:**
-    - **Create & View:** Users can log, view, and delete expenses. Expenses can be assigned to projects.
+    - **Create, View, Edit, Delete:** Users can log, view, edit, and delete expenses. Expenses can be assigned to projects.
     - **Invoice Integration:** Uninvoiced expenses for a project are automatically suggested during invoice creation.
 
 ### 6. Invoicing
@@ -80,7 +80,6 @@ This document provides a clear overview of the features that are currently imple
 
 ## ❌ Features Mentioned in Docs but NOT Implemented
 
-- **Editing Functionality:** The ability to edit existing clients, projects, or expenses. The UI buttons exist but are placeholders for editing functionality.
 - **Real Stripe Integration:** The entire payment and subscription flow is simulated. There are no webhooks or connections to a real Stripe account.
 - **Password Reset:** The "Update Password" feature in Settings is a placeholder.
 - **Account Deletion:** The "Delete My Account" feature is a placeholder.

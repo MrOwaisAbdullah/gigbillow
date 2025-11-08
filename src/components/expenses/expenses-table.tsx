@@ -234,8 +234,8 @@ export function ExpensesTable({ allProjects, searchTerm }: ExpensesTableProps) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => handleEdit(expense)}>Edit</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteConfirm(expense)} className="text-destructive">Delete</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => handleEdit(expense)}>Edit</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => handleDeleteConfirm(expense)} className="text-destructive">Delete</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                        )}
