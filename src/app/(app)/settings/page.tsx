@@ -12,12 +12,23 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { updateUserProfile, getUserProfile } from '@/lib/api/users';
+import { updateUserPassword, deleteUserAccount } from '@/lib/auth';
 import { useEffect, useState } from 'react';
 import type { UserProfile } from '@/lib/types';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 const profileSchema = z.object({
   displayName: z.string().min(2, 'Name must be at least 2 characters.'),
   logoUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
+});
+
+const passwordSchema = z.object({
+    newPassword: z.string().min(6, 'Password must be at least 6 characters.'),
+    confirmPassword: z.string().min(6, 'Password must be at least 6 characters.'),
+}).refine(data => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
 });
 
 
@@ -42,14 +53,24 @@ async function urlToDataUri(url: string): Promise<string> {
 export default function SettingsPage() {
     const { user } = useAuth();
     const { toast } = useToast();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isProfileSubmitting, setIsProfileSubmitting] = useState(false);
+    const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [profile, setProfile] = useState<UserProfile | null>(null);
 
-     const form = useForm<z.infer<typeof profileSchema>>({
+     const profileForm = useForm<z.infer<typeof profileSchema>>({
         resolver: zodResolver(profileSchema),
         defaultValues: {
             displayName: '',
             logoUrl: '',
+        },
+    });
+
+    const passwordForm = useForm<z.infer<typeof passwordSchema>>({
+        resolver: zodResolver(passwordSchema),
+        defaultValues: {
+            newPassword: '',
+            confirmPassword: '',
         },
     });
 
@@ -59,7 +80,7 @@ export default function SettingsPage() {
                 const userProfile = await getUserProfile();
                 if (userProfile) {
                     setProfile(userProfile);
-                    form.reset({
+                    profileForm.reset({
                         displayName: userProfile.displayName || '',
                         logoUrl: userProfile.logoUrl || '',
                     });
@@ -67,11 +88,11 @@ export default function SettingsPage() {
             }
         }
         fetchProfile();
-    }, [user, form]);
+    }, [user, profileForm]);
 
 
     async function onProfileSubmit(values: z.infer<typeof profileSchema>) {
-        setIsSubmitting(true);
+        setIsProfileSubmitting(true);
         try {
             const currentProfile = await getUserProfile();
             if (values.logoUrl && !currentProfile?.is_subscribed) {
@@ -80,7 +101,7 @@ export default function SettingsPage() {
                     title: 'Subscription Required',
                     description: 'Adding a logo is a premium feature. Please purchase a token pack to enable it.',
                 });
-                setIsSubmitting(false);
+                setIsProfileSubmitting(false);
                 return;
             }
 
@@ -98,7 +119,7 @@ export default function SettingsPage() {
                             description: e.message || 'Could not process the logo from the provided URL.',
                             duration: 9000,
                         });
-                        setIsSubmitting(false);
+                        setIsProfileSubmitting(false);
                         return;
                     }
                 }
@@ -120,11 +141,51 @@ export default function SettingsPage() {
                 description: 'Could not update your profile. Please try again.',
             });
         } finally {
-            setIsSubmitting(false);
+            setIsProfileSubmitting(false);
+        }
+    }
+    
+    async function onPasswordSubmit(values: z.infer<typeof passwordSchema>) {
+        setIsPasswordSubmitting(true);
+        try {
+            await updateUserPassword(values.newPassword);
+            toast({
+                title: 'Password Updated',
+                description: 'Your password has been successfully changed.',
+            });
+            passwordForm.reset();
+        } catch (error: any) {
+             toast({
+                variant: 'destructive',
+                title: 'Update Failed',
+                description: error.message || 'Could not update your password. Please try again.',
+            });
+        } finally {
+            setIsPasswordSubmitting(false);
+        }
+    }
+    
+    async function handleDeleteAccount() {
+        setIsDeleting(true);
+        try {
+            await deleteUserAccount();
+            toast({
+                title: 'Account Deleted',
+                description: 'Your account and all associated data have been permanently deleted.',
+            });
+            // The AuthProvider will redirect to the login page automatically on user deletion.
+        } catch (error: any) {
+             toast({
+                variant: 'destructive',
+                title: 'Deletion Failed',
+                description: error.message || 'Could not delete your account. Please try again.',
+            });
+             setIsDeleting(false);
         }
     }
 
-    const handleAction = (actionName: string) => {
+
+    const handleComingSoon = (actionName: string) => {
         toast({
             title: 'Coming Soon!',
             description: `${actionName} functionality is not yet implemented.`,
@@ -144,15 +205,15 @@ export default function SettingsPage() {
              <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
 
              <Card>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onProfileSubmit)}>
+                <Form {...profileForm}>
+                    <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
                         <CardHeader>
                             <CardTitle>Profile</CardTitle>
                             <CardDescription>Manage your public profile and account information.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <FormField
-                                control={form.control}
+                                control={profileForm.control}
                                 name="displayName"
                                 render={({ field }) => (
                                     <FormItem>
@@ -175,7 +236,7 @@ export default function SettingsPage() {
                         </CardHeader>
                         <CardContent>
                              <FormField
-                                control={form.control}
+                                control={profileForm.control}
                                 name="logoUrl"
                                 render={({ field }) => (
                                     <FormItem>
@@ -192,9 +253,9 @@ export default function SettingsPage() {
                             />
                         </CardContent>
                         <CardFooter>
-                            <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Save Changes
+                            <Button type="submit" disabled={isProfileSubmitting}>
+                                {isProfileSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save Profile
                             </Button>
                         </CardFooter>
                     </form>
@@ -202,21 +263,48 @@ export default function SettingsPage() {
              </Card>
 
              <Card>
-                <CardHeader>
-                    <CardTitle>Password</CardTitle>
-                    <CardDescription>Change your account password.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                     <div className="space-y-2">
-                        <Label htmlFor="currentPassword">Current Password</Label>
-                        <Input id="currentPassword" type="password" />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="newPassword">New Password</Label>
-                        <Input id="newPassword" type="password" />
-                    </div>
-                    <Button onClick={() => handleAction('Password change')}>Update Password</Button>
-                </CardContent>
+                <Form {...passwordForm}>
+                    <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}>
+                        <CardHeader>
+                            <CardTitle>Password</CardTitle>
+                            <CardDescription>Change your account password.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <FormField
+                                control={passwordForm.control}
+                                name="newPassword"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>New Password</FormLabel>
+                                        <FormControl>
+                                            <Input type="password" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={passwordForm.control}
+                                name="confirmPassword"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Confirm New Password</FormLabel>
+                                        <FormControl>
+                                            <Input type="password" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </CardContent>
+                        <CardFooter>
+                             <Button type="submit" disabled={isPasswordSubmitting}>
+                                {isPasswordSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Update Password
+                            </Button>
+                        </CardFooter>
+                    </form>
+                </Form>
              </Card>
              
              <Card>
@@ -232,17 +320,36 @@ export default function SettingsPage() {
                         </div>
                         <p className='font-bold text-lg'>{profile.is_subscribed ? '$15/mo' : '$0/mo'}</p>
                     </div>
-                     <Button onClick={() => handleAction('Billing portal')}>Manage Subscription</Button>
+                     <Button onClick={() => handleComingSoon('Billing portal')}>Manage Subscription</Button>
                 </CardContent>
              </Card>
 
               <Card className="border-destructive/50">
                 <CardHeader>
                     <CardTitle className="text-destructive">Danger Zone</CardTitle>
-                    <CardDescription>These actions are irreversible. Please proceed with caution.</CardDescription>
+                    <CardDescription>This action is irreversible. Please proceed with caution.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Button variant="destructive" onClick={() => handleAction('Account deletion')}>Delete My Account</Button>
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive">Delete My Account</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete your account, your profile, and all of your content including clients, projects, invoices, and time entries.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting}>
+                                     {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                     Delete Account
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </CardContent>
              </Card>
         </div>

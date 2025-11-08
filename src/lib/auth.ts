@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -9,11 +8,13 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
+  updatePassword as firebaseUpdatePassword,
+  deleteUser as firebaseDeleteUser,
   type UserCredential,
   type User,
 } from 'firebase/auth';
 import { app, db } from './firebase';
-import { doc, setDoc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, updateDoc, writeBatch, collection, getDocs } from 'firebase/firestore';
 import { betaConfig, standardConfig } from './config';
 
 const auth = getAuth(app);
@@ -158,3 +159,58 @@ export const signOut = async () => {
     console.error('Error signing out: ', error);
   }
 };
+
+export const updateUserPassword = async (newPassword: string): Promise<void> => {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error("You must be logged in to update your password.");
+    }
+    try {
+        await firebaseUpdatePassword(user, newPassword);
+    } catch (error: any) {
+        console.error("Error updating password:", error);
+        if (error.code === 'auth/requires-recent-login') {
+            throw new Error("This operation is sensitive and requires recent authentication. Please log out and log back in before updating your password.");
+        }
+        throw new Error("Failed to update password. Please try again.");
+    }
+}
+
+export const deleteUserAccount = async (): Promise<void> => {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error("You must be logged in to delete your account.");
+    }
+
+    try {
+        const userId = user.uid;
+        const batch = writeBatch(db);
+
+        // Define all top-level user collections to delete
+        const collectionsToDelete = ['clients', 'projects', 'timeEntries', 'invoices', 'expenses', 'referrals'];
+
+        // This is a simplified deletion. In a production app, you might want to do this
+        // in a Cloud Function for reliability, especially for large amounts of data.
+        for (const coll of collectionsToDelete) {
+            const snapshot = await getDocs(collection(db, `users/${userId}/${coll}`));
+            snapshot.forEach(doc => batch.delete(doc.ref));
+        }
+
+        // Delete top-level user profile and token documents
+        batch.delete(doc(db, 'users', userId));
+        batch.delete(doc(db, 'user_tokens', userId));
+
+        // Commit all Firestore deletions
+        await batch.commit();
+
+        // Finally, delete the user from Firebase Auth
+        await firebaseDeleteUser(user);
+
+    } catch (error: any) {
+         console.error("Error deleting user account:", error);
+         if (error.code === 'auth/requires-recent-login') {
+            throw new Error("This operation is sensitive and requires recent authentication. Please log out and log back in before deleting your account.");
+        }
+        throw new Error("Failed to delete account. Please try again.");
+    }
+}

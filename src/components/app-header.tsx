@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from "next/link"
@@ -163,7 +162,7 @@ export function AppHeader() {
           </DropdownMenuItem>
           <DropdownMenuItem onClick={toggleTheme}>
             {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-            Toggle Theme
+            <span>Toggle Theme</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()}>

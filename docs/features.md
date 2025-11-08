@@ -10,6 +10,7 @@ This document provides a clear overview of the features that are currently imple
 - **Status:** Fully Implemented
 - **Details:**
     - **Sign-up & Login:** Users can create accounts and log in using Google or Email/Password.
+    - **Password Reset:** Logged-in users can update their password via the Settings page.
     - **User Initialization:** A new user profile and token record are automatically created in Firestore upon first sign-up.
     - **Profile Sync:** User information (name, photo) is kept in sync with the auth provider.
     - **Welcome Tour:** A multi-step welcome tour introduces new users to the app's key features.
@@ -76,12 +77,15 @@ This document provides a clear overview of the features that are currently imple
     - **Frontend UI:** A dashboard exists for users to view their code and track referral progress.
     - **Missing:** The backend logic to confirm a successful referral (i.e., when a referred user pays) and issue rewards is not implemented.
 
+### 10. User Settings
+- **Status:** Fully Implemented
+- **Details:**
+    - **Dark Mode:** A theme toggler allows users to switch between light and dark modes.
+    - **Account Deletion:** Users can permanently delete their account and all associated data via the Settings page.
+
 ---
 
 ## ❌ Features Mentioned in Docs but NOT Implemented
 
 - **Real Stripe Integration:** The entire payment and subscription flow is simulated. There are no webhooks or connections to a real Stripe account.
-- **Password Reset:** The "Update Password" feature in Settings is a placeholder.
-- **Account Deletion:** The "Delete My Account" feature is a placeholder.
-- **Dark Mode:** While the CSS variables for a dark theme exist, a theme toggler has not been implemented.
 - **Logo Upload/Storage:** There is no functionality for a user to upload or store a logo file. The system only supports embedding a logo from a public URL.
