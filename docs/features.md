@@ -36,14 +36,12 @@ This document provides a clear overview of the features that are currently imple
     - **Create & View:** Users can create, view, and delete clients and projects.
     - **Project-Client Linking:** Projects are correctly linked to clients.
     - **Token Cost:** Creating a new project costs 1 token.
-    - **Missing:** "Edit" functionality for clients and projects is a placeholder and not yet implemented.
 
 ### 5. Expense Tracking
 - **Status:** Partially Implemented
 - **Details:**
     - **Create & View:** Users can log, view, and delete expenses. Expenses can be assigned to projects.
     - **Invoice Integration:** Uninvoiced expenses for a project are automatically suggested during invoice creation.
-    - **Missing:** "Edit" functionality for expenses is a placeholder.
 
 ### 6. Invoicing
 - **Status:** Mostly Implemented
@@ -54,7 +52,6 @@ This document provides a clear overview of the features that are currently imple
     - **Expense Integration:** Seamlessly adds selected uninvoiced expenses to the invoice total.
     - **PDF Generation:** Generates a professional, branded PDF of the invoice. Costs 1 token (plus 3 to remove the watermark).
     - **Public Share Link:** Generates a unique, shareable URL for clients to view the invoice online.
-    - **Missing:** Editing an existing invoice is not implemented.
 
 ### 7. Reporting Dashboard
 - **Status:** Fully Implemented
@@ -68,7 +65,7 @@ This document provides a clear overview of the features that are currently imple
 - **Details:**
     - **Token Tracking:** User token balances are tracked in Firestore.
     - **Token Spending:** Premium actions (proposals, PDF downloads, project creation, etc.) correctly deduct tokens from the user's balance.
-    - **Free Tokens:** A system grants new users 10 free tokens and refills them monthly.
+    - **Free Tokens:** A system grants new users free tokens and refills them monthly based on their subscription status.
     - **Simulated Purchases:** A dialog allows users to "buy" token packs, which simulates a payment flow and adds tokens to their account.
     - **Missing:** **Real payment processing.** There is no integration with a payment provider like Stripe. The purchasing flow is a simulation.
 
@@ -83,7 +80,7 @@ This document provides a clear overview of the features that are currently imple
 
 ## ❌ Features Mentioned in Docs but NOT Implemented
 
-- **Editing Functionality:** The ability to edit existing clients, projects, or expenses. The UI buttons exist but are placeholders.
+- **Editing Functionality:** The ability to edit existing clients, projects, or expenses. The UI buttons exist but are placeholders for editing functionality.
 - **Real Stripe Integration:** The entire payment and subscription flow is simulated. There are no webhooks or connections to a real Stripe account.
 - **Password Reset:** The "Update Password" feature in Settings is a placeholder.
 - **Account Deletion:** The "Delete My Account" feature is a placeholder.
