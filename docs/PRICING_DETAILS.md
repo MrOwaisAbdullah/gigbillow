@@ -1,5 +1,4 @@
 # OwFlex Pricing – Detailed Packages  
-*(Copy-paste ready for your landing page)*
 
 ---
 

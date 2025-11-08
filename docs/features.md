@@ -88,4 +88,3 @@ This document provides a clear overview of the features that are currently imple
 ## ❌ Features Mentioned in Docs but NOT Implemented
 
 - **Real Stripe Integration:** The entire payment and subscription flow is simulated. There are no webhooks or connections to a real Stripe account.
-- **Logo Upload/Storage:** There is no functionality for a user to upload or store a logo file. The system only supports embedding a logo from a public URL.

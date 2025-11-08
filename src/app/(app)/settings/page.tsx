@@ -35,7 +35,10 @@ const passwordSchema = z.object({
 async function urlToDataUri(url: string): Promise<string> {
     if (!url) return '';
     try {
-        const response = await fetch(url, { mode: 'cors' });
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch image with status: ${response.status}`);
+        }
         const blob = await response.blob();
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -45,7 +48,7 @@ async function urlToDataUri(url: string): Promise<string> {
         });
     } catch (error) {
         console.error("Failed to convert URL to Data URI:", error);
-        throw new Error("Could not fetch the image from the provided URL. This may be due to browser security restrictions (CORS). Please try a different URL from a public image host, or convert your image to a Data URI manually.");
+        throw new Error("Could not fetch image from the provided URL. This may be due to browser security restrictions (CORS). Please try a different URL from a public image host or convert the image to a Data URI manually.");
     }
 }
 
