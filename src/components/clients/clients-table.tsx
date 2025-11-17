@@ -24,7 +24,6 @@ import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import type { Client } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
-import type { DocumentSnapshot } from "firebase/firestore"
 import { PaginationControls } from "../pagination-controls"
 import { ClientDialog } from "./client-dialog"
 import {
@@ -46,7 +45,7 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageCursors, setPageCursors] = useState<(DocumentSnapshot | null)[]>([null]);
+  const [pageCursors, setPageCursors] = useState<(string | null)[]>([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -56,11 +55,11 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
 
   const fetchClients = useCallback(async (page: 'first' | 'next' | 'prev') => {
     setLoading(true);
-    
+
     const isSearching = searchTerm.trim() !== '';
     const pageSize = isSearching ? 100 : 10;
-    
-    let cursor: DocumentSnapshot | null = null;
+
+    let cursor: string | null = null;
     let pageToGo = 1;
 
     if (page === 'next') {
@@ -71,7 +70,7 @@ export function ClientsTable({ searchTerm }: ClientsTableProps) {
         pageToGo = currentPage - 1;
     }
 
-    const { clients: clientsData, nextCursor, hasNextPage: newHasNextPage } = await getClients('next', cursor, pageSize);
+    const { clients: clientsData, nextCursor, hasNextPage: newHasNextPage } = await getClients(page, cursor, pageSize);
     setClients(clientsData);
     setHasNextPage(newHasNextPage);
 

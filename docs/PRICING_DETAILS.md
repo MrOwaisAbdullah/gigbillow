@@ -26,17 +26,17 @@
 
 [**Buy Mini**] (Stripe checkout)
 
-### B. Standard Pack – $15  
-- **200 tokens**  
-- **7.5 ¢ per PDF**  
-- Priority email support  
+### B. Standard Pack – $14
+- **200 tokens**
+- **7.0 ¢ per PDF**
+- Priority email support
 
 [**Buy Standard**] (Stripe checkout)
 
-### C. Agency Pack – $30  
-- **500 tokens**  
-- **6 ¢ per PDF**  
-- Priority email support  
+### C. Agency Pack – $29
+- **500 tokens**
+- **5.8 ¢ per PDF**
+- Priority email support
 
 [**Buy Agency Pack**] (Stripe checkout)
 
@@ -55,9 +55,9 @@
 ## ④ Real-World Cost Example
 | Freelancer Tier | Monthly PDFs | Tokens Used | Cost (Standard Pack) |
 |----------------|--------------|-------------|----------------------|
-| **Newbie** (0-3 jobs) | 5 | 5 | **$0.38** (from $15 pack) |
-| **Solo** (5-15 jobs) | 30 | 30 | **$2.25** (from $15 pack) |
-| **Agency** (50+ jobs) | 300 | 300 | **$18.00** (from $30 pack) |
+| **Newbie** (0-3 jobs) | 5 | 5 | **$0.35** (from $14 pack) |
+| **Solo** (5-15 jobs) | 30 | 30 | **$2.10** (from $14 pack) |
+| **Agency** (50+ jobs) | 300 | 300 | **$17.40** (from $29 pack) |
 
 ---
 

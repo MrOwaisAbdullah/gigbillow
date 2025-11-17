@@ -1,71 +1,112 @@
-import { db } from '@/lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
-import { addDays, subDays } from 'date-fns';
+import { supabase } from '@/lib/supabase';
+import { type Client, type Project, type Invoice, type Expense } from '@/lib/types';
 
-// This is a simplified seeding function. In a real app, you'd want more robust error handling.
 export async function seedSampleData(userId: string) {
-    const now = new Date();
+  // Sample client
+  const sampleClient: Omit<Client, 'id'> = {
+    userId: userId,
+    name: 'Acme Corporation',
+    email: 'contact@acmecorp.com',
+    avatarUrl: 'https://ui-avatars.com/api/?name=Acme+Corp&background=0D8ABC&color=fff',
+  };
 
-    // 1. Seed Clients
-    const client1Data = { name: 'Acme Inc.', email: 'contact@acme.com', avatarUrl: 'https://picsum.photos/seed/acme/200' };
-    const client2Data = { name: 'Stark Industries', email: 'tony@stark.com', avatarUrl: 'https://picsum.photos/seed/stark/200' };
-    const client1Ref = await addDoc(collection(db, `users/${userId}/clients`), client1Data);
-    const client2Ref = await addDoc(collection(db, `users/${userId}/clients`), client2Data);
+  const { data: clientData, error: clientError } = await supabase
+    .from('clients')
+    .insert([{ ...sampleClient, user_id: userId }])
+    .select()
+    .single();
 
-    // 2. Seed Projects
-    const project1Data = { name: 'Website Redesign', clientId: client1Ref.id, rate: 100, status: 'active' };
-    const project2Data = { name: 'Mobile App Dev', clientId: client2Ref.id, rate: 120, status: 'active' };
-    const project3Data = { name: 'Branding Guide', clientId: client1Ref.id, rate: 75, status: 'completed' };
-    const project1Ref = await addDoc(collection(db, `users/${userId}/projects`), project1Data);
-    const project2Ref = await addDoc(collection(db, `users/${userId}/projects`), project2Data);
-    const project3Ref = await addDoc(collection(db, `users/${userId}/projects`), project3Data);
+  if (clientError) {
+    console.error('Error creating sample client:', clientError);
+    throw clientError;
+  }
 
-    // 3. Seed Time Entries
-    const timeEntry1 = { projectId: project1Ref.id, startTime: subDays(now, 2), endTime: subDays(now, 2), hours: 5, description: 'Initial design mockups' };
-    const timeEntry2 = { projectId: project1Ref.id, startTime: subDays(now, 1), endTime: subDays(now, 1), hours: 3, description: 'Component development' };
-    const timeEntry3 = { projectId: project2Ref.id, startTime: subDays(now, 3), endTime: subDays(now, 3), hours: 8, description: 'API integration' };
-    await addDoc(collection(db, `users/${userId}/timeEntries`), timeEntry1);
-    await addDoc(collection(db, `users/${userId}/timeEntries`), timeEntry2);
-    await addDoc(collection(db, `users/${userId}/timeEntries`), timeEntry3);
-    
-    // 4. Seed Invoices
-    const invoice1Data = {
-        invoiceNumber: `INV-${now.getFullYear()}-001`,
-        clientId: client1Ref.id,
-        projectId: project1Ref.id,
-        amount: 800,
-        issuedDate: subDays(now, 10),
-        dueDate: addDays(subDays(now, 10), 30),
-        status: 'unpaid',
-        lineItems: [{ description: 'Design and Development work' }],
-        subTotal: 800,
-        taxRate: 0,
-    };
-    const invoice2Data = {
-        invoiceNumber: `INV-${now.getFullYear()}-002`,
-        clientId: client2Ref.id,
-        projectId: project2Ref.id,
-        amount: 960,
-        issuedDate: subDays(now, 40),
-        dueDate: subDays(now, 10),
-        status: 'overdue',
-        lineItems: [{ description: 'API Integration work'}],
-        subTotal: 960,
-        taxRate: 0,
-    };
-     const invoice3Data = {
-        invoiceNumber: `INV-${now.getFullYear()}-003`,
-        clientId: client1Ref.id,
-        projectId: project3Ref.id,
-        amount: 1500,
-        issuedDate: subDays(now, 60),
-        dueDate: subDays(now, 30),
-        status: 'paid',
-        lineItems: [{ description: 'Branding Guide creation'}],
-        subTotal: 1500,
-        taxRate: 0,
-    };
-    await addDoc(collection(db, `users/${userId}/invoices`), invoice1Data);
-    await addDoc(collection(db, `users/${userId}/invoices`), invoice2Data);
-    await addDoc(collection(db, `users/${userId}/invoices`), invoice3Data);
+  // Sample project
+  const sampleProject: Omit<Project, 'id'> = {
+    userId: userId,
+    name: 'Website Redesign',
+    clientId: clientData.id,
+    status: 'active',
+    rate: 75,
+  };
+
+  const { data: projectData, error: projectError } = await supabase
+    .from('projects')
+    .insert([{ ...sampleProject, user_id: userId }])
+    .select()
+    .single();
+
+  if (projectError) {
+    console.error('Error creating sample project:', projectError);
+    throw projectError;
+  }
+
+  // Sample expenses
+  const sampleExpenses: Omit<Expense, 'id'>[] = [
+    {
+      userId: userId,
+      projectId: projectData.id,
+      invoiceId: null, // Not yet associated with an invoice
+      description: 'Stock photos',
+      amount: 45.99,
+      date: new Date().toISOString().split('T')[0],
+      category: 'Software',
+      includeOnInvoice: true,
+    },
+    {
+      userId: userId,
+      projectId: projectData.id,
+      invoiceId: null, // Not yet associated with an invoice
+      description: 'Domain registration',
+      amount: 12.99,
+      date: new Date().toISOString().split('T')[0],
+      category: 'Other',
+      includeOnInvoice: true,
+    }
+  ];
+
+  await supabase
+    .from('expenses')
+    .insert(sampleExpenses.map(expense => ({
+      ...expense,
+      user_id: userId,
+      project_id: expense.projectId,
+      invoice_id: expense.invoiceId
+    })));
+
+  // Sample invoice
+  const sampleInvoice: Omit<Invoice, 'id'> = {
+    userId: userId,
+    invoiceNumber: 'INV-001',
+    clientId: clientData.id,
+    projectId: projectData.id,
+    amount: 1850.50,
+    dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Due in 2 weeks
+    issuedDate: new Date().toISOString().split('T')[0],
+    status: 'unpaid',
+    lineItems: [
+      {
+        description: 'Website design and development',
+        hours: 20,
+        rate: 75,
+        amount: 1500
+      },
+      {
+        description: 'Consultation',
+        hours: 4.5,
+        rate: 75,
+        amount: 337.5
+      }
+    ] as { description: string; hours: number; rate: number; amount: number }[],
+    subTotal: 1837.5,
+    taxRate: 0,
+    discountValue: 0,
+    discountType: 'fixed',
+    notes: 'Thank you for your business!',
+    expensesTotal: 58.98,
+  };
+
+  await supabase
+    .from('invoices')
+    .insert([{ ...sampleInvoice, user_id: userId, client_id: clientData.id, project_id: projectData.id }]);
 }

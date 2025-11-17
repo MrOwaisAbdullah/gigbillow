@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 export const metadata: Metadata = {
   title: 'OwFlex — Own Your Time. Own Your Invoices. Own Your Proposals.',
   description: 'Replace Toggl, Wave, and PandaDoc with a single, powerful tool for freelancers. AI Proposals, Invoicing, and Time-Tracking. 10 free credits monthly.',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'),
   openGraph: {
     title: 'OwFlex — Own Your Time. Own Your Invoices. Own Your Proposals.',
     description: 'Replace Toggl, Wave, and PandaDoc with a single, powerful tool for freelancers. AI Proposals, Invoicing, and Time-Tracking. 10 free credits monthly.',

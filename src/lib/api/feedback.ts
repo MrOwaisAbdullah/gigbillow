@@ -1,31 +1,54 @@
-
-'use client';
-
-import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
+import { type User } from '@supabase/supabase-js';
 import type { Feedback } from '@/lib/types';
-import { toast } from '@/hooks/use-toast';
-import { errorEmitter } from '@/lib/error-emitter';
-import { FirestorePermissionError } from '@/lib/errors';
 
-export async function createFeedback(feedbackData: Omit<Feedback, 'id' | 'createdAt'>): Promise<void> {
-  const collectionPath = 'feedback';
-  
-  const dataToSave = {
-      ...feedbackData,
-      createdAt: serverTimestamp()
-  };
+export async function submitFeedback(user: User | null, userEmail: string, feedbackText: string) {
+  // User can submit feedback either when logged in or not
+  const userId = user?.id || null;
 
-  try {
-    await addDoc(collection(db, collectionPath), dataToSave);
-  } catch (serverError: any) {
-    // We assume this will most likely be a permission error, but it could be other things.
-    const permissionError = new FirestorePermissionError({
-        path: collectionPath,
-        operation: 'create',
-        requestResourceData: dataToSave,
+  const { error } = await supabase
+    .from('feedback')
+    .insert({
+      user_id: userId,
+      user_email: userEmail,
+      feedback_text: feedbackText
     });
-    errorEmitter.emit('permission-error', permissionError);
-    throw permissionError;
+
+  if (error) {
+    console.error("Error submitting feedback:", error);
+    throw error;
+  }
+}
+
+export async function createFeedback(feedback: Omit<Feedback, 'id'>) {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    // This function can be called without authentication for anonymous feedback
+    const { error } = await supabase
+      .from('feedback')
+      .insert({
+        user_id: feedback.userId,
+        user_email: feedback.userEmail,
+        feedback_text: feedback.feedbackText
+      });
+
+    if (error) {
+      console.error("Error creating feedback:", error);
+      throw error;
+    }
+  } else {
+    const { error } = await supabase
+      .from('feedback')
+      .insert({
+        user_id: user.id,
+        user_email: feedback.userEmail,
+        feedback_text: feedback.feedbackText
+      });
+
+    if (error) {
+      console.error("Error creating feedback:", error);
+      throw error;
+    }
   }
 }

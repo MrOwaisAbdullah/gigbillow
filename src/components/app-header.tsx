@@ -96,7 +96,7 @@ export function AppHeader() {
                     <span className="sr-only">OwFlex</span>
                 </Link>
             </SheetHeader>
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="flex-1 overflow-y-auto theme-scrollbar">
                 <AppSidebarNav isCollapsed={false} onLinkClick={() => setIsSheetOpen(false)} />
             </div>
         </SheetContent>
@@ -125,50 +125,71 @@ export function AppHeader() {
             size="icon"
             className="overflow-hidden rounded-full"
           >
-             {user?.photoURL ? (
-                <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
-                    <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
-                </Avatar>
+             {user ? (
+                <>
+                  {user?.photoURL ? (
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
+                        <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <CircleUser className="h-5 w-5" />
+                  )}
+                </>
              ) : (
                 <CircleUser className="h-5 w-5" />
              )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{user?.displayName || 'My Account'}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link href="/settings">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/support">
-                <LifeBuoy className="mr-2 h-4 w-4" />
-                Support
-            </Link>
-          </DropdownMenuItem>
-           <DropdownMenuItem asChild>
-             <Link href="/support/feedback">
-                <MessageSquareHeart className="mr-2 h-4 w-4" />
-                Feedback
-             </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTourOpen(true)}>
-            <BookOpen className="mr-2 h-4 w-4" />
-            Welcome Tour
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={toggleTheme}>
-            {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-            <span>Toggle Theme</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => signOut()}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </DropdownMenuItem>
+          {user ? (
+            <>
+              <DropdownMenuLabel>{user?.displayName || 'My Account'}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/support">
+                    <LifeBuoy className="mr-2 h-4 w-4" />
+                    Support
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/support/feedback">
+                  <MessageSquareHeart className="mr-2 h-4 w-4" />
+                  Feedback
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTourOpen(true)}>
+                <BookOpen className="mr-2 h-4 w-4" />
+                Welcome Tour
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={toggleTheme}>
+                {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+                <span>Toggle Theme</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => signOut()}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <>
+              <DropdownMenuLabel>Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/login">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Login
+                </Link>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

@@ -15,10 +15,10 @@ export function TodaysPulse() {
     useEffect(() => {
         async function fetchTodaysPulse() {
             const [timeEntriesResult, projectsResult] = await Promise.all([getTodaysTimeEntries(), getProjects('first', null, 9999)]);
-            const timeEntries = timeEntriesResult.entries;
+            const timeEntries = Array.isArray(timeEntriesResult) ? timeEntriesResult : timeEntriesResult.entries;
             const projects = projectsResult.projects;
             const projectsById = projects.reduce((acc, p) => ({ ...acc, [p.id]: p }), {} as { [key: string]: Project });
-            
+
             const totalHours = timeEntries.reduce((acc, entry) => acc + entry.hours, 0);
             setBillableHoursToday(totalHours);
 

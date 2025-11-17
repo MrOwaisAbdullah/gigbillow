@@ -1,83 +1,72 @@
-
-'use client';
-
-import { db } from '@/lib/firebase';
-import { getAuth } from 'firebase/auth';
-import { collection, getDocs, query, where, serverTimestamp, addDoc, doc } from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
 import type { Referral } from '@/lib/types';
-import { toast } from '@/hooks/use-toast';
-import { errorEmitter } from '@/lib/error-emitter';
-import { FirestorePermissionError } from '@/lib/errors';
 
-function getCollectionPath() {
-    const auth = getAuth();
-    const userId = auth.currentUser?.uid;
-    if (!userId) return null;
-    return `users/${userId}/referrals`;
+export async function createReferral(referral: Omit<Referral, 'id'>) {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error('User not authenticated');
+  }
+
+  const { error } = await supabase
+    .from('referrals')
+    .insert([{
+      referrer_user_id: user.id,
+      referred_stripe_cust_id: referral.referredStripeCustId,
+      reached_paid: referral.reachedPaid
+    }]);
+
+  if (error) {
+    console.error("Error creating referral:", error);
+    throw error;
+  }
 }
 
-// Fetches referrals *made by* the current user.
 export async function getReferrals(): Promise<Referral[]> {
-  const collectionPath = getCollectionPath();
-  if (!collectionPath) return [];
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  const q = query(collection(db, collectionPath));
-  
-  const querySnapshot = await getDocs(q).catch((serverError) => {
-    const permissionError = new FirestorePermissionError({
-        path: collectionPath,
-        operation: 'list',
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    throw permissionError;
-  });
+  if (authError || !user) {
+    console.error("User not authenticated");
+    return [];
+  }
 
-  const referrals = querySnapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-          id: doc.id,
-          ...data,
-          created_at: data.created_at.toDate(),
-      } as Referral
-  });
-  return referrals;
+  const { data, error } = await supabase
+    .from('referrals')
+    .select('*')
+    .eq('referrer_user_id', user.id);
+
+  if (error) {
+    console.error("Error fetching referrals:", error);
+    return [];
+  }
+
+  return data.map(row => ({
+    id: row.id,
+    referrerUserId: row.referrer_user_id,
+    referredStripeCustId: row.referred_stripe_cust_id,
+    reachedPaid: row.reached_paid,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
 }
 
-// This function would be called from a secure backend (e.g., Cloud Function)
-// after a Stripe webhook confirms a new paid subscription.
-// We include it here for completeness, but it's not directly used by the client.
-export async function createReferral(referrerCode: string, referredStripeCustomerId: string, referredUserId: string): Promise<Referral | null> {
-    
-    // In a real backend, you would first find the user with the matching referrerCode
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('referral_code', '==', referrerCode));
-    const querySnapshot = await getDocs(q);
+export async function getReferralsByUserId(userId: string) {
+  const { data, error } = await supabase
+    .from('referrals')
+    .select('*')
+    .eq('referrer_user_id', userId);
 
-    if (querySnapshot.empty) {
-        console.error(`Referrer with code ${referrerCode} not found.`);
-        return null;
-    }
-    const referrerUserDoc = querySnapshot.docs[0];
-    const referrerUserId = referrerUserDoc.id;
+  if (error) {
+    console.error("Error fetching referrals:", error);
+    return [];
+  }
 
-    // Prevent self-referrals
-    if (referrerUserId === referredUserId) {
-        console.warn('User attempted to refer themselves.');
-        return null;
-    }
-
-    const referralData = {
-        referrer_user_id: referrerUserId,
-        referred_stripe_cust_id: referredStripeCustomerId,
-        reached_paid: true, // This is true because it's triggered by a payment webhook
-        created_at: serverTimestamp(),
-    };
-
-    // Note: This now writes to the referrer's subcollection.
-    const docRef = await addDoc(collection(db, `users/${referrerUserId}/referrals`), referralData);
-    
-    // Here, you would trigger the Stripe coupon creation logic from the design document.
-    // e.g., triggerStripeCouponCreation(referrerUserId);
-
-    return { id: docRef.id, ...referralData, created_at: new Date() };
+  return data.map(row => ({
+    id: row.id,
+    referrerUserId: row.referrer_user_id,
+    referredStripeCustId: row.referred_stripe_cust_id,
+    reachedPaid: row.reached_paid,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
 }

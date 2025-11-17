@@ -6,14 +6,13 @@ import { Copy, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth/auth-provider';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp, increment } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { supabase } from '@/lib/supabase';
 import type { UserProfile, Referral } from '@/lib/types';
 import { getReferrals } from '@/lib/api/referrals';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { errorEmitter } from '@/lib/error-emitter';
-import { FirestorePermissionError } from '@/lib/errors';
+import { SupabasePermissionError } from '@/lib/errors';
 
 const milestones = [
   { count: 1, discount: 10 },
@@ -38,7 +37,7 @@ export function ReferralDashboard() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [isGranting, setIsGranting] = useState(false);
-  
+
   const ADMIN_USER_ID = "R7Hkky6alfgBwiofMmCVHo8HtLI3";
 
   useEffect(() => {
@@ -47,45 +46,86 @@ export function ReferralDashboard() {
         setLoading(false);
         return;
       }
-      
+
       setLoading(true);
       try {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userDocRef).catch((serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: userDocRef.path,
+        // Fetch user profile from Supabase
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        let userProfileData: UserProfile;
+
+        if (userError && userError.code !== 'PGRST116') { // PGRST116 means no rows returned
+          const permissionError = new SupabasePermissionError({
+            path: 'users',
             operation: 'get',
           });
           errorEmitter.emit('permission-error', permissionError);
           throw permissionError;
-        });
+        }
 
-        let userProfileData: UserProfile;
-
-        if (userSnap.exists() && userSnap.data().referral_code) {
-          userProfileData = userSnap.data() as UserProfile;
+        if (userData && userData.referral_code) {
+          userProfileData = {
+            id: userData.id,
+            email: userData.email,
+            displayName: userData.display_name,
+            photoUrl: userData.photo_url,
+            referralCode: userData.referral_code,
+            logoUrl: userData.logo_url,
+            logoDataUrl: userData.logo_data_url,
+            isSubscribed: userData.is_subscribed,
+            createdAt: userData.created_at,
+            updatedAt: userData.updated_at
+          };
         } else {
+            // Generate and update referral code if it doesn't exist
             const newReferralCode = generateReferralCode(6);
+
             const updates: Partial<UserProfile> = {
-                referral_code: newReferralCode,
+                referralCode: newReferralCode,
             };
-            if (!userSnap.exists() || !userSnap.data().displayName) {
-                updates.displayName = user.displayName || 'New User';
-                updates.email = user.email || '';
-                updates.photoURL = user.photoURL || '';
+
+            if (!userData || !userData.display_name) {
+                updates.displayName = user.user_metadata?.full_name || user.user_metadata?.name || 'New User';
+                updates.email = user.email;
+                updates.photoUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
             }
-            
-            // Use setDoc with merge to create or update the document safely
-            await setDoc(userDocRef, updates, { merge: true });
+
+            // Update the user profile in Supabase
+            const { error: updateError } = await supabase
+              .from('users')
+              .update({
+                referral_code: newReferralCode,
+                display_name: updates.displayName,
+                email: updates.email,
+                photo_url: updates.photoUrl
+              })
+              .eq('id', user.id);
+
+            if (updateError) {
+              console.error('Error updating user profile:', updateError);
+              throw updateError;
+            }
 
             userProfileData = {
-                ...(userSnap.exists() ? userSnap.data() : {}),
-                ...updates,
-            } as UserProfile;
+              id: user.id,
+              email: updates.email,
+              displayName: updates.displayName as string,
+              photoUrl: updates.photoUrl as string,
+              referralCode: newReferralCode,
+              logoUrl: null,
+              logoDataUrl: null,
+              isSubscribed: false,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            };
         }
-        
+
         setProfile(userProfileData);
-        
+
         const referralData = await getReferrals();
         setReferrals(referralData);
 
@@ -104,42 +144,74 @@ export function ReferralDashboard() {
   }, [user, toast]);
 
   const copyToClipboard = () => {
-    if (!profile?.referral_code) {
+    if (!profile?.referralCode) {
         toast({ variant: 'destructive', title: 'Could not copy link', description: 'Referral code not found.' });
         return;
     };
-    const referralLink = `${window.location.origin}/register?ref=${profile.referral_code}`;
+    const referralLink = `${window.location.origin}/register?ref=${profile.referralCode}`;
     navigator.clipboard.writeText(referralLink);
     toast({ title: 'Referral link copied!' });
   };
-  
+
   const handleGrantPackage = async () => {
     setIsGranting(true);
     const USER_ID_TO_GRANT = 'R7Hkky6alfgBwiofMmCVHo8HtLI3';
     const TOKENS_TO_ADD = 200;
     const NEW_ROLLOVER_LIMIT = 150;
 
-    const userRef = doc(db, 'users', USER_ID_TO_GRANT);
-    const tokenRef = doc(db, 'user_tokens', USER_ID_TO_GRANT);
     try {
-        await updateDoc(userRef, { is_subscribed: true });
-        
-        const tokenSnap = await getDoc(tokenRef);
-        if (tokenSnap.exists()) {
-            await updateDoc(tokenRef, {
-                balance: increment(TOKENS_TO_ADD),
-                is_subscribed: true,
-                rollover_limit: NEW_ROLLOVER_LIMIT,
-            });
-        } else {
-            await setDoc(tokenRef, {
-                balance: TOKENS_TO_ADD,
-                last_refill_at: serverTimestamp(),
-                rollover_limit: NEW_ROLLOVER_LIMIT,
-                is_subscribed: true,
-            });
+      // Update user subscription status
+      const { error: userUpdateError } = await supabase
+        .from('users')
+        .update({ is_subscribed: true })
+        .eq('id', USER_ID_TO_GRANT);
+
+      if (userUpdateError) {
+        console.error("Failed to update user subscription", userUpdateError);
+        throw userUpdateError;
+      }
+
+      // Check if token record exists
+      const { data: tokenData, error: tokenError } = await supabase
+        .from('user_tokens')
+        .select('*')
+        .eq('user_id', USER_ID_TO_GRANT)
+        .single();
+
+      if (tokenData) {
+        // Update existing token record
+        const { error: tokenUpdateError } = await supabase
+          .from('user_tokens')
+          .update({
+            balance: tokenData.balance + TOKENS_TO_ADD,
+            is_subscribed: true,
+            rollover_limit: NEW_ROLLOVER_LIMIT,
+          })
+          .eq('user_id', USER_ID_TO_GRANT);
+
+        if (tokenUpdateError) {
+          console.error("Failed to update token record", tokenUpdateError);
+          throw tokenUpdateError;
         }
-        toast({ title: 'Success!', description: `Granted ${TOKENS_TO_ADD} tokens to the test user.` });
+      } else {
+        // Create new token record
+        const { error: tokenInsertError } = await supabase
+          .from('user_tokens')
+          .insert({
+            user_id: USER_ID_TO_GRANT,
+            balance: TOKENS_TO_ADD,
+            last_refill_at: new Date().toISOString(),
+            rollover_limit: NEW_ROLLOVER_LIMIT,
+            is_subscribed: true,
+          });
+
+        if (tokenInsertError) {
+          console.error("Failed to create token record", tokenInsertError);
+          throw tokenInsertError;
+        }
+      }
+
+      toast({ title: 'Success!', description: `Granted ${TOKENS_TO_ADD} tokens to the test user.` });
     } catch (error) {
         console.error("Failed to grant package", error);
         toast({ variant: 'destructive', title: 'Grant Failed', description: 'Could not grant the package.' });
@@ -175,8 +247,8 @@ export function ReferralDashboard() {
           </Card>
       )
   }
-  
-  const paidReferrals = referrals.filter(r => r.reached_paid).length;
+
+  const paidReferrals = referrals.filter(r => r.reachedPaid).length;
   const nextMilestone = milestones.find(m => m.count > paidReferrals) || milestones[milestones.length - 1];
   const progressPercent = nextMilestone && nextMilestone.count > 0 ? (paidReferrals / nextMilestone.count) * 100 : 0;
 
@@ -201,10 +273,10 @@ export function ReferralDashboard() {
           <div className="flex items-center gap-2">
             <input
               readOnly
-              value={`${window.location.origin}/register?ref=${profile?.referral_code || ''}`}
+              value={`${window.location.origin}/register?ref=${profile?.referralCode || ''}`}
               className="w-full rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground"
             />
-            <Button onClick={copyToClipboard} variant="outline" size="icon" disabled={!profile?.referral_code}>
+            <Button onClick={copyToClipboard} variant="outline" size="icon" disabled={!profile?.referralCode}>
               <Copy className="h-4 w-4" />
             </Button>
           </div>
@@ -238,8 +310,8 @@ export function ReferralDashboard() {
                 <p className="text-sm text-muted-foreground">It will be automatically applied to your next invoice.</p>
             </div>
         )}
-        
-        {user?.uid === ADMIN_USER_ID && (
+
+        {user?.id === ADMIN_USER_ID && (
           <div className="border-t pt-4">
               <Button onClick={handleGrantPackage} disabled={isGranting}>
                   {isGranting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

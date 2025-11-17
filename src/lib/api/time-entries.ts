@@ -1,155 +1,332 @@
-'use client';
-
-import { db } from '@/lib/firebase';
-import { getAuth } from 'firebase/auth';
-import {
-  collection,
-  getDocs,
-  addDoc,
-  doc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  startAfter,
-  Timestamp,
-  DocumentSnapshot,
-} from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
 import type { TimeEntry } from '@/lib/types';
-import { startOfDay } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 
-function getCollectionPath() {
-    const auth = getAuth();
-    const userId = auth.currentUser?.uid;
-    return userId ? `users/${userId}/timeEntries` : null;
+export async function getTimeEntriesByProject(projectId: string) {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('time_entries')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('project_id', projectId);
+
+  if (error) {
+    console.error("Error fetching time entries by project:", error);
+    return [];
+  }
+
+  return data.map(row => ({
+    id: row.id,
+    userId: row.user_id,
+    projectId: row.project_id,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    description: row.description,
+    hours: parseFloat(row.hours),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
 }
-
-function docToTimeEntry(doc: DocumentSnapshot): TimeEntry {
-    const data = doc.data()!;
-    
-    const toDate = (ts: any) => {
-        if (ts instanceof Timestamp) return ts.toDate();
-        if (ts instanceof Date) return ts;
-        // Handle cases where ts might be a string or number from localStorage
-        return new Date(ts);
-    };
-
-    return {
-        id: doc.id,
-        ...data,
-        startTime: toDate(data.startTime),
-        endTime: data.endTime ? toDate(data.endTime) : null,
-    } as TimeEntry;
-}
-
 
 export async function getTimeEntries(
-    lastVisible: DocumentSnapshot | null = null,
-    pageSize: number = 10
-): Promise<{ entries: TimeEntry[], next: DocumentSnapshot | null }> {
-    const collectionPath = getCollectionPath();
-    if (!collectionPath) return { entries: [], next: null };
-    
-    try {
-        const coll = collection(db, collectionPath);
-        let q;
-        if (lastVisible) {
-            q = query(coll, orderBy('startTime', 'desc'), startAfter(lastVisible), limit(pageSize));
-        } else {
-            q = query(coll, orderBy('startTime', 'desc'), limit(pageSize));
-        }
-        
-        const querySnapshot = await getDocs(q);
-
-        const entries = querySnapshot.docs.map(docToTimeEntry);
-        const next = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
-
-        return { entries, next };
-    } catch(e) {
-        return { entries: [], next: null };
-    }
-}
-
-export async function getTodaysTimeEntries(
     page: 'first' | 'next' | 'prev' = 'first',
-    cursor: DocumentSnapshot | null = null,
-    pageSize: number = 5
-): Promise<{ entries: TimeEntry[], next: DocumentSnapshot | null }> {
-    const collectionPath = getCollectionPath();
-    if (!collectionPath) return { entries: [], next: null };
+    cursor: string | null = null,
+    pageSize: number = 10
+): Promise<{ timeEntries: TimeEntry[], nextCursor: string | null, hasNextPage: boolean }> {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    try {
-        const todayStart = startOfDay(new Date());
-
-        const baseQuery = [
-            where('startTime', '>=', todayStart),
-            orderBy('startTime', 'desc')
-        ];
-
-        const coll = collection(db, collectionPath);
-        let q;
-        if (cursor && page === 'next') {
-            q = query(coll, ...baseQuery, startAfter(cursor), limit(pageSize));
-        } else {
-            q = query(coll, ...baseQuery, limit(pageSize));
-        }
-
-
-        const querySnapshot = await getDocs(q);
-        const entries = querySnapshot.docs.map(docToTimeEntry);
-        const next = querySnapshot.docs.length === pageSize ? querySnapshot.docs[querySnapshot.docs.length - 1] : null;
-
-        return { entries, next };
-    } catch (e) {
-        console.error("Error fetching today's entries:", e);
-        return { entries: [], next: null };
+    if (authError || !user) {
+      return { timeEntries: [], nextCursor: null, hasNextPage: false };
     }
+
+    let query = supabase
+      .from('time_entries')
+      .select(`
+        id,
+        user_id,
+        project_id,
+        start_time,
+        end_time,
+        description,
+        hours,
+        created_at,
+        updated_at
+      `)
+      .eq('user_id', user.id)
+      .order('start_time', { ascending: false }); // Most recent first
+
+    if (cursor) {
+      query = query.gt('id', cursor);
+    }
+
+    const { data, error } = await query
+      .limit(pageSize + 1); // Fetch one extra to check for next page
+
+    if (error) {
+      console.error("Error fetching time entries:", error);
+      return { timeEntries: [], nextCursor: null, hasNextPage: false };
+    }
+
+    const hasNextPage = data.length > pageSize;
+    const timeEntries = data.slice(0, pageSize).map(row => ({
+      id: row.id,
+      userId: row.user_id,
+      projectId: row.project_id,
+      startTime: row.start_time,
+      endTime: row.end_time,
+      description: row.description,
+      hours: parseFloat(row.hours),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    })) as TimeEntry[];
+
+    const nextCursor = hasNextPage ? data[data.length - 2]?.id : null;
+
+    return {
+      timeEntries,
+      nextCursor,
+      hasNextPage,
+    };
+  } catch (error) {
+    console.error("Error fetching time entries:", error);
+    return { timeEntries: [], nextCursor: null, hasNextPage: false };
+  }
 }
 
+export async function createTimeEntry(timeEntry: Omit<TimeEntry, 'id'>): Promise<TimeEntry> {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-export async function getTimeEntriesByProject(projectId: string): Promise<TimeEntry[]> {
-    const collectionPath = getCollectionPath();
-    if (!collectionPath) return [];
-
-    try {
-        const q = query(collection(db, collectionPath), where('projectId', '==', projectId));
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(docToTimeEntry);
-    } catch(e) {
-        return [];
-    }
-}
-
-
-export async function createTimeEntry(entry: Omit<TimeEntry, 'id'>): Promise<TimeEntry> {
-  const collectionPath = getCollectionPath();
-  if (!collectionPath) {
+  if (authError || !user) {
     toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to create a time entry.' });
     throw new Error('User not authenticated');
   }
-  const docRef = await addDoc(collection(db, collectionPath), entry);
-  return { id: docRef.id, ...entry };
+
+  const { data, error } = await supabase
+    .from('time_entries')
+    .insert([{
+      user_id: user.id,
+      project_id: timeEntry.projectId,
+      start_time: timeEntry.startTime,
+      end_time: timeEntry.endTime,
+      description: timeEntry.description,
+      hours: timeEntry.hours
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating time entry:", error);
+    throw error;
+  }
+
+  return {
+    id: data.id,
+    userId: data.user_id,
+    projectId: data.project_id,
+    startTime: data.start_time,
+    endTime: data.end_time,
+    description: data.description,
+    hours: parseFloat(data.hours),
+    createdAt: data.created_at,
+    updatedAt: data.updated_at
+  };
 }
 
-export async function updateTimeEntry(id: string, entry: Partial<Omit<TimeEntry, 'id'>>): Promise<void> {
-  const collectionPath = getCollectionPath();
-  if (!collectionPath) {
+export async function getTodaysTimeEntries(
+    page?: 'first' | 'next' | 'prev',
+    cursor?: string | null,
+    pageSize?: number
+): Promise<TimeEntry[] | { entries: TimeEntry[], next: string | null }> {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    // If no user, return appropriate format based on whether pagination params were provided
+    if (page === undefined) {
+      return []; // Return array format when called without pagination (TodaysPulse)
+    } else {
+      return { entries: [], next: null }; // Return object format when called with pagination (TodaysLog)
+    }
+  }
+
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date();
+  const todayString = today.toISOString().split('T')[0];
+
+  // If called without parameters (backward compatibility for TodaysPulse), return all entries as array
+  if (page === undefined) {
+    const { data, error } = await supabase
+      .from('time_entries')
+      .select(`
+        id,
+        user_id,
+        project_id,
+        start_time,
+        end_time,
+        description,
+        hours,
+        created_at,
+        updated_at
+      `)
+      .eq('user_id', user.id)
+      .gte('start_time', `${todayString}T00:00:00`)
+      .lte('start_time', `${todayString}T23:59:59`)
+      .order('start_time', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching today's time entries:", error);
+      return [];
+    }
+
+    return data.map(row => ({
+      id: row.id,
+      userId: row.user_id,
+      projectId: row.project_id,
+      startTime: row.start_time,
+      endTime: row.end_time,
+      description: row.description,
+      hours: parseFloat(row.hours),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+  }
+
+  // If called with pagination parameters (new functionality for TodaysLog), return results with pagination
+  let query = supabase
+    .from('time_entries')
+    .select(`
+      id,
+      user_id,
+      project_id,
+      start_time,
+      end_time,
+      description,
+      hours,
+      created_at,
+      updated_at
+    `)
+    .eq('user_id', user.id)
+    .gte('start_time', `${todayString}T00:00:00`)
+    .lte('start_time', `${todayString}T23:59:59`)
+    .order('start_time', { ascending: false }); // Most recent first
+
+  if (cursor) {
+    query = query.gt('id', cursor);
+  }
+
+  const { data, error } = await query
+    .limit((pageSize || 10) + 1); // Fetch one extra to check for next page
+
+  if (error) {
+    console.error("Error fetching today's time entries:", error);
+    return { entries: [], next: null };
+  }
+
+  const hasNextPage = data.length > (pageSize || 10);
+  const entries = data.slice(0, pageSize || 10).map(row => ({
+    id: row.id,
+    userId: row.user_id,
+    projectId: row.project_id,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    description: row.description,
+    hours: parseFloat(row.hours),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
+
+  const next = hasNextPage ? data[data.length - 2]?.id : null;
+
+  return { entries, next };
+}
+
+export async function updateTimeEntry(id: string, timeEntry: Partial<Omit<TimeEntry, 'id'>>): Promise<void> {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
     toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to update a time entry.' });
     throw new Error('User not authenticated');
   }
-  const docRef = doc(db, collectionPath, id);
-  await updateDoc(docRef, entry);
+
+  const { error } = await supabase
+    .from('time_entries')
+    .update({
+      project_id: timeEntry.projectId,
+      start_time: timeEntry.startTime,
+      end_time: timeEntry.endTime,
+      description: timeEntry.description,
+      hours: timeEntry.hours
+    })
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error("Error updating time entry:", error);
+    throw error;
+  }
 }
 
 export async function deleteTimeEntry(id: string): Promise<void> {
-  const collectionPath = getCollectionPath();
-  if (!collectionPath) {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
     toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to delete a time entry.' });
     throw new Error('User not authenticated');
   }
-  const docRef = doc(db, collectionPath, id);
-  await deleteDoc(docRef);
+
+  const { error } = await supabase
+    .from('time_entries')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error("Error deleting time entry:", error);
+    throw error;
+  }
+}
+
+export async function getTimeEntryById(id: string): Promise<TimeEntry | null> {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('time_entries')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') { // No rows returned
+        return null;
+      }
+      console.error("Error fetching time entry by id:", error);
+      return null;
+    }
+
+    return {
+      id: data.id,
+      userId: data.user_id,
+      projectId: data.project_id,
+      startTime: data.start_time,
+      endTime: data.end_time,
+      description: data.description,
+      hours: parseFloat(data.hours),
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    };
+  } catch (error) {
+    console.error("Error fetching time entry by id:", error);
+    return null;
+  }
 }

@@ -2,8 +2,8 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged, User, getIdToken } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { supabase } from '@/lib/supabase';
+import { type User } from '@supabase/supabase-js';
 import { usePathname, useRouter } from 'next/navigation';
 import { seedSampleData } from '@/lib/seed';
 import { getClients } from '@/lib/api/clients';
@@ -43,36 +43,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
-  
+
   useEffect(() => {
-    const auth = getAuth(app);
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+      setLoading(false);
+    });
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const currentUser = session?.user;
+      setUser(currentUser || null);
+
       const isAuthPage = pathname === '/login' || pathname === '/register';
-      const isPublicPage = pathname === '/' || pathname.startsWith('/share') || pathname === '/proposal-generator';
+      const isPublicPage = pathname === '/' || pathname.startsWith('/share') || pathname === '/proposal-generator' || isAuthPage;
 
-      if (user) {
-        setUser(user);
-        const { isNewUser, wasRefilled } = await checkAndRefillTokens(user);
-        
-        setIsNewUser(isNewUser);
+      if (currentUser) {
+        const { isNewUser: newUser, wasRefilled } = await checkAndRefillTokens();
 
-        if (isNewUser) {
-           toast({ title: '🎉 Welcome to our Beta!', description: "You've received 50 bonus tokens for free. Enjoy, and please share your feedback!" });
+        setIsNewUser(newUser);
+
+        if (newUser) {
+          toast({ title: '🎉 Welcome to our Beta!', description: "You've received 50 bonus tokens for free. Enjoy, and please share your feedback!" });
         } else if (wasRefilled) {
-            // Toast is handled in checkAndRefillTokens for refills
+          // Toast is handled in checkAndRefillTokens for refills
         }
-        await checkAndSeedData(user.uid, user.email || '');
-        setLoading(false);
+        await checkAndSeedData(currentUser.id, currentUser.email || '');
+
         if (isAuthPage) {
           const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
           sessionStorage.removeItem('redirectAfterLogin');
           router.push(redirectPath);
         }
       } else {
-        setUser(null);
         setIsNewUser(false);
-        setLoading(false);
         if (!isPublicPage) {
           sessionStorage.setItem('redirectAfterLogin', pathname);
           router.push('/login');
@@ -80,7 +85,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [router, pathname, toast]);
 
   return (

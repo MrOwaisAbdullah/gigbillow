@@ -25,7 +25,6 @@ import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import type { Project, Client } from "@/lib/types"
 import { Skeleton } from "../ui/skeleton"
-import type { DocumentSnapshot } from "firebase/firestore"
 import { PaginationControls } from "../pagination-controls"
 import { ProjectDialog } from "./project-dialog"
 import {
@@ -57,7 +56,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
   const [clients, setClients] = useState<{[key: string]: Client}>({});
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageCursors, setPageCursors] = useState<(DocumentSnapshot | null)[]>([null]);
+  const [pageCursors, setPageCursors] = useState<(string | null)[]>([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -71,7 +70,7 @@ export function ProjectsTable({ searchTerm }: ProjectsTableProps) {
     const isSearching = searchTerm.trim() !== '';
     const pageSize = isSearching ? 100 : 10;
     
-    let cursor: DocumentSnapshot | null = null;
+    let cursor: string | null = null;
     let pageToGo = 1;
 
     if (page === 'next') {

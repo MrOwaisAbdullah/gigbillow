@@ -1,177 +1,253 @@
-
-'use client';
-
-import { db } from '@/lib/firebase';
-import { getAuth } from 'firebase/auth';
-import {
-  collection,
-  getDocs,
-  addDoc,
-  doc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  startAfter,
-  Timestamp,
-  DocumentSnapshot,
-  getDoc,
-  writeBatch,
-} from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
 import type { Expense } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
-import { errorEmitter } from '../error-emitter';
-import { FirestorePermissionError } from '../errors';
 
-function getCollectionPath() {
-    const auth = getAuth();
-    const userId = auth.currentUser?.uid;
-    return userId ? `users/${userId}/expenses` : null;
+export async function getUninvoicedExpensesByProject(projectId: string): Promise<Expense[]> {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('expenses')
+    .select(`
+      id,
+      user_id,
+      project_id,
+      description,
+      amount,
+      date,
+      category,
+      include_on_invoice,
+      invoice_id,
+      created_at,
+      updated_at
+    `)
+    .eq('user_id', user.id)
+    .eq('project_id', projectId)
+    .is('invoice_id', null)  // Expenses not yet assigned to an invoice
+    .eq('include_on_invoice', true);  // Only those marked to include on invoice
+
+  if (error) {
+    console.error("Error fetching uninvoiced expenses by project:", error);
+    return [];
+  }
+
+  return data.map(row => ({
+    id: row.id,
+    userId: row.user_id,
+    projectId: row.project_id,
+    description: row.description,
+    amount: parseFloat(row.amount),
+    date: row.date,
+    category: row.category as Expense['category'],
+    includeOnInvoice: row.include_on_invoice,
+    invoiceId: row.invoice_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
 }
 
-function docToExpense(doc: DocumentSnapshot): Expense {
-    const data = doc.data()!;
-    return {
-        id: doc.id,
-        ...data,
-        date: (data.date as Timestamp).toDate(),
-    } as Expense;
+export async function markExpensesAsInvoiced(expenseIds: string[], invoiceId: string): Promise<void> {
+  const { error } = await supabase
+    .from('expenses')
+    .update({ invoice_id: invoiceId })
+    .in('id', expenseIds);
+
+  if (error) {
+    console.error("Error marking expenses as invoiced:", error);
+    throw error;
+  }
 }
 
 export async function getExpenses(
     page: 'first' | 'next' | 'prev' = 'first',
-    cursor: DocumentSnapshot | null = null,
+    cursor: string | null = null,
     pageSize: number = 10
-): Promise<{ expenses: Expense[], nextCursor: DocumentSnapshot | null, hasNextPage: boolean }> {
-    const collectionPath = getCollectionPath();
-    if (!collectionPath) return { expenses: [], nextCursor: null, hasNextPage: false };
+): Promise<{ expenses: Expense[], nextCursor: string | null, hasNextPage: boolean }> {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    const coll = collection(db, collectionPath);
-    const queryLimit = pageSize + 1; 
-    let q;
-    
-    if (page === 'next' && cursor) {
-        q = query(coll, orderBy('date', 'desc'), startAfter(cursor), limit(queryLimit));
-    } else {
-        q = query(coll, orderBy('date', 'desc'), limit(queryLimit));
+    if (authError || !user) {
+      return { expenses: [], nextCursor: null, hasNextPage: false };
     }
 
-    const querySnapshot = await getDocs(q).catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: collectionPath,
-            operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw permissionError;
-    });
+    let query = supabase
+      .from('expenses')
+      .select(`
+        id,
+        project_id,
+        description,
+        amount,
+        date,
+        category,
+        include_on_invoice,
+        invoice_id
+      `)
+      .eq('user_id', user.id)
+      .order('date', { ascending: false }); // Most recent first
 
-    const docs = querySnapshot.docs;
-    const hasNextPage = docs.length > pageSize;
+    if (cursor) {
+      query = query.gt('id', cursor);
+    }
+
+    const { data, error } = await query
+      .limit(pageSize + 1); // Fetch one extra to check for next page
+
+    if (error) {
+      console.error("Error fetching expenses:", error);
+      return { expenses: [], nextCursor: null, hasNextPage: false };
+    }
+
+    const hasNextPage = data.length > pageSize;
+    const expenses = data.slice(0, pageSize).map(row => ({
+      id: row.id,
+      projectId: row.project_id,
+      description: row.description,
+      amount: parseFloat(row.amount),
+      date: row.date,
+      category: row.category,
+      includeOnInvoice: row.include_on_invoice,
+      invoiceId: row.invoice_id,
+    })) as Expense[];
     
-    const expenses = docs.slice(0, pageSize).map(docToExpense);
-    const lastVisible = docs.length > 0 ? docs[docs.length - (hasNextPage ? 2 : 1)] : null;
+    const nextCursor = hasNextPage ? data[data.length - 2]?.id : null;
 
-    return { expenses, nextCursor: lastVisible, hasNextPage };
-}
-
-
-export async function getUninvoicedExpensesByProject(projectId: string): Promise<Expense[]> {
-  const collectionPath = getCollectionPath();
-  if (!collectionPath) return [];
-
-  const q = query(
-    collection(db, collectionPath),
-    where('projectId', '==', projectId),
-    where('invoiceId', '==', null)
-  );
-
-  const querySnapshot = await getDocs(q).catch((serverError) => {
-    const permissionError = new FirestorePermissionError({
-        path: collectionPath,
-        operation: 'list',
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    throw permissionError;
-  });
-  return querySnapshot.docs.map(docToExpense);
+    return {
+      expenses,
+      nextCursor,
+      hasNextPage,
+    };
+  } catch (error) {
+    console.error("Error fetching expenses:", error);
+    return { expenses: [], nextCursor: null, hasNextPage: false };
+  }
 }
 
 export async function createExpense(expense: Omit<Expense, 'id'>): Promise<Expense> {
-  const collectionPath = getCollectionPath();
-  if (!collectionPath) {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
     toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to create an expense.' });
     throw new Error('User not authenticated');
   }
 
-  const expenseData = { ...expense, invoiceId: null };
+  const { data, error } = await supabase
+    .from('expenses')
+    .insert([{
+      user_id: user.id,
+      project_id: expense.projectId,
+      description: expense.description,
+      amount: expense.amount,
+      date: expense.date,
+      category: expense.category,
+      include_on_invoice: expense.includeOnInvoice,
+      invoice_id: expense.invoiceId,
+    }])
+    .select()
+    .single();
 
-  const docRef = await addDoc(collection(db, collectionPath), expenseData).catch((serverError) => {
-    const permissionError = new FirestorePermissionError({
-        path: collectionPath,
-        operation: 'create',
-        requestResourceData: expenseData,
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    throw permissionError;
-  });
-  return { id: docRef.id, ...expenseData } as Expense;
+  if (error) {
+    console.error("Error creating expense:", error);
+    throw error;
+  }
+
+  return {
+    id: data.id,
+    projectId: data.project_id,
+    description: data.description,
+    amount: parseFloat(data.amount),
+    date: data.date,
+    category: data.category,
+    includeOnInvoice: data.include_on_invoice,
+    invoiceId: data.invoice_id,
+  };
 }
 
 export async function updateExpense(id: string, expense: Partial<Omit<Expense, 'id'>>): Promise<void> {
-  const collectionPath = getCollectionPath();
-  if (!collectionPath) {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
     toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to update an expense.' });
     throw new Error('User not authenticated');
   }
-  const docRef = doc(db, collectionPath, id);
-  await updateDoc(docRef, expense).catch((serverError) => {
-    const permissionError = new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'update',
-        requestResourceData: expense,
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    throw permissionError;
-  });
+
+  const { error } = await supabase
+    .from('expenses')
+    .update({
+      project_id: expense.projectId,
+      description: expense.description,
+      amount: expense.amount,
+      date: expense.date,
+      category: expense.category,
+      include_on_invoice: expense.includeOnInvoice,
+      invoice_id: expense.invoiceId,
+    })
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error("Error updating expense:", error);
+    throw error;
+  }
 }
 
 export async function deleteExpense(id: string): Promise<void> {
-  const collectionPath = getCollectionPath();
-  if (!collectionPath) {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
     toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to delete an expense.' });
     throw new Error('User not authenticated');
   }
-  const docRef = doc(db, collectionPath, id);
-  await deleteDoc(docRef).catch((serverError) => {
-    const permissionError = new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'delete',
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    throw permissionError;
-  });
+
+  const { error } = await supabase
+    .from('expenses')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error("Error deleting expense:", error);
+    throw error;
+  }
 }
 
-export async function markExpensesAsInvoiced(expenseIds: string[], invoiceId: string) {
-    const collectionPath = getCollectionPath();
-    if (!collectionPath) {
-        throw new Error('User not authenticated');
+export async function getExpenseById(id: string): Promise<Expense | null> {
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return null;
     }
-    const batch = writeBatch(db);
-    expenseIds.forEach(expenseId => {
-        const docRef = doc(db, collectionPath, expenseId);
-        batch.update(docRef, { invoiceId: invoiceId, includeOnInvoice: true });
-    });
-    await batch.commit().catch((serverError) => {
-        // This is a simplification. A real app might need more granular error handling per-document.
-        const permissionError = new FirestorePermissionError({
-            path: collectionPath,
-            operation: 'update',
-            requestResourceData: { invoiceId: invoiceId, includeOnInvoice: true }
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw permissionError;
-    });
+
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') { // No rows returned
+        return null;
+      }
+      console.error("Error fetching expense by id:", error);
+      return null;
+    }
+
+    return {
+      id: data.id,
+      projectId: data.project_id,
+      description: data.description,
+      amount: parseFloat(data.amount),
+      date: data.date,
+      category: data.category,
+      includeOnInvoice: data.include_on_invoice,
+      invoiceId: data.invoice_id,
+    };
+  } catch (error) {
+    console.error("Error fetching expense by id:", error);
+    return null;
+  }
 }

@@ -80,7 +80,7 @@ export default function SettingsPage() {
     useEffect(() => {
         async function fetchProfile() {
             if (user) {
-                const userProfile = await getUserProfile();
+                const userProfile = await getUserProfile(user.id);
                 if (userProfile) {
                     setProfile(userProfile);
                     profileForm.reset({
@@ -97,7 +97,7 @@ export default function SettingsPage() {
     async function onProfileSubmit(values: z.infer<typeof profileSchema>) {
         setIsProfileSubmitting(true);
         try {
-            const currentProfile = await getUserProfile();
+            const currentProfile = await getUserProfile(user.id);
             if (values.logoUrl && !currentProfile?.is_subscribed) {
                 toast({
                     variant: 'destructive',
@@ -128,7 +128,7 @@ export default function SettingsPage() {
                 }
             }
 
-            await updateUserProfile({
+            await updateUserProfile(user.id, {
                 displayName: values.displayName,
                 logoUrl: values.logoUrl,
                 logoDataUrl: logoDataUrl,
@@ -147,7 +147,7 @@ export default function SettingsPage() {
             setIsProfileSubmitting(false);
         }
     }
-    
+
     async function onPasswordSubmit(values: z.infer<typeof passwordSchema>) {
         setIsPasswordSubmitting(true);
         try {
@@ -167,7 +167,7 @@ export default function SettingsPage() {
             setIsPasswordSubmitting(false);
         }
     }
-    
+
     async function handleDeleteAccount() {
         setIsDeleting(true);
         try {
@@ -309,7 +309,7 @@ export default function SettingsPage() {
                     </form>
                 </Form>
              </Card>
-             
+
              <Card>
                 <CardHeader>
                     <CardTitle>Subscription</CardTitle>
@@ -321,7 +321,7 @@ export default function SettingsPage() {
                             <p className='font-semibold'>Current Plan</p>
                             <p className='text-sm text-muted-foreground'>{profile.is_subscribed ? 'Pro Plan' : 'Free Plan'}</p>
                         </div>
-                        <p className='font-bold text-lg'>{profile.is_subscribed ? '$15/mo' : '$0/mo'}</p>
+                        <p className='font-bold text-lg'>{profile.is_subscribed ? '$14/mo' : '$0/mo'}</p>
                     </div>
                      <Button onClick={() => handleComingSoon('Billing portal')}>Manage Subscription</Button>
                 </CardContent>

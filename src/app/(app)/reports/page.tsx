@@ -44,13 +44,13 @@ export default function ReportsPage() {
       const [invoicesResult, projectsResult, timeEntriesResult, expensesResult, profileResult] = await Promise.all([
         getInvoices('first', null, 9999),
         getProjects('first', null, 9999),
-        getTimeEntries(null, 9999),
+        getTimeEntries('first', null, 9999),
         getExpenses('first', null, 9999),
         getUserProfile(),
       ]);
       const invoicesData = invoicesResult.invoices;
       const projectsData = projectsResult.projects;
-      const timeEntriesData = timeEntriesResult.entries;
+      const timeEntriesData = timeEntriesResult.timeEntries;
       const expensesData = expensesResult.expenses;
       setUserProfile(profileResult);
 

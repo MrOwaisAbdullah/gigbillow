@@ -16,7 +16,6 @@ import { format } from "date-fns"
 import { useState, useEffect } from "react"
 import { Skeleton } from "../ui/skeleton"
 import { Loader2 } from "lucide-react"
-import type { DocumentSnapshot } from "firebase/firestore"
 
 type TimeLogSheetProps = {
   open: boolean;
@@ -28,7 +27,7 @@ export function TimeLogSheet({ open, onOpenChange }: TimeLogSheetProps) {
   const [projects, setProjects] = useState<{ [key: string]: Project }>({});
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [lastVisible, setLastVisible] = useState<DocumentSnapshot | null>(null);
+  const [lastVisible, setLastVisible] = useState<string | null>(null);
   const [hasNextPage, setHasNextPage] = useState(true);
 
   const fetchLogs = async (loadMore = false) => {
@@ -44,11 +43,11 @@ export function TimeLogSheet({ open, onOpenChange }: TimeLogSheetProps) {
         setProjects(projectsById);
     }
 
-    const result = await getTimeEntries(lastVisible, 15);
-    
-    setEntries(prev => loadMore ? [...prev, ...result.entries] : result.entries);
-    setLastVisible(result.next);
-    setHasNextPage(!!result.next);
+    const result = await getTimeEntries(loadMore ? 'next' : 'first', lastVisible, 15);
+
+    setEntries(prev => loadMore ? [...prev, ...result.timeEntries] : result.timeEntries);
+    setLastVisible(result.nextCursor);
+    setHasNextPage(result.hasNextPage);
 
     setLoading(false);
     setLoadingMore(false);

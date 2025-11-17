@@ -10,7 +10,7 @@ import { TokenProvider } from '@/components/token/token-provider';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
+import { SecurityErrorListener } from '@/components/SecurityErrorListener';
 import { WelcomeTour } from '@/components/welcome-tour';
 import { TourProvider, useTour } from '@/components/tour-provider';
 import { TimedFeedbackDialog } from '@/components/feedback/timed-feedback-dialog';
@@ -121,7 +121,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-screen flex-col items-center justify-center p-4">
+      <div className="flex h-screen w-screen flex-col items-center justify-center p-4 bg-secondary/50 dark:bg-secondary/30">
         <div className="flex-grow flex flex-col items-center justify-center gap-6">
             <Logo className="h-16 w-16 text-primary" />
             <div className='flex items-center gap-4 text-muted-foreground'>
@@ -137,8 +137,8 @@ function AppContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background">
-      <FirebaseErrorListener />
+    <div className="flex min-h-screen w-full flex-col bg-secondary/50 dark:bg-secondary/30">
+      <SecurityErrorListener />
       <AppSidebar />
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
         <AppHeader />

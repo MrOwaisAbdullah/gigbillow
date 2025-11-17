@@ -1,175 +1,306 @@
-import { db } from '@/lib/firebase';
-import { getAuth } from 'firebase/auth';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy, Timestamp, limit, startAfter, DocumentSnapshot } from 'firebase/firestore';
-import type { Invoice, Client, Project, UserProfile } from '@/lib/types';
+import { supabase } from '@/lib/supabase';
+import type { Invoice } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
-function getCollectionPath(userId?: string) {
-    const auth = getAuth();
-    const currentUserId = auth.currentUser?.uid;
-    const resolvedUserId = userId || currentUserId;
-    if (!resolvedUserId) {
-        console.warn('User not authenticated, returning null collection path');
-    }
-    return resolvedUserId ? `users/${resolvedUserId}/invoices` : null;
-}
+export async function getPublicInvoiceData(invoiceId: string) {
+  // Public function - no authentication required
+  const { data, error } = await supabase
+    .from('invoices')
+    .select(`
+      *,
+      client:clients!inner(name, email),
+      project:projects!inner(name, rate),
+      user:users!inner(display_name, photo_url, logo_url, referral_code)
+    `)
+    .eq('id', invoiceId)
+    .single();
 
+  if (error) {
+    console.error("Error fetching public invoice data:", error);
+    return null;
+  }
+
+  return {
+    invoice: {
+      id: data.id,
+      userId: data.user_id,
+      clientId: data.client_id,
+      projectId: data.project_id,
+      invoiceNumber: data.invoice_number,
+      amount: parseFloat(data.amount),
+      dueDate: data.due_date,
+      issuedDate: data.issued_date,
+      status: data.status,
+      lineItems: data.line_items || [],
+      subTotal: parseFloat(data.sub_total),
+      taxRate: parseFloat(data.tax_rate),
+      discountValue: parseFloat(data.discount_value),
+      discountType: data.discount_type,
+      paymentUrl: data.payment_url,
+      notes: data.notes,
+      enhancedSummary: data.enhanced_summary,
+      expensesTotal: parseFloat(data.expenses_total),
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    },
+    client: {
+      name: data.client.name,
+      email: data.client.email
+    },
+    project: {
+      name: data.project.name,
+      rate: data.project.rate
+    },
+    user: {
+      displayName: data.user.display_name,
+      photoUrl: data.user.photo_url,
+      logoUrl: data.user.logo_url,
+      referralCode: data.user.referral_code
+    }
+  };
+}
 
 export async function getInvoices(
     page: 'first' | 'next' | 'prev' = 'first',
-    cursor: DocumentSnapshot | null = null,
+    cursor: string | null = null,
     pageSize: number = 10
-): Promise<{ invoices: Invoice[], nextCursor: DocumentSnapshot | null, hasNextPage: boolean }> {
-  const collectionPath = getCollectionPath();
-  if (!collectionPath) return { invoices: [], nextCursor: null, hasNextPage: false };
-
+): Promise<{ invoices: Invoice[], nextCursor: string | null, hasNextPage: boolean }> {
   try {
-    const coll = collection(db, collectionPath);
-    const queryLimit = pageSize + 1;
-    let q;
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (page === 'next' && cursor) {
-        q = query(coll, orderBy('issuedDate', 'desc'), startAfter(cursor), limit(queryLimit));
-    } else {
-        q = query(coll, orderBy('issuedDate', 'desc'), limit(queryLimit));
-    }
-    
-    const querySnapshot = await getDocs(q);
-    const docs = querySnapshot.docs;
-    const hasNextPage = docs.length > pageSize;
-
-    const invoices = docs.slice(0, pageSize).map(doc => {
-      const data = doc.data();
-      return {
-          id: doc.id,
-          ...data,
-          issuedDate: data.issuedDate.toDate(),
-          dueDate: data.dueDate.toDate(),
-          amount: Number(data.amount) || 0,
-          subTotal: Number(data.subTotal) || 0,
-          taxRate: Number(data.taxRate) || 0,
-          discountValue: Number(data.discountValue) || 0,
-          discountType: data.discountType || 'fixed',
-          expensesTotal: Number(data.expensesTotal) || 0,
-      } as Invoice
-    });
-
-    const lastVisible = docs.length > 0 ? docs[docs.length - (hasNextPage ? 2 : 1)] : null;
-
-    return { 
-        invoices, 
-        nextCursor: lastVisible,
-        hasNextPage
-    };
-
-  } catch (error) {
-      console.error("Failed to fetch invoices:", error);
+    if (authError || !user) {
       return { invoices: [], nextCursor: null, hasNextPage: false };
+    }
+
+    let query = supabase
+      .from('invoices')
+      .select(`
+        id,
+        invoice_number,
+        client_id,
+        project_id,
+        amount,
+        due_date,
+        issued_date,
+        status,
+        line_items,
+        sub_total,
+        tax_rate,
+        discount_value,
+        discount_type,
+        payment_url,
+        notes,
+        enhanced_summary,
+        expenses_total
+      `)
+      .eq('user_id', user.id)
+      .order('issued_date', { ascending: false }); // Most recent first
+
+    if (cursor) {
+      query = query.gt('id', cursor);
+    }
+
+    const { data, error } = await query
+      .limit(pageSize + 1); // Fetch one extra to check for next page
+
+    if (error) {
+      console.error("Error fetching invoices:", error);
+      return { invoices: [], nextCursor: null, hasNextPage: false };
+    }
+
+    const hasNextPage = data.length > pageSize;
+    const invoices = data.slice(0, pageSize).map(row => ({
+      id: row.id,
+      invoiceNumber: row.invoice_number,
+      clientId: row.client_id,
+      projectId: row.project_id,
+      amount: parseFloat(row.amount),
+      dueDate: row.due_date,
+      issuedDate: row.issued_date,
+      status: row.status,
+      lineItems: row.line_items || [],
+      subTotal: parseFloat(row.sub_total),
+      taxRate: parseFloat(row.tax_rate),
+      discountValue: parseFloat(row.discount_value),
+      discountType: row.discount_type,
+      paymentUrl: row.payment_url,
+      notes: row.notes,
+      enhancedSummary: row.enhanced_summary,
+      expensesTotal: parseFloat(row.expenses_total),
+    })) as Invoice[];
+    
+    const nextCursor = hasNextPage ? data[data.length - 2]?.id : null;
+
+    return {
+      invoices,
+      nextCursor,
+      hasNextPage,
+    };
+  } catch (error) {
+    console.error("Error fetching invoices:", error);
+    return { invoices: [], nextCursor: null, hasNextPage: false };
   }
 }
 
 export async function createInvoice(invoice: Omit<Invoice, 'id'>): Promise<Invoice> {
-  const collectionPath = getCollectionPath();
-  if (!collectionPath) {
-     toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to create an invoice.' });
-     throw new Error('User not authenticated');
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to create an invoice.' });
+    throw new Error('User not authenticated');
   }
-  const docRef = await addDoc(collection(db, collectionPath), invoice);
-  return { id: docRef.id, ...invoice };
+
+  const { data, error } = await supabase
+    .from('invoices')
+    .insert([{
+      user_id: user.id,
+      invoice_number: invoice.invoiceNumber,
+      client_id: invoice.clientId,
+      project_id: invoice.projectId,
+      amount: invoice.amount,
+      due_date: invoice.dueDate,
+      issued_date: invoice.issuedDate,
+      status: invoice.status,
+      line_items: invoice.lineItems,
+      sub_total: invoice.subTotal,
+      tax_rate: invoice.taxRate,
+      discount_value: invoice.discountValue,
+      discount_type: invoice.discountType,
+      payment_url: invoice.paymentUrl,
+      notes: invoice.notes,
+      enhanced_summary: invoice.enhancedSummary,
+      expenses_total: invoice.expensesTotal,
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating invoice:", error);
+    throw error;
+  }
+
+  return {
+    id: data.id,
+    invoiceNumber: data.invoice_number,
+    clientId: data.client_id,
+    projectId: data.project_id,
+    amount: parseFloat(data.amount),
+    dueDate: data.due_date,
+    issuedDate: data.issued_date,
+    status: data.status,
+    lineItems: data.line_items || [],
+    subTotal: parseFloat(data.sub_total),
+    taxRate: parseFloat(data.tax_rate),
+    discountValue: parseFloat(data.discount_value),
+    discountType: data.discount_type,
+    paymentUrl: data.payment_url,
+    notes: data.notes,
+    enhancedSummary: data.enhanced_summary,
+    expensesTotal: parseFloat(data.expenses_total),
+  };
 }
 
 export async function updateInvoice(id: string, invoice: Partial<Omit<Invoice, 'id'>>): Promise<void> {
-  const collectionPath = getCollectionPath();
-   if (!collectionPath) {
-     toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to update an invoice.' });
-     throw new Error('User not authenticated');
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to update an invoice.' });
+    throw new Error('User not authenticated');
   }
-  const docRef = doc(db, collectionPath, id);
-  await updateDoc(docRef, invoice);
+
+  const { error } = await supabase
+    .from('invoices')
+    .update({
+      invoice_number: invoice.invoiceNumber,
+      client_id: invoice.clientId,
+      project_id: invoice.projectId,
+      amount: invoice.amount,
+      due_date: invoice.dueDate,
+      issued_date: invoice.issuedDate,
+      status: invoice.status,
+      line_items: invoice.lineItems,
+      sub_total: invoice.subTotal,
+      tax_rate: invoice.taxRate,
+      discount_value: invoice.discountValue,
+      discount_type: invoice.discountType,
+      payment_url: invoice.paymentUrl,
+      notes: invoice.notes,
+      enhanced_summary: invoice.enhancedSummary,
+      expenses_total: invoice.expensesTotal,
+    })
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error("Error updating invoice:", error);
+    throw error;
+  }
 }
 
 export async function deleteInvoice(id: string): Promise<void> {
-  const collectionPath = getCollectionPath();
-  if (!collectionPath) {
-     toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to delete an invoice.' });
-     throw new Error('User not authenticated');
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to delete an invoice.' });
+    throw new Error('User not authenticated');
   }
-  const docRef = doc(db, collectionPath, id);
-  await deleteDoc(docRef);
+
+  const { error } = await supabase
+    .from('invoices')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error("Error deleting invoice:", error);
+    throw error;
+  }
 }
 
 export async function getInvoiceById(id: string): Promise<Invoice | null> {
-    const collectionPath = getCollectionPath();
-    if (!collectionPath) return null;
-    try {
-        const docRef = doc(db, collectionPath, id);
-        const docSnap = await getDoc(docRef);
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            return {
-                id: docSnap.id,
-                ...data,
-                issuedDate: data.issuedDate.toDate(),
-                dueDate: data.dueDate.toDate(),
-                amount: Number(data.amount) || 0,
-                subTotal: Number(data.subTotal) || 0,
-                taxRate: Number(data.taxRate) || 0,
-                discountValue: Number(data.discountValue) || 0,
-                discountType: data.discountType || 'fixed',
-                expensesTotal: Number(data.expensesTotal) || 0,
-            } as Invoice;
-        } else {
-            return null;
-        }
-    } catch (error) {
-        return null;
+    if (authError || !user) {
+      return null;
     }
-}
 
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
 
-export async function getPublicInvoiceData(userId: string, invoiceId: string): Promise<{ invoice: Invoice, user: { displayName: string, email: string }, client: Client, project: Project } | null> {
-    if (!userId || !invoiceId) return null;
-    try {
-        const invoiceRef = doc(db, `users/${userId}/invoices/${invoiceId}`);
-        const invoiceSnap = await getDoc(invoiceRef);
-
-        if (!invoiceSnap.exists()) {
-            console.log('Public invoice not found');
-            return null;
-        }
-
-        const invoiceData = invoiceSnap.data();
-        const invoice = {
-            id: invoiceSnap.id,
-            ...invoiceData,
-            issuedDate: (invoiceData.issuedDate as Timestamp).toDate(),
-            dueDate: (invoiceData.dueDate as Timestamp).toDate(),
-        } as Invoice;
-
-        const userDocRef = doc(db, 'users', userId);
-        const userSnap = await getDoc(userDocRef);
-        const user = userSnap.exists() ? userSnap.data() : { displayName: 'Freelancer', email: ''};
-        
-        const clientRef = doc(db, `users/${userId}/clients/${invoice.clientId}`);
-        const clientSnap = await getDoc(clientRef);
-        const client = clientSnap.exists() ? { id: clientSnap.id, ...clientSnap.data() } as Client : null;
-
-        const projectRef = doc(db, `users/${userId}/projects/${invoice.projectId}`);
-        const projectSnap = await getDoc(projectRef);
-        const project = projectSnap.exists() ? { id: projectSnap.id, ...projectSnap.data() } as Project : null;
-
-        if (!client || !project) {
-            console.log('Client or Project not found for public invoice');
-            return null;
-        }
-
-        return { invoice, user: user as any, client, project };
-
-    } catch (error) {
-        console.error("Error fetching public invoice data:", error);
-        // It's important to not throw here to avoid crashing the client,
-        // and instead return null to let the page handle the "not found" state.
+    if (error) {
+      if (error.code === 'PGRST116') { // No rows returned
         return null;
+      }
+      console.error("Error fetching invoice by id:", error);
+      return null;
     }
+
+    return {
+      id: data.id,
+      invoiceNumber: data.invoice_number,
+      clientId: data.client_id,
+      projectId: data.project_id,
+      amount: parseFloat(data.amount),
+      dueDate: data.due_date,
+      issuedDate: data.issued_date,
+      status: data.status,
+      lineItems: data.line_items || [],
+      subTotal: parseFloat(data.sub_total),
+      taxRate: parseFloat(data.tax_rate),
+      discountValue: parseFloat(data.discount_value),
+      discountType: data.discount_type,
+      paymentUrl: data.payment_url,
+      notes: data.notes,
+      enhancedSummary: data.enhanced_summary,
+      expensesTotal: parseFloat(data.expenses_total),
+    };
+  } catch (error) {
+    console.error("Error fetching invoice by id:", error);
+    return null;
+  }
 }

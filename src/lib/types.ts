@@ -7,38 +7,48 @@
 
 export type Client = {
   id: string;
+  userId: string; // Foreign key to users table
   name: string;
   email: string;
   avatarUrl: string;
+  createdAt?: string; // Supabase timestamp
+  updatedAt?: string; // Supabase timestamp
 };
 
 export type Project = {
   id: string;
+  userId: string; // Foreign key to users table
+  clientId: string | null; // Foreign key to clients table (can be null)
   name: string;
-  clientId: string;
   status: 'active' | 'completed' | 'on_hold';
   rate: number;
+  createdAt?: string; // Supabase timestamp
+  updatedAt?: string; // Supabase timestamp
 };
 
 export type TimeEntry = {
   id: string;
-  projectId: string;
-  startTime: Date;
-  endTime: Date | null;
+  userId: string; // Foreign key to users table
+  projectId: string | null; // Foreign key to projects table (can be null)
+  startTime: string; // Supabase timestamp as string
+  endTime: string | null; // Supabase timestamp as string
   description: string;
   hours: number;
+  createdAt?: string; // Supabase timestamp
+  updatedAt?: string; // Supabase timestamp
 };
 
 export type Invoice = {
-  id:string;
+  id: string;
+  userId: string; // Foreign key to users table
+  clientId: string | null; // Foreign key to clients table (can be null)
+  projectId: string | null; // Foreign key to projects table (can be null)
   invoiceNumber: string;
-  clientId: string;
-  projectId: string;
   amount: number;
-  dueDate: Date;
-  issuedDate: Date;
+  dueDate: string; // Date string in YYYY-MM-DD format
+  issuedDate: string; // Date string in YYYY-MM-DD format
   status: 'paid' | 'unpaid' | 'overdue';
-  lineItems: { description: string }[];
+  lineItems: { description: string }[]; // Could be expanded with more fields if needed
   subTotal: number;
   taxRate: number;
   discountValue: number;
@@ -46,14 +56,19 @@ export type Invoice = {
   paymentUrl?: string;
   notes?: string;
   enhancedSummary?: string;
-  expensesTotal?: number;
+  expensesTotal: number;
+  createdAt?: string; // Supabase timestamp
+  updatedAt?: string; // Supabase timestamp
 };
 
 export type UserToken = {
-    balance: number;
-    last_refill_at: Date;
-    rollover_limit: number;
-    is_subscribed: boolean;
+  userId: string; // Foreign key to users table (primary key)
+  balance: number;
+  lastRefillAt: string | null; // Supabase timestamp as string
+  rolloverLimit: number;
+  isSubscribed: boolean;
+  createdAt?: string; // Supabase timestamp
+  updatedAt?: string; // Supabase timestamp
 };
 
 export type TokenPack = {
@@ -65,38 +80,46 @@ export type TokenPack = {
 };
 
 export type Referral = {
-    id: string;
-    referrer_user_id: string;
-    referred_stripe_cust_id: string;
-    reached_paid: boolean;
-    created_at: Date;
+  id: string;
+  referrerUserId: string; // Foreign key to users table
+  referredStripeCustId: string | null;
+  reachedPaid: boolean;
+  createdAt?: string; // Supabase timestamp
+  updatedAt?: string; // Supabase timestamp
 };
 
 export type UserProfile = {
-    displayName: string;
-    email: string;
-    photoURL: string;
-    referral_code: string;
-    logoUrl?: string;
-    logoDataUrl?: string;
-    is_subscribed: boolean;
+  id: string; // Supabase user ID
+  email: string | null;
+  displayName: string | null;
+  photoUrl: string | null;
+  referralCode: string | null;
+  logoUrl?: string;
+  logoDataUrl?: string;
+  isSubscribed: boolean;
+  createdAt?: string; // Supabase timestamp
+  updatedAt?: string; // Supabase timestamp
 }
 
 export type Expense = {
   id: string;
-  projectId: string | null;
+  userId: string; // Foreign key to users table
+  projectId: string | null; // Foreign key to projects table (can be null)
+  invoiceId: string | null; // Foreign key to invoices table (can be null)
   description: string;
   amount: number;
-  date: Date;
+  date: string; // Date string in YYYY-MM-DD format
   category: 'Travel' | 'Software' | 'Office Supplies' | 'Marketing' | 'Meals' | 'Utilities' | 'Other';
   includeOnInvoice: boolean;
-  invoiceId: string | null;
+  createdAt?: string; // Supabase timestamp
+  updatedAt?: string; // Supabase timestamp
 };
 
 export type Feedback = {
   id: string;
-  userId: string;
-  userEmail: string;
+  userId: string | null; // Foreign key to users table (can be null for anonymous feedback)
+  userEmail: string | null;
   feedbackText: string;
-  createdAt: Date;
+  createdAt?: string; // Supabase timestamp
+  updatedAt?: string; // Supabase timestamp
 };

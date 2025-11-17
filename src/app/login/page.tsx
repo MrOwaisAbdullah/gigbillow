@@ -5,7 +5,7 @@ import {
   signInWithGoogle,
   signInWithEmailAndPasswordHandler,
 } from '@/lib/auth';
-import { Chrome, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/auth/auth-provider';
 import { useEffect, useState } from 'react';
@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Logo } from '@/components/logo';
+import Image from 'next/image';
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address.'),
@@ -169,11 +170,17 @@ export default function LoginPage() {
             className="w-full"
             size="lg"
           >
-            <Chrome className="mr-2 h-5 w-5" />
+            <Image
+              src="/Google_logo.webp"
+              alt="Google logo"
+              width={20}
+              height={20}
+              className="mr-2"
+            />
             Sign in with Google
           </Button>
 
-           <p className="text-sm text-muted-foreground">
+           <p className="text-sm text-muted-foreground mt-2">
              Don't have an account?{' '}
             <Link
               href="/register"

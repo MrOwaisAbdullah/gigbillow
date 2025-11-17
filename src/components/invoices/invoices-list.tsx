@@ -28,7 +28,6 @@ import type { Invoice, Client, Project } from "@/lib/types"
 import { format } from "date-fns"
 import { Skeleton } from "../ui/skeleton"
 import Link from "next/link";
-import type { DocumentSnapshot } from "firebase/firestore"
 import { PaginationControls } from "../pagination-controls"
 import { useRouter } from 'next/navigation';
 import {
@@ -58,7 +57,7 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
   const [data, setData] = useState<{ [key: string]: Client | Project }>({});
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageCursors, setPageCursors] = useState<(DocumentSnapshot | null)[]>([null]);
+  const [pageCursors, setPageCursors] = useState<(string | null)[]>([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
@@ -72,7 +71,7 @@ export function InvoicesList({ searchTerm }: InvoicesListProps) {
     
     const isSearching = searchTerm.trim() !== '';
     const pageSize = isSearching ? 100 : 10;
-    let cursor: DocumentSnapshot | null = null;
+    let cursor: string | null = null;
     let pageToGo = 1;
 
     if (page === 'next') {

@@ -7,7 +7,6 @@ import { format } from "date-fns";
 import { useState, useEffect, useCallback } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { Clock } from "lucide-react";
-import { DocumentSnapshot } from "firebase/firestore";
 import { PaginationControls } from "../pagination-controls";
 
 export function TodaysLog() {
@@ -15,20 +14,22 @@ export function TodaysLog() {
     const [projects, setProjects] = useState<{ [key: string]: Project }>({});
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const [cursors, setCursors] = useState<(DocumentSnapshot | null)[]>([null]);
+    const [cursors, setCursors] = useState<(string | null)[]>([null]);
     const [hasNextPage, setHasNextPage] = useState(false);
 
 
     const fetchTodaysLog = useCallback(async (page: 'first' | 'next' | 'prev') => {
         setLoading(true);
-        let cursor: DocumentSnapshot | null = null;
+        let cursor: string | null = null;
         if (page === 'next') {
             cursor = cursors[currentPage] || null;
         } else if (page === 'prev') {
             cursor = cursors[currentPage - 2] || null;
         }
 
-        const { entries: timeEntriesData, next } = await getTodaysTimeEntries(page, cursor, 5);
+        const result = await getTodaysTimeEntries(page, cursor, 5);
+        const timeEntriesData = Array.isArray(result) ? result : result.entries;
+        const next = Array.isArray(result) ? null : result.next;
         setEntries(timeEntriesData);
 
         if (timeEntriesData.length > 0) {
@@ -39,7 +40,7 @@ export function TodaysLog() {
                  setProjects(prev => ({ ...prev, ...projectsById}));
             }
         }
-        
+
         if (page === 'next') {
             if (!cursors.includes(next)) {
                 setCursors([...cursors, next]);
@@ -77,7 +78,7 @@ export function TodaysLog() {
             </div>
         )
     }
-    
+
     if (entries.length === 0) {
         return (
             <div className="text-center text-muted-foreground py-12 px-4 rounded-lg border-2 border-dashed">
