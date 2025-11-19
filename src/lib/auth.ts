@@ -150,7 +150,7 @@ export const signInWithGoogle = async () => {
     }
 
     // The OAuth flow redirects, so we return early here
-    return data.user;
+    return null;
   } catch (error) {
     console.error('Error signing in with Google:', error);
     throw error;
@@ -248,6 +248,32 @@ export const deleteUserAccount = async (): Promise<void> => {
   try {
     const userId = user.id;
 
+    // Fetch profile to get image paths before deletion
+    const { data: profile } = await supabase
+      .from('users')
+      .select('photo_url, logo_url')
+      .eq('id', userId)
+      .single();
+
+    // Delete images from storage if they exist
+    if (profile) {
+      const filesToDelete: string[] = [];
+      if (profile.photo_url && profile.photo_url.includes('avatars/')) {
+        const path = profile.photo_url.split('avatars/')[1];
+        if (path) filesToDelete.push(`avatars/${path}`);
+      }
+      if (profile.logo_url && profile.logo_url.includes('logos/')) {
+        const path = profile.logo_url.split('logos/')[1];
+        if (path) filesToDelete.push(`logos/${path}`);
+      }
+
+      if (filesToDelete.length > 0) {
+        await supabase.storage
+          .from('images')
+          .remove(filesToDelete);
+      }
+    }
+
     // Delete all user data from all tables
     // Delete from related tables first due to foreign key constraints
     const tablesToDelete = [
@@ -279,12 +305,9 @@ export const deleteUserAccount = async (): Promise<void> => {
       .delete()
       .eq('id', userId);
 
-    // Finally, delete the user from Supabase Auth
-    const { error } = await supabase.auth.admin.deleteUser(userId);
-    if (error) {
-      console.error('Error deleting user from auth:', error);
-      throw error;
-    }
+    // Finally, sign out the user since we can't delete the auth account from client-side
+    await supabase.auth.signOut();
+
   } catch (error: any) {
     console.error('Error deleting user account:', error);
     if (error.code === 'auth/requires-recent-login') {

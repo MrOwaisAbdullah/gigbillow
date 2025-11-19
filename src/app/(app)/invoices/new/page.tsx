@@ -156,7 +156,7 @@ export default function NewInvoicePage() {
   const submitButtonText = `Create & Download PDF (-${totalCost} Token${totalCost > 1 ? 's' : ''})`;
   const canAffordWatermarkRemoval = tokens >= 3;
   // Simulating higher tiers by checking the rollover limit
-  const isHigherTier = tokenData && tokenData.rollover_limit >= 150;
+  const isHigherTier = tokenData && tokenData.rolloverLimit >= 150;
 
 
   const fetchClients = useCallback(async () => {
@@ -177,7 +177,7 @@ export default function NewInvoicePage() {
             const [clientsData, projectsData, profileData] = await Promise.all([
                 fetchClients(),
                 fetchProjects(),
-                getUserProfile()
+                getUserProfile(user.id)
             ]);
             setClients(clientsData);
             setAllProjects(projectsData);
@@ -237,10 +237,26 @@ export default function NewInvoicePage() {
           const projectTimeEntries = await getTimeEntriesByProject(watchedValues.projectId);
           const totalHours = projectTimeEntries.reduce((acc, entry) => acc + entry.hours, 0);
           if (totalHours > 0) {
-            form.setValue('lineItems', [{
-              description: `Work performed on project: ${project.name}`,
-            }]);
-            form.setValue('subTotal', parseFloat((totalHours * project.rate).toFixed(2)));
+            // Check if user can afford to import work log
+            const canAffordImport = await canAfford('import_work_log');
+            if (!canAffordImport) {
+              toast({
+                variant: 'destructive',
+                title: 'Insufficient Tokens',
+                description: 'You need 1 token to import time entries. The invoice will not be auto-filled.',
+              });
+            } else {
+              // Charge for importing work log
+              await chargeFor('import_work_log');
+              form.setValue('lineItems', [{
+                description: `Work performed on project: ${project.name}`,
+              }]);
+              form.setValue('subTotal', parseFloat((totalHours * project.rate).toFixed(2)));
+              toast({
+                title: 'Time Entries Imported',
+                description: `${totalHours.toFixed(1)} hours imported from project time tracking.`,
+              });
+            }
           }
         }
         
@@ -300,6 +316,9 @@ export default function NewInvoicePage() {
 
         const invoiceToCreate = {
             ...values,
+            userId: user!.id,
+            issuedDate: values.issuedDate.toISOString(),
+            dueDate: values.dueDate.toISOString(),
             lineItems: values.lineItems, // Save only main line items, not expense ones
             amount: totalAmount,
             status: 'unpaid' as const,

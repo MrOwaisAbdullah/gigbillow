@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { ImageUpload } from '@/components/ui/image-upload';
 import { createClient, updateClient } from '@/lib/api/clients';
 import { useState, useEffect } from 'react';
 import type { Client } from '@/lib/types';
@@ -64,7 +65,10 @@ export function ClientForm({ onSuccess, onCancel, client }: ClientFormProps) {
         toast({ title: 'Client Updated' });
         onSuccess(updatedClient);
       } else {
-        const newClient = await createClient(values);
+        const newClient = await createClient({
+          ...values,
+          avatarUrl: values.avatarUrl || '',
+        });
         toast({
             title: 'Client Created',
             description: `Client "${values.name}" has been successfully created.`,
@@ -113,22 +117,24 @@ export function ClientForm({ onSuccess, onCancel, client }: ClientFormProps) {
             )}
           />
         </div>
-        <FormField
-          control={form.control}
-          name="avatarUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Avatar URL (Optional)</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="https://example.com/avatar.png"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="avatarUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <ImageUpload 
+                    value={field.value} 
+                    onChange={field.onChange} 
+                    label="Client Avatar (Optional)"
+                    bucketName="images"
+                    folderPath="avatars"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         <div className="flex justify-end gap-2 flex-wrap">
           {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
           <Button type="submit" disabled={isSubmitting}>

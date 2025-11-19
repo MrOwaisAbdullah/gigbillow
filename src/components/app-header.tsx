@@ -116,7 +116,7 @@ export function AppHeader() {
       </div>
        <Button variant="outline" size="sm" onClick={openDialog}>
             <Zap className="mr-2 h-4 w-4 text-yellow-500" />
-            {tokensLoading ? '...' : `${tokens}/${tokenData?.rollover_limit ?? 0}`} Tokens
+            {tokensLoading ? '...' : `${tokens}/${(tokenData as any)?.rollover_limit ?? 0}`} Tokens
        </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -125,16 +125,21 @@ export function AppHeader() {
             size="icon"
             className="overflow-hidden rounded-full"
           >
-             {user ? (
+              {user ? (
                 <>
-                  {user?.photoURL ? (
+                <>
+                  {(user.user_metadata?.photo_url || user.user_metadata?.avatar_url) ? (
                     <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
-                        <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                        <AvatarImage 
+                          src={(user.user_metadata?.photo_url || user.user_metadata?.avatar_url).replace('=s96-c', '=s400')} 
+                          alt={user.user_metadata.full_name || 'User'} 
+                        />
+                        <AvatarFallback>{user.user_metadata.full_name?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                   ) : (
                     <CircleUser className="h-5 w-5" />
                   )}
+                </>
                 </>
              ) : (
                 <CircleUser className="h-5 w-5" />
@@ -144,7 +149,7 @@ export function AppHeader() {
         <DropdownMenuContent align="end">
           {user ? (
             <>
-              <DropdownMenuLabel>{user?.displayName || 'My Account'}</DropdownMenuLabel>
+              <DropdownMenuLabel>{user.user_metadata?.full_name || 'My Account'}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/settings">

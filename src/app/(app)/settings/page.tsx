@@ -16,10 +16,13 @@ import { updateUserPassword, deleteUserAccount } from '@/lib/auth';
 import { useEffect, useState } from 'react';
 import type { UserProfile } from '@/lib/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ImageUpload } from '@/components/ui/image-upload';
+import { PremiumLock } from '@/components/subscription/premium-lock';
 
 
 const profileSchema = z.object({
   displayName: z.string().min(2, 'Name must be at least 2 characters.'),
+  photoUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   logoUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
 });
 
@@ -32,25 +35,7 @@ const passwordSchema = z.object({
 });
 
 
-async function urlToDataUri(url: string): Promise<string> {
-    if (!url) return '';
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch image with status: ${response.status}`);
-        }
-        const blob = await response.blob();
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
-    } catch (error) {
-        console.error("Failed to convert URL to Data URI:", error);
-        throw new Error("Could not fetch image from the provided URL. This may be due to browser security restrictions (CORS). Please try a different URL from a public image host or convert the image to a Data URI manually.");
-    }
-}
+
 
 
 export default function SettingsPage() {
@@ -65,6 +50,7 @@ export default function SettingsPage() {
         resolver: zodResolver(profileSchema),
         defaultValues: {
             displayName: '',
+            photoUrl: '',
             logoUrl: '',
         },
     });
@@ -85,6 +71,7 @@ export default function SettingsPage() {
                     setProfile(userProfile);
                     profileForm.reset({
                         displayName: userProfile.displayName || '',
+                        photoUrl: userProfile.photoUrl || '',
                         logoUrl: userProfile.logoUrl || '',
                     });
                 }
@@ -95,10 +82,11 @@ export default function SettingsPage() {
 
 
     async function onProfileSubmit(values: z.infer<typeof profileSchema>) {
+        if (!user) return;
         setIsProfileSubmitting(true);
         try {
             const currentProfile = await getUserProfile(user.id);
-            if (values.logoUrl && !currentProfile?.is_subscribed) {
+            if (values.logoUrl && !currentProfile?.isSubscribed) {
                 toast({
                     variant: 'destructive',
                     title: 'Subscription Required',
@@ -110,26 +98,12 @@ export default function SettingsPage() {
 
             let logoDataUrl = '';
             if (values.logoUrl) {
-                 if (values.logoUrl.startsWith('data:image')) {
-                    logoDataUrl = values.logoUrl;
-                } else {
-                    try {
-                        logoDataUrl = await urlToDataUri(values.logoUrl);
-                    } catch(e: any) {
-                        toast({
-                            variant: 'destructive',
-                            title: 'Logo Conversion Failed',
-                            description: e.message || 'Could not process the logo from the provided URL.',
-                            duration: 9000,
-                        });
-                        setIsProfileSubmitting(false);
-                        return;
-                    }
-                }
+                logoDataUrl = values.logoUrl; // Use the public URL directly or handle data URI if needed, but ImageUpload returns public URL
             }
 
             await updateUserProfile(user.id, {
                 displayName: values.displayName,
+                photoUrl: values.photoUrl,
                 logoUrl: values.logoUrl,
                 logoDataUrl: logoDataUrl,
             });
@@ -228,6 +202,28 @@ export default function SettingsPage() {
                                     </FormItem>
                                 )}
                             />
+                             <FormField
+                                control={profileForm.control}
+                                name="photoUrl"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <ImageUpload 
+                                                value={field.value} 
+                                                onChange={field.onChange} 
+                                                label="Profile Picture"
+                                                bucketName="images"
+                                                folderPath="avatars"
+                                                isCircular
+                                            />
+                                        </FormControl>
+                                        <FormDescription>
+                                           Upload a profile picture.
+                                        </FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                              <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
                                 <Input id="email" type="email" defaultValue={user.email || ''} readOnly disabled />
@@ -238,22 +234,33 @@ export default function SettingsPage() {
                             <CardDescription>Add your company logo to be displayed on invoices and proposals. This requires a purchased token pack.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                             <FormField
-                                control={profileForm.control}
-                                name="logoUrl"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Logo URL</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="https://your-company.com/logo.png" {...field} />
-                                        </FormControl>
-                                        <FormDescription>
-                                           Paste a public URL to your logo. We will attempt to convert it for embedding. If this fails due to CORS, please use a URL from a provider that allows cross-origin requests.
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            <PremiumLock 
+                                isSubscribed={!!profile.isSubscribed} 
+                                featureName="Custom Branding"
+                                description="Upgrade to a paid plan to upload your custom brand logo."
+                            >
+                                <FormField
+                                    control={profileForm.control}
+                                    name="logoUrl"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <ImageUpload 
+                                                    value={field.value} 
+                                                    onChange={field.onChange} 
+                                                    label="Company Logo"
+                                                    bucketName="images"
+                                                    folderPath="logos"
+                                                />
+                                            </FormControl>
+                                            <FormDescription>
+                                            Upload your company logo. It will be displayed on your invoices and proposals.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </PremiumLock>
                         </CardContent>
                         <CardFooter>
                             <Button type="submit" disabled={isProfileSubmitting}>
@@ -319,9 +326,9 @@ export default function SettingsPage() {
                     <div className='flex items-center justify-between p-4 rounded-lg bg-muted/50'>
                         <div>
                             <p className='font-semibold'>Current Plan</p>
-                            <p className='text-sm text-muted-foreground'>{profile.is_subscribed ? 'Pro Plan' : 'Free Plan'}</p>
+                            <p className='text-sm text-muted-foreground'>{profile.isSubscribed ? 'Pro Plan' : 'Free Plan'}</p>
                         </div>
-                        <p className='font-bold text-lg'>{profile.is_subscribed ? '$14/mo' : '$0/mo'}</p>
+                        <p className='font-bold text-lg'>{profile.isSubscribed ? '$14/mo' : '$0/mo'}</p>
                     </div>
                      <Button onClick={() => handleComingSoon('Billing portal')}>Manage Subscription</Button>
                 </CardContent>
@@ -355,6 +362,7 @@ export default function SettingsPage() {
                     </AlertDialog>
                 </CardContent>
              </Card>
+
         </div>
     )
 }
