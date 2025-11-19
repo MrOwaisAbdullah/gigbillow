@@ -3,6 +3,39 @@
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/types';
+import { type User } from '@supabase/supabase-js';
+
+export async function ensureUserExists(user: User) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('id')
+    .eq('id', user.id)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error checking user existence:', error);
+    return;
+  }
+
+  if (!data) {
+    console.log('User record missing in public.users, creating now...');
+    const { error: insertError } = await supabase
+      .from('users')
+      .insert({
+        id: user.id,
+        email: user.email,
+        display_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+        photo_url: user.user_metadata?.avatar_url,
+        created_at: new Date().toISOString(),
+      });
+
+    if (insertError) {
+      console.error('Error creating user record:', insertError);
+    } else {
+      console.log('User record created successfully.');
+    }
+  }
+}
 
 export async function updateUserSubscriptionStatus(isSubscribed: boolean) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();

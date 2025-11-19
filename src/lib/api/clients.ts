@@ -72,6 +72,7 @@ export async function createClient(client: Omit<Client, 'id'>): Promise<Client> 
     throw new Error('User not authenticated');
   }
 
+  console.log('Attempting to create client:', client);
   const { data, error } = await supabase
     .from('clients')
     .insert([{
@@ -85,8 +86,10 @@ export async function createClient(client: Omit<Client, 'id'>): Promise<Client> 
 
   if (error) {
     console.error("Error creating client:", error);
+    console.error("Error details:", JSON.stringify(error, null, 2));
     throw error;
   }
+  console.log('Client created successfully:', data);
 
   return {
     id: data.id,

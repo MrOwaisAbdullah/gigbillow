@@ -7,6 +7,7 @@ import { type User } from '@supabase/supabase-js';
 import { usePathname, useRouter } from 'next/navigation';
 import { seedSampleData } from '@/lib/seed';
 import { getClients } from '@/lib/api/clients';
+import { ensureUserExists } from '@/lib/api/users';
 import { useToast } from '@/hooks/use-toast';
 import { checkAndRefillTokens } from '@/lib/api/tokens';
 
@@ -60,6 +61,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const isPublicPage = pathname === '/' || pathname.startsWith('/share') || pathname === '/proposal-generator' || isAuthPage;
 
       if (currentUser) {
+        await ensureUserExists(currentUser);
         const { isNewUser: newUser, wasRefilled } = await checkAndRefillTokens();
 
         setIsNewUser(newUser);

@@ -1,11 +1,13 @@
 'use client';
 
 import { supabase } from '@/lib/supabase';
-import { type UserToken } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 import { isAfter } from 'date-fns';
 import { updateUserSubscriptionStatus } from './users';
 import { betaConfig, standardConfig } from '../config';
+
+// Prevent multiple simultaneous requests from creating duplicate records
+let tokenCheckInProgress = false;
 
 export async function checkAndRefillTokens(): Promise<{ isNewUser: boolean, wasRefilled: boolean }> {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -17,92 +19,129 @@ export async function checkAndRefillTokens(): Promise<{ isNewUser: boolean, wasR
 
   const userId = user.id;
 
-  // Get user tokens
-  const { data: tokenData, error } = await supabase
-    .from('user_tokens')
-    .select('*')
-    .eq('user_id', userId)
-    .single();
+  // Prevent multiple simultaneous requests
+  if (tokenCheckInProgress) {
+    // Wait a moment and return false if another check is already in progress
+    await new Promise(resolve => setTimeout(resolve, 100));
+    return { isNewUser: false, wasRefilled: false };
+  }
 
-  if (error) {
-    if (error.code === 'PGRST116') { // No rows returned
-      // This is a new user - this case should be handled by initializeUser, but as a fallback:
-      const initialTokens = betaConfig.isActive ? betaConfig.newUserTokens : standardConfig.freeUser.newUserTokens;
-      const initialSubStatus = betaConfig.isActive ? betaConfig.newUserIsSubscribed : standardConfig.freeUser.newUserIsSubscribed;
-      const initialRollover = betaConfig.isActive ? betaConfig.newUserRolloverLimit : standardConfig.freeUser.newUserRolloverLimit;
+  tokenCheckInProgress = true;
 
-      const { error: insertError } = await supabase
+  try {
+    // Get user tokens
+    const { data: tokenData, error } = await supabase
+      .from('user_tokens')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') { // No rows returned
+        // This is a new user - this case should be handled by initializeUser, but as a fallback:
+        const initialTokens = betaConfig.isActive ? betaConfig.newUserTokens : standardConfig.freeUser.newUserTokens;
+        const initialSubStatus = betaConfig.isActive ? betaConfig.newUserIsSubscribed : standardConfig.freeUser.newUserIsSubscribed;
+        const initialRollover = betaConfig.isActive ? betaConfig.newUserRolloverLimit : standardConfig.freeUser.newUserRolloverLimit;
+
+        const { error: insertError } = await supabase
+          .from('user_tokens')
+          .insert({
+            user_id: userId,
+            balance: initialTokens,
+            last_refill_at: new Date().toISOString(),
+            rollover_limit: initialRollover,
+            is_subscribed: initialSubStatus,
+          });
+
+        if (insertError) {
+          // Check if it's a duplicate key error (someone else created the record while we waited)
+          if (insertError.code === '23505') { // Unique violation
+            // Record already exists, try to fetch it again
+            const { data: retryData, error: retryError } = await supabase
+              .from('user_tokens')
+              .select('*')
+              .eq('user_id', userId)
+              .single();
+
+            if (retryError) {
+              console.error('Error retrying to fetch token record:', retryError);
+              return { isNewUser: false, wasRefilled: false };
+            }
+
+            // Successfully retrieved the existing record
+            return { isNewUser: true, wasRefilled: false };
+          } else {
+            console.error('Error creating token record:', insertError);
+            console.error('Error details:', JSON.stringify(insertError, null, 2));
+            console.error('Error message:', insertError.message);
+            console.error('Error code:', insertError.code);
+            console.error('Error details prop:', insertError.details);
+            console.error('Error hint:', insertError.hint);
+            return { isNewUser: false, wasRefilled: false };
+          }
+        }
+
+        return { isNewUser: true, wasRefilled: false };
+      } else {
+        console.error('Error fetching user tokens:', error);
+        return { isNewUser: false, wasRefilled: false };
+      }
+    }
+
+    if (!tokenData) {
+      return { isNewUser: false, wasRefilled: false };
+    }
+
+    const lastRefill = tokenData.last_refill_at ? new Date(tokenData.last_refill_at) : new Date();
+
+    if (!lastRefill) {
+      const { error: updateError } = await supabase
         .from('user_tokens')
-        .insert({
-          user_id: userId,
-          balance: initialTokens,
-          last_refill_at: new Date().toISOString(),
-          rollover_limit: initialRollover,
-          is_subscribed: initialSubStatus,
-        });
+        .update({ last_refill_at: new Date().toISOString() })
+        .eq('user_id', userId);
 
-      if (insertError) {
-        console.error('Error creating token record:', insertError);
+      if (updateError) {
+        console.error('Error updating last refill:', updateError);
+      }
+      return { isNewUser: false, wasRefilled: false };
+    }
+
+    const nextRefillDate = new Date(lastRefill.getTime());
+    nextRefillDate.setDate(nextRefillDate.getDate() + 30);
+
+    if (isAfter(new Date(), nextRefillDate)) {
+      const isSubscribed = tokenData.is_subscribed || betaConfig.isActive;
+      const refillAmount = isSubscribed ? (betaConfig.isActive ? betaConfig.refillAmount : standardConfig.subscribedUser.refillAmount) : standardConfig.freeUser.refillAmount;
+      const rolloverLimit = isSubscribed ? (betaConfig.isActive ? betaConfig.newUserRolloverLimit : standardConfig.subscribedUser.rollover_limit) : 0;
+
+      const currentBalance = tokenData.balance;
+      const rolloverAmount = Math.min(currentBalance, rolloverLimit);
+      const newBalance = rolloverAmount + refillAmount;
+
+      const { error: updateError } = await supabase
+        .from('user_tokens')
+        .update({
+          balance: newBalance,
+          last_refill_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+
+      if (updateError) {
+        console.error('Error updating tokens:', updateError);
         return { isNewUser: false, wasRefilled: false };
       }
 
-      return { isNewUser: true, wasRefilled: false };
-    } else {
-      console.error('Error fetching user tokens:', error);
-      return { isNewUser: false, wasRefilled: false };
-    }
-  }
+      const toastTitle = betaConfig.isActive ? '🎉 Monthly Beta Tokens Added!' : 'Monthly Tokens Refilled!';
+      toast({ title: toastTitle, description: `Your ${refillAmount} tokens have been added. ${rolloverAmount} unused tokens were rolled over.` });
 
-  if (!tokenData) {
+      return { isNewUser: false, wasRefilled: true };
+    }
+
     return { isNewUser: false, wasRefilled: false };
+  } finally {
+    // Reset the flag when done
+    tokenCheckInProgress = false;
   }
-
-  const lastRefill = tokenData.last_refill_at ? new Date(tokenData.last_refill_at) : new Date();
-  
-  if (!lastRefill) {
-    const { error: updateError } = await supabase
-      .from('user_tokens')
-      .update({ last_refill_at: new Date().toISOString() })
-      .eq('user_id', userId);
-
-    if (updateError) {
-      console.error('Error updating last refill:', updateError);
-    }
-    return { isNewUser: false, wasRefilled: false };
-  }
-
-  const nextRefillDate = new Date(lastRefill.getTime());
-  nextRefillDate.setDate(nextRefillDate.getDate() + 30);
-
-  if (isAfter(new Date(), nextRefillDate)) {
-    const isSubscribed = tokenData.is_subscribed || betaConfig.isActive;
-    const refillAmount = isSubscribed ? (betaConfig.isActive ? betaConfig.refillAmount : standardConfig.subscribedUser.refillAmount) : standardConfig.freeUser.refillAmount;
-    const rolloverLimit = isSubscribed ? (betaConfig.isActive ? betaConfig.newUserRolloverLimit : standardConfig.subscribedUser.rollover_limit) : 0;
-
-    const currentBalance = tokenData.balance;
-    const rolloverAmount = Math.min(currentBalance, rolloverLimit);
-    const newBalance = rolloverAmount + refillAmount;
-
-    const { error: updateError } = await supabase
-      .from('user_tokens')
-      .update({
-        balance: newBalance,
-        last_refill_at: new Date().toISOString()
-      })
-      .eq('user_id', userId);
-
-    if (updateError) {
-      console.error('Error updating tokens:', updateError);
-      return { isNewUser: false, wasRefilled: false };
-    }
-
-    const toastTitle = betaConfig.isActive ? '🎉 Monthly Beta Tokens Added!' : 'Monthly Tokens Refilled!';
-    toast({ title: toastTitle, description: `Your ${refillAmount} tokens have been added. ${rolloverAmount} unused tokens were rolled over.` });
-
-    return { isNewUser: false, wasRefilled: true };
-  }
-
-  return { isNewUser: false, wasRefilled: false };
 }
 
 export type SpendAction = 'proposal' | 'invoice_pdf' | 'project' | 'import_work_log' | 'invoice_expense' | 'remove_watermark' | 'report_export';
