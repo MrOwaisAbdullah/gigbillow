@@ -1,20 +1,23 @@
+'use client';
 
 import { TimeTracker } from "@/components/track/time-tracker";
 import { TodaysLog } from "@/components/track/todays-log";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TrackPage() {
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   return (
     <div className="flex flex-col items-center justify-center gap-8 text-center pb-8">
         <h1 className="text-4xl font-bold tracking-tight">Time Tracker</h1>
         <div className="w-full max-w-2xl">
-            <TimeTracker />
+            <TimeTracker onEntrySaved={() => setRefreshTrigger(prev => prev + 1)} />
         </div>
         <div className="w-full max-w-4xl mt-8">
             <h2 className="text-2xl font-semibold mb-4">Today's Entries</h2>
             <Suspense fallback={<TodaysLogSkeleton />}>
-               <TodaysLog />
+               <TodaysLog key={refreshTrigger} />
             </Suspense>
         </div>
     </div>

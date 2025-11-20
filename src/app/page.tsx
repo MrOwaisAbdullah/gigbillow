@@ -189,13 +189,6 @@ export default function LandingPage() {
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-background overflow-hidden">
-      <div className="fixed inset-0 -z-50 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-primary/15 to-cyan/10 rounded-full blur-xl opacity-70 animate-float-1"></div>
-        <div className="absolute top-3/4 right-1/3 w-48 h-48 bg-gradient-to-r from-secondary/15 to-purple/10 rounded-full blur-xl opacity-70 animate-float-2"></div>
-        <div className="absolute top-1/3 right-1/4 w-32 h-32 bg-gradient-to-r from-accent/15 to-blue/10 rounded-full blur-xl opacity-70 animate-float-3"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-40 h-40 bg-gradient-to-r from-card/15 to-indigo/10 rounded-full blur-xl opacity-70 animate-float-4"></div>
-        <div className="absolute top-2/3 left-1/2 w-36 h-36 bg-gradient-to-r from-primary/15 to-pink/10 rounded-full blur-xl opacity-70 animate-float-5"></div>
-      </div>
 
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-14 items-center px-4">
@@ -250,8 +243,47 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         <section className="relative w-full py-12 md:py-24 lg:py-32 z-10">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Floating Timer Icon */}
+            <div className="absolute top-20 left-20 animate-float-1 opacity-20">
+              <Timer className="w-16 h-16 text-primary" />
+            </div>
+            
+            {/* Floating Zap Icon */}
+            <div className="absolute top-40 right-32 animate-float-2 opacity-15">
+              <Zap className="w-12 h-12 text-primary" />
+            </div>
+            
+            {/* Floating FileText Icon */}
+            <div className="absolute bottom-32 left-1/4 animate-float-3 opacity-20">
+              <FileText className="w-14 h-14 text-primary" />
+            </div>
+
+            {/* Floating Currency Icon */}
+            <div className="absolute top-1/3 left-10 animate-float-4 opacity-15">
+              <Currency className="w-10 h-10 text-primary" />
+            </div>
+
+            {/* Floating Star Icon */}
+            <div className="absolute bottom-20 right-20 animate-float-5 opacity-20">
+              <Star className="w-8 h-8 text-primary fill-primary/20" />
+            </div>
+            
+            {/* Small circle */}
+            <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-primary/40 rounded-full animate-float-4"></div>
+            
+            {/* Medium circle */}
+            <div className="absolute bottom-1/4 right-1/4 w-2 h-2 bg-primary/30 rounded-full animate-float-5"></div>
+
+            {/* Extra dots */}
+            <div className="absolute top-1/2 left-10 w-1.5 h-1.5 bg-primary/50 rounded-full animate-float-2"></div>
+            <div className="absolute bottom-10 left-1/3 w-2.5 h-2.5 bg-primary/40 rounded-full animate-float-3"></div>
+            
+            {/* Gradient orb */}
+            <div className="absolute top-2/3 left-1/2 w-24 h-24 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-xl opacity-50 animate-float-1"></div>
+          </div>
           <div className="container mx-auto flex max-w-6xl flex-col items-center justify-center space-y-8 px-4 text-center md:px-6">
             <div className="space-y-4">
               <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">
@@ -325,8 +357,50 @@ export default function LandingPage() {
 
         <section
           id="features"
-          className="w-full py-32 md:py-40 lg:py-48 bg-secondary/80 dark:bg-secondary/40 relative"
+          className="w-full py-32 md:py-40 lg:py-48 bg-secondary/80 dark:bg-secondary/40 relative overflow-hidden"
         >
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Floating LineChart Icon */}
+            <div className="absolute top-20 right-20 animate-float-4 opacity-15">
+              <LineChart className="w-14 h-14 text-primary" />
+            </div>
+            
+            {/* Floating PenSquare Icon */}
+            <div className="absolute bottom-24 left-32 animate-float-5 opacity-20">
+              <PenSquare className="w-12 h-12 text-primary" />
+            </div>
+            
+            {/* Floating Cog Icon */}
+            <div className="absolute top-1/2 right-1/4 animate-float-3 opacity-15">
+              <Cog className="w-10 h-10 text-primary" />
+            </div>
+
+            {/* Floating Workflow Icon */}
+            <div className="absolute bottom-1/3 right-10 animate-float-2 opacity-15">
+              <Workflow className="w-12 h-12 text-primary" />
+            </div>
+
+            {/* Floating Target Icon */}
+            <div className="absolute top-10 left-1/4 animate-float-1 opacity-10">
+              <Target className="w-8 h-8 text-primary" />
+            </div>
+
+            {/* Floating Users Icon */}
+            <div className="absolute bottom-10 right-1/3 animate-float-5 opacity-15">
+              <Users className="w-9 h-9 text-primary" />
+            </div>
+            
+            {/* Small dots */}
+            <div className="absolute top-1/4 left-1/3 w-2 h-2 bg-primary/30 rounded-full animate-float-1"></div>
+            <div className="absolute bottom-1/3 right-1/3 w-3 h-3 bg-primary/20 rounded-full animate-float-2"></div>
+            
+            {/* Extra shapes */}
+            <div className="absolute top-2/3 left-10 w-4 h-4 border-2 border-primary/20 rounded-full animate-float-3"></div>
+            <div className="absolute top-1/4 right-10 w-3 h-3 bg-primary/10 rotate-45 animate-float-4"></div>
+
+            {/* Subtle gradient orb */}
+            <div className="absolute top-1/3 left-1/4 w-32 h-32 bg-gradient-to-br from-primary/8 to-transparent rounded-full blur-2xl opacity-40 animate-float-4"></div>
+          </div>
           <div className="container mx-auto px-4 md:px-6">
             <div className="mx-auto grid max-w-5xl items-center gap-6 lg:grid-cols-2 lg:gap-12">
               <div className="space-y-4">

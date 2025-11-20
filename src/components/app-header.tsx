@@ -127,19 +127,18 @@ export function AppHeader() {
           >
               {user ? (
                 <>
-                <>
-                  {(user.user_metadata?.photo_url || user.user_metadata?.avatar_url) ? (
+                  {(user.user_metadata?.photo_url || user.user_metadata?.avatar_url || user.user_metadata?.picture) ? (
                     <Avatar className="h-8 w-8">
                         <AvatarImage 
-                          src={(user.user_metadata?.photo_url || user.user_metadata?.avatar_url).replace('=s96-c', '=s400')} 
-                          alt={user.user_metadata.full_name || 'User'} 
+                          src={(user.user_metadata?.photo_url || user.user_metadata?.avatar_url || user.user_metadata?.picture).replace('=s96-c', '=s400')} 
+                          alt={user.user_metadata.full_name || 'User'}
+                          referrerPolicy="no-referrer"
                         />
-                        <AvatarFallback>{user.user_metadata.full_name?.charAt(0) || 'U'}</AvatarFallback>
+                        <AvatarFallback>{(user.user_metadata.full_name || user.email || 'U').charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   ) : (
                     <CircleUser className="h-5 w-5" />
                   )}
-                </>
                 </>
              ) : (
                 <CircleUser className="h-5 w-5" />

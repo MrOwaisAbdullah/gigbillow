@@ -26,7 +26,11 @@ import { getClients } from "@/lib/api/clients"
 
 type TimerState = 'running' | 'paused' | 'stopped';
 
-export function TimeTracker() {
+interface TimeTrackerProps {
+  onEntrySaved?: () => void;
+}
+
+export function TimeTracker({ onEntrySaved }: TimeTrackerProps = {}) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
@@ -157,19 +161,21 @@ export function TimeTracker() {
     }
 
     const newEntry: Omit<TimeEntry, 'id'> = {
+        userId: '', // Ignored by API
         projectId: selectedProject.id,
-        startTime,
-        endTime,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
         description: `Time tracked for ${selectedProject.name}`,
         hours,
     };
 
     try {
-        await createTimeEntry(newEntry);
+        await createTimeEntry(newEntry as any);
         if(!isAutoSaving) {
             toast({ title: "Time Saved", description: `Saved ${formatShortTime(elapsedTime)} to project ${selectedProject?.name}` });
             setLastSavedEntry({ duration: elapsedTime, projectName: selectedProject.name });
             setTotalProjectTime(prev => prev + elapsedTime);
+            onEntrySaved?.();
         }
     } catch (error) {
         // API handles error toast
@@ -340,5 +346,3 @@ export function TimeTracker() {
     </>
   )
 }
-
-    
