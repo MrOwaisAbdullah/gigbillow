@@ -46,7 +46,7 @@ export default function ReportsPage() {
         getProjects('first', null, 9999),
         getTimeEntries('first', null, 9999),
         getExpenses('first', null, 9999),
-        getUserProfile(),
+        getUserProfile(user.id),
       ]);
       const invoicesData = invoicesResult.invoices;
       const projectsData = projectsResult.projects;
@@ -116,7 +116,7 @@ export default function ReportsPage() {
       setLoading(false);
     }
     fetchAllReportData();
-  }, []);
+  }, [user]);
   
   const handleExport = async (exportFn: (data: any) => void) => {
     setIsExporting(true);

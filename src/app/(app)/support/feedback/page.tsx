@@ -51,7 +51,7 @@ export default function FeedbackPage() {
     
     try {
         await createFeedback({
-            userId: user.uid,
+            userId: user.id,
             userEmail: user.email || 'unknown',
             feedbackText: values.feedback,
         });

@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Download, CreditCard, Share2, Copy, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Download, Share2, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { toTitleCase, cn } from '@/lib/utils';
+import { toTitleCase } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 const statusVariants: { [key in Invoice['status']]: 'success' | 'warning' | 'destructive' } = {
@@ -49,10 +49,11 @@ export default function InvoiceDetailPage() {
 
   useEffect(() => {
     if (!id || !user) return;
-    
+
     async function fetchInvoiceDetails() {
       try {
-        const invoiceData = await getInvoiceById(id);
+        // At this point, id is guaranteed to be a string due to the check above
+        const invoiceData = await getInvoiceById(id as string);
         if (!invoiceData) {
           router.push('/invoices');
           return;
@@ -60,9 +61,9 @@ export default function InvoiceDetailPage() {
         setInvoice(invoiceData);
 
         const [clientData, projectData, profileData] = await Promise.all([
-          getClientById(invoiceData.clientId),
-          getProjectById(invoiceData.projectId),
-          getUserProfile(),
+          getClientById(invoiceData.clientId ?? ''),
+          getProjectById(invoiceData.projectId ?? ''),
+          getUserProfile(user.id),
         ]);
 
         setClient(clientData);
@@ -107,8 +108,8 @@ export default function InvoiceDetailPage() {
   }
 
   const handleShare = () => {
-    if (!user) return;
-    const publicUrl = `${window.location.origin}/share/invoice/${id}?userId=${user.uid}`;
+    if (!user || !id) return;
+    const publicUrl = `${window.location.origin}/share/invoice/${id}?userId=${user.id}`;
     navigator.clipboard.writeText(publicUrl);
     toast({
         title: 'Link Copied',

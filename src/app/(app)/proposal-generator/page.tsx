@@ -88,7 +88,7 @@ export default function ProposalGeneratorPage() {
   useEffect(() => {
     async function fetchProfile() {
       if (user) {
-        const profile = await getUserProfile();
+        const profile = await getUserProfile(user.id);
         setUserProfile(profile);
       }
     }
@@ -199,7 +199,7 @@ export default function ProposalGeneratorPage() {
   const totalCost = generationCost + watermarkCost;
   const canAffordWatermarkRemoval = tokens >= 3;
   // Simulating higher tiers by checking the rollover limit
-  const isHigherTier = tokenData && tokenData.rollover_limit >= 150;
+  const isHigherTier = tokenData && tokenData.rolloverLimit >= 150;
   
   let generateButtonText = user ? `Generate Proposal (-${totalCost} Token${totalCost > 1 ? 's': ''})` : 'Log In & Generate';
 

@@ -8,7 +8,7 @@ import { FloatingTrackerButton } from '@/components/floating-tracker-button';
 import { AuthProvider, useAuth } from '@/components/auth/auth-provider';
 import { TokenProvider } from '@/components/token/token-provider';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { SecurityErrorListener } from '@/components/SecurityErrorListener';
 import { WelcomeTour } from '@/components/welcome-tour';
@@ -80,7 +80,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
       setOpen(true);
     }
   }, [isNewUser, setOpen]);
-  
+
   useEffect(() => {
     const dialogDismissed = localStorage.getItem(FEEDBACK_STORAGE_KEY);
     if (dialogDismissed) {
@@ -93,7 +93,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
     return () => clearTimeout(timer);
   }, []);
-  
+
   useEffect(() => {
     if (loading) {
       const pageKey = Object.keys(loadingMessages).find(key => pathname.includes(key)) || 'default';
@@ -153,13 +153,32 @@ function AppContent({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Wrap the AppContent in a Suspense boundary to handle useSearchParams
+function AppContentWithSuspense({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen w-screen flex-col items-center justify-center p-4 bg-secondary/50 dark:bg-secondary/30">
+        <div className="flex-grow flex flex-col items-center justify-center gap-6">
+            <Logo className="h-16 w-16 text-primary" />
+            <div className='flex items-center gap-4 text-muted-foreground'>
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <p className='text-lg'>Loading your workspace...</p>
+            </div>
+        </div>
+      </div>
+    }>
+      <AppContent>{children}</AppContent>
+    </Suspense>
+  );
+}
+
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <TokenProvider>
         <TourProvider>
-          <AppContent>{children}</AppContent>
+          <AppContentWithSuspense>{children}</AppContentWithSuspense>
         </TourProvider>
       </TokenProvider>
     </AuthProvider>
