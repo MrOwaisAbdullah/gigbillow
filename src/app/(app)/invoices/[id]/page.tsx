@@ -63,7 +63,7 @@ export default function InvoiceDetailPage() {
         const [clientData, projectData, profileData] = await Promise.all([
           getClientById(invoiceData.clientId ?? ''),
           getProjectById(invoiceData.projectId ?? ''),
-          getUserProfile(user.id),
+          getUserProfile(user!.id), // user is guaranteed to be non-null due to check on line 51
         ]);
 
         setClient(clientData);
