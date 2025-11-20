@@ -24,8 +24,6 @@ import {
   Cog,
   FileClock,
   LineChart,
-  Moon,
-  Sun,
   Star,
   Target,
   Users,
@@ -43,20 +41,20 @@ import Image from "next/image";
 import Autoplay from "embla-carousel-autoplay";
 import React from "react";
 import { useAuth } from "@/components/auth/auth-provider";
-import { Logo } from "@/components/logo";
-import { useTheme } from "@/hooks/use-theme";
+import { useRouter } from "next/navigation";
+import { LandingHeader } from "@/components/landing/header";
+import { LandingCTA } from "@/components/landing/cta";
+import { LandingFooter } from "@/components/landing/footer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buyBundle } from "@/lib/api/stripe-client";
-import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
   const { user } = useAuth();
-  const { toggleTheme } = useTheme();
   const router = useRouter();
 
   const handleBuy = async (bundleType: 'mini' | 'standard' | 'agency') => {
     if (!user) {
-      router.push('/register');
+      router.push('/login?redirect=/pricing');
       return;
     }
     await buyBundle(bundleType);
@@ -201,58 +199,7 @@ export default function LandingPage() {
   return (
     <div className="flex min-h-[100dvh] flex-col bg-background overflow-hidden">
 
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-14 items-center px-4">
-          <Link
-            href="#"
-            className="mr-auto flex items-center gap-2"
-            prefetch={false}
-          >
-            <Logo className="h-8 w-8 text-primary" />
-            <span className="hidden min-[320px]:inline font-bold text-lg text-primary">
-              OwFlex
-            </span>
-          </Link>
-          <nav className="hidden sm:flex flex-1">
-            {/* Can add nav links here later */}
-          </nav>
-          <div className="flex items-center gap-1 sm:gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Toggle Theme"
-              onClick={toggleTheme}
-              className="h-10 w-10"
-            >
-              <Sun className="h-6 w-6 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-6 w-6 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            </Button>
-            {user === null ? (
-              <>
-                <Button variant="ghost" asChild size="sm">
-                  <Link href="/login">Log In</Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href="/register">Sign Up</Link>
-                </Button>
-              </>
-            ) : user ? (
-              <Button asChild>
-                <Link href="/dashboard">Dashboard</Link>
-              </Button>
-            ) : (
-              <>
-                <Button variant="ghost" asChild size="sm">
-                  <Link href="/login">Log In</Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href="/register">Sign Up</Link>
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
+      <LandingHeader />
 
       <main className="flex-1 relative z-10">
         <section className="relative w-full py-12 md:py-24 lg:py-32 z-10">
@@ -719,8 +666,11 @@ export default function LandingPage() {
                 </div>
               </div>
             </Card>
-            <div className="mt-12 text-center text-muted-foreground text-sm">
-              <p>
+            <div className="mt-12 text-center">
+              <Link href="/pricing" className="text-primary hover:underline font-medium text-lg">
+                View full pricing details and comparison &rarr;
+              </Link>
+              <p className="text-muted-foreground text-sm mt-4">
                 All one-time packs are purchased via Stripe. You can manage your
                 payment methods securely.
               </p>
@@ -989,64 +939,9 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="w-full py-12 md:py-24 lg:py-32 border-t">
-          <div className="container mx-auto grid items-center justify-center gap-4 px-4 text-center md:px-6">
-            <div className="space-y-3">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
-                Ready to streamline your freelance life?
-              </h2>
-              <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Sign up today and get 10 free tokens. No credit card required.
-              </p>
-            </div>
-            <div className="mx-auto w-full max-w-sm space-y-2">
-              {user ? (
-                <Button asChild size="lg">
-                  <Link href="/dashboard">Go to Dashboard</Link>
-                </Button>
-              ) : (
-                <Button asChild size="lg">
-                  <Link href="/register">Get Started Now</Link>
-                </Button>
-              )}
-            </div>
-          </div>
-        </section>
+        <LandingCTA />
       </main>
-      <footer className="w-full shrink-0 border-t">
-        <div className="container mx-auto flex flex-col sm:flex-row h-auto sm:h-16 items-center justify-between gap-4 py-4 px-4 md:px-6">
-          <p className="text-xs text-muted-foreground text-center sm:text-left">
-            &copy; {new Date().getFullYear()} OwFlex. All rights reserved.
-          </p>
-          <div className="text-xs text-muted-foreground">
-            Made with ❤️ by{" "}
-            <a
-              href="https://owaisabdullah.dev/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-primary hover:underline"
-            >
-              Owais Abdullah
-            </a>
-          </div>
-          <nav className="flex gap-4 sm:gap-6">
-            <Link
-              href="/terms-of-service"
-              className="text-xs hover:underline underline-offset-4"
-              prefetch={false}
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href="/privacy-policy"
-              className="text-xs hover:underline underline-offset-4"
-              prefetch={false}
-            >
-              Privacy
-            </Link>
-          </nav>
-        </div>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }

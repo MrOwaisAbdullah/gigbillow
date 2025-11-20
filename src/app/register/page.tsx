@@ -6,9 +6,9 @@ import {
   signInWithGoogle,
 } from '@/lib/auth';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/auth/auth-provider';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -34,7 +34,17 @@ const formSchema = z.object({
 });
 
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+      <RegisterForm />
+    </Suspense>
+  );
+}
+
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/dashboard';
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,9 +60,9 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      router.push(redirectUrl);
     }
-  }, [user, router]);
+  }, [user, router, redirectUrl]);
 
   if (loading || user) {
     return (
@@ -69,7 +79,7 @@ export default function RegisterPage() {
     try {
       const user = await signInWithGoogle();
       if (user) {
-        router.push('/dashboard');
+        router.push(redirectUrl);
       }
     } catch (error) {
       toast({
@@ -88,7 +98,7 @@ export default function RegisterPage() {
         values.email,
         values.password
       );
-      router.push('/dashboard');
+      router.push(redirectUrl);
     } catch (error: any) {
       let description = 'An unexpected error occurred. Please try again.';
       if (error.code === 'auth/email-already-in-use') {
@@ -212,7 +222,7 @@ export default function RegisterPage() {
           <p className="pt-4 text-sm text-muted-foreground">
             Already have an account?{' '}
             <Link
-              href="/login"
+              href={searchParams.get('redirect') ? `/login?redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : "/login"}
               className="font-semibold text-primary underline-offset-4 hover:underline"
             >
               Sign in
@@ -221,19 +231,19 @@ export default function RegisterPage() {
         </div>
         <p className="px-8 text-center text-sm text-muted-foreground">
           By clicking continue, you agree to our{' '}
-          <a
-            href="#"
+          <Link
+            href="/terms-of-service"
             className="underline underline-offset-4 hover:text-primary"
           >
             Terms of Service
-          </a>{' '}
+          </Link>{' '}
           and{' '}
-          <a
-            href="#"
+          <Link
+            href="/privacy-policy"
             className="underline underline-offset-4 hover:text-primary"
           >
             Privacy Policy
-          </a>
+          </Link>
           .
         </p>
       </div>

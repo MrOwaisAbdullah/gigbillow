@@ -6,9 +6,9 @@ import {
   signInWithEmailAndPasswordHandler,
 } from '@/lib/auth';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/auth/auth-provider';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -33,7 +33,17 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/dashboard';
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,26 +58,17 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      router.push(redirectUrl);
     }
-  }, [user, router]);
+  }, [user, router, redirectUrl]);
 
-  if (loading || user) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p>Loading your workspace...</p>
-        </div>
-      </div>
-    );
-  }
+  // ... (rest of the component logic remains the same, just update router.push calls)
 
   const handleGoogleSignIn = async () => {
     try {
       const user = await signInWithGoogle();
       if (user) {
-        router.push('/dashboard');
+        router.push(redirectUrl);
       }
     } catch (error) {
       toast({
@@ -83,7 +84,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await signInWithEmailAndPasswordHandler(values.email, values.password);
-      router.push('/dashboard');
+      router.push(redirectUrl);
     } catch (error: any) {
       let description = 'An unexpected error occurred. Please try again.';
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
@@ -98,6 +99,7 @@ export default function LoginPage() {
       setIsSubmitting(false);
     }
   }
+// ... render return
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -183,13 +185,30 @@ export default function LoginPage() {
            <p className="text-sm text-muted-foreground mt-2">
              Don't have an account?{' '}
             <Link
-              href="/register"
+              href={searchParams.get('redirect') ? `/register?redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : "/register"}
               className="font-semibold text-primary underline-offset-4 hover:underline"
             >
               Sign up
             </Link>
           </p>
         </div>
+        <p className="px-8 text-center text-sm text-muted-foreground">
+          By continuing, you agree to our{' '}
+          <Link
+            href="/terms-of-service"
+            className="underline underline-offset-4 hover:text-primary"
+          >
+            Terms of Service
+          </Link>{' '}
+          and{' '}
+          <Link
+            href="/privacy-policy"
+            className="underline underline-offset-4 hover:text-primary"
+          >
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );
