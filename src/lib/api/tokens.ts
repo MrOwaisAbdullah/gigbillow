@@ -131,6 +131,15 @@ export async function checkAndRefillTokens(): Promise<{ isNewUser: boolean, wasR
         return { isNewUser: false, wasRefilled: false };
       }
 
+      // Log transaction
+      await supabase.from('token_transactions').insert({
+        user_id: userId,
+        amount: refillAmount,
+        type: 'monthly_refill',
+        description: 'Monthly free tokens refill',
+        metadata: { rollover_amount: rolloverAmount }
+      });
+
       const toastTitle = betaConfig.isActive ? '🎉 Monthly Beta Tokens Added!' : 'Monthly Tokens Refilled!';
       toast({ title: toastTitle, description: `Your ${refillAmount} tokens have been added. ${rolloverAmount} unused tokens were rolled over.` });
 
@@ -178,6 +187,18 @@ async function spendToken(userId: string, cost: number): Promise<{ success: bool
   if (updateError) {
     return { success: false };
   }
+
+  // Log transaction
+  // Note: We don't have the action name here easily unless passed, but spendToken is internal.
+  // Ideally we should pass the reason. For now, we'll just say 'usage'.
+  // Actually, let's update spendToken signature or just log generic usage.
+  // Better yet, let's update spendToken to take a description.
+  await supabase.from('token_transactions').insert({
+    user_id: userId,
+    amount: -cost,
+    type: 'usage',
+    description: 'Token usage',
+  });
 
   return { success: true, newBalance };
 }
@@ -287,6 +308,14 @@ export async function addTokens(amount: number): Promise<{ success: boolean, new
 
     newBalance = amount;
   }
+
+  // Log transaction
+  await supabase.from('token_transactions').insert({
+    user_id: userId,
+    amount: amount,
+    type: 'bonus', // Assuming addTokens is used for manual/bonus additions, not purchases (which are handled by webhook)
+    description: 'Manual token addition',
+  });
 
   // Also update the main user profile to reflect subscription status
   await updateUserSubscriptionStatus(true);

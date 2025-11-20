@@ -18,6 +18,7 @@ import type { UserProfile } from '@/lib/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { PremiumLock } from '@/components/subscription/premium-lock';
+import { buyBundle } from '@/lib/api/stripe-client';
 
 
 const profileSchema = z.object({
@@ -328,9 +329,59 @@ export default function SettingsPage() {
                             <p className='font-semibold'>Current Plan</p>
                             <p className='text-sm text-muted-foreground'>{profile.isSubscribed ? 'Pro Plan' : 'Free Plan'}</p>
                         </div>
-                        <p className='font-bold text-lg'>{profile.isSubscribed ? '$14/mo' : '$0/mo'}</p>
+                        {profile.isSubscribed ? (
+                          <div className='flex items-center gap-2'>
+                            <span className='text-sm text-muted-foreground line-through'>$18/mo</span>
+                            <p className='font-bold text-lg text-green-600 dark:text-green-500'>$14/mo</p>
+                          </div>
+                        ) : (
+                          <p className='font-bold text-lg'>$0/mo</p>
+                        )}
                     </div>
                      <Button onClick={() => handleComingSoon('Billing portal')}>Manage Subscription</Button>
+                </CardContent>
+             </Card>
+
+             <Card>
+                <CardHeader>
+                    <CardTitle>Purchase Tokens</CardTitle>
+                    <CardDescription>
+                      <span className="inline-flex items-center gap-2">
+                        Buy more tokens to use premium features.
+                        <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded">🎉 Limited Time Offer!</span>
+                      </span>
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="border rounded-lg p-4 flex flex-col gap-2">
+                            <div className="font-semibold text-lg">Mini Pack</div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg text-muted-foreground line-through">$8</span>
+                              <span className="text-2xl font-bold text-green-600 dark:text-green-500">$5</span>
+                            </div>
+                            <div className="text-sm text-muted-foreground">50 tokens</div>
+                            <Button onClick={() => buyBundle('mini')} className="mt-auto">Buy Now</Button>
+                        </div>
+                        <div className="border rounded-lg p-4 flex flex-col gap-2 border-primary bg-primary/5">
+                            <div className="font-semibold text-lg">Standard Pack</div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg text-muted-foreground line-through">$18</span>
+                              <span className="text-2xl font-bold text-green-600 dark:text-green-500">$14</span>
+                            </div>
+                            <div className="text-sm text-muted-foreground">200 tokens</div>
+                            <Button onClick={() => buyBundle('standard')} className="mt-auto">Buy Now</Button>
+                        </div>
+                        <div className="border rounded-lg p-4 flex flex-col gap-2">
+                            <div className="font-semibold text-lg">Agency Pack</div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg text-muted-foreground line-through">$38</span>
+                              <span className="text-2xl font-bold text-green-600 dark:text-green-500">$29</span>
+                            </div>
+                            <div className="text-sm text-muted-foreground">500 tokens</div>
+                            <Button onClick={() => buyBundle('agency')} className="mt-auto">Buy Now</Button>
+                        </div>
+                    </div>
                 </CardContent>
              </Card>
 

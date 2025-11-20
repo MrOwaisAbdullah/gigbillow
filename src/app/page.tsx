@@ -46,10 +46,21 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { Logo } from "@/components/logo";
 import { useTheme } from "@/hooks/use-theme";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { buyBundle } from "@/lib/api/stripe-client";
+import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
   const { user } = useAuth();
   const { toggleTheme } = useTheme();
+  const router = useRouter();
+
+  const handleBuy = async (bundleType: 'mini' | 'standard' | 'agency') => {
+    if (!user) {
+      router.push('/register');
+      return;
+    }
+    await buyBundle(bundleType);
+  };
 
   const carouselImages = [
     {
@@ -593,8 +604,14 @@ export default function LandingPage() {
                   Most Popular
                 </div>
                 <CardHeader className="text-center p-6">
+                  <div className="mb-2">
+                    <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded">🎉 Limited Time Offer!</span>
+                  </div>
                   <CardTitle className="text-xl">Standard Pack</CardTitle>
-                  <p className="text-4xl font-extrabold mt-2">$14</p>
+                  <div className="flex items-center justify-center gap-2 mt-2">
+                    <p className="text-2xl text-muted-foreground line-through">$18</p>
+                    <p className="text-4xl font-extrabold text-green-600 dark:text-green-500">$14</p>
+                  </div>
                   <p className="text-muted-foreground">One-time purchase</p>
                 </CardHeader>
                 <CardContent className="flex flex-col flex-grow space-y-4 p-6 pt-0">
@@ -619,15 +636,21 @@ export default function LandingPage() {
                       Priority email support
                     </li>
                   </ul>
-                  <Button className="w-full" asChild>
-                    <Link href="/register">Buy Standard Pack</Link>
+                  <Button className="w-full" onClick={() => handleBuy('standard')}>
+                    Buy Standard Pack
                   </Button>
                 </CardContent>
               </Card>
               <Card className="flex flex-col bg-background">
                 <CardHeader className="text-center p-6">
+                  <div className="mb-2">
+                    <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded">🎉 Limited Time Offer!</span>
+                  </div>
                   <CardTitle className="text-xl">Mini Pack</CardTitle>
-                  <p className="text-4xl font-extrabold mt-2">$5</p>
+                  <div className="flex items-center justify-center gap-2 mt-2">
+                    <p className="text-2xl text-muted-foreground line-through">$8</p>
+                    <p className="text-4xl font-extrabold text-green-600 dark:text-green-500">$5</p>
+                  </div>
                   <p className="text-muted-foreground">One-time purchase</p>
                 </CardHeader>
                 <CardContent className="flex flex-col flex-grow space-y-4 p-6 pt-0">
@@ -648,8 +671,8 @@ export default function LandingPage() {
                       Priority email support
                     </li>
                   </ul>
-                  <Button variant="secondary" className="w-full" asChild>
-                    <Link href="/register">Buy Mini Pack</Link>
+                  <Button variant="secondary" className="w-full" onClick={() => handleBuy('mini')}>
+                    Buy Mini Pack
                   </Button>
                 </CardContent>
               </Card>
@@ -682,10 +705,16 @@ export default function LandingPage() {
                   </ul>
                 </div>
                 <div className="text-center md:text-right">
-                  <p className="text-4xl font-extrabold mt-2">$29</p>
+                  <div className="mb-2">
+                    <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded">🎉 Limited Time Offer!</span>
+                  </div>
+                  <div className="flex items-center justify-center md:justify-end gap-2">
+                    <p className="text-2xl text-muted-foreground line-through">$38</p>
+                    <p className="text-4xl font-extrabold text-green-600 dark:text-green-500">$29</p>
+                  </div>
                   <p className="text-muted-foreground">One-time purchase</p>
-                  <Button size="lg" className="mt-4 w-full md:w-auto" asChild>
-                    <Link href="/register">Buy Agency Pack</Link>
+                  <Button size="lg" className="mt-4 w-full md:w-auto" onClick={() => handleBuy('agency')}>
+                    Buy Agency Pack
                   </Button>
                 </div>
               </div>

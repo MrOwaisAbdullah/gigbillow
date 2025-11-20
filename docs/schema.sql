@@ -310,3 +310,23 @@ CREATE INDEX idx_expenses_project_id ON expenses(project_id);
 CREATE INDEX idx_expenses_invoice_id ON expenses(invoice_id);
 CREATE INDEX idx_referrals_referrer_user_id ON referrals(referrer_user_id);
 CREATE INDEX idx_feedback_user_id ON feedback(user_id);
+
+-- Create token_transactions table
+CREATE TABLE token_transactions (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    amount INTEGER NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('purchase', 'usage', 'monthly_refill', 'bonus', 'correction')),
+    description TEXT,
+    metadata JSONB
+);
+
+-- Create RLS policies for token_transactions table
+ALTER TABLE token_transactions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own token transactions" ON token_transactions
+    FOR SELECT TO authenticated
+    USING (auth.uid() = user_id);
+
+CREATE INDEX idx_token_transactions_user_id ON token_transactions(user_id);

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToken } from "./token-provider";
-import { addTokens } from "@/lib/api/tokens";
+import { buyBundle } from "@/lib/api/stripe-client";
 import { useState } from "react";
 import { Loader2, X, AlertTriangle } from "lucide-react";
 
@@ -19,9 +19,9 @@ type InsufficientTokensDialogProps = {
 };
 
 const packs = [
-  { name: "Mini Pack", price: "$5", amount: 50 },
-  { name: "Standard Pack", price: "$14", amount: 200 },
-  { name: "Agency Pack", price: "$29", amount: 500 },
+  { name: "Mini Pack", originalPrice: "$8", price: "$5", amount: 50 },
+  { name: "Standard Pack", originalPrice: "$18", price: "$14", amount: 200 },
+  { name: "Agency Pack", originalPrice: "$38", price: "$29", amount: 500 },
 ];
 
 export function InsufficientTokensDialog({
@@ -33,8 +33,13 @@ export function InsufficientTokensDialog({
 
   const handleBuy = async (amount: number, index: number) => {
     setIsBuying(index);
-    // This is a simulation. In a real app, this would redirect to a Stripe checkout.
-    await addTokens(amount);
+    const packName = packs[index].name;
+    let bundleType: 'mini' | 'standard' | 'agency' = 'mini';
+    
+    if (packName.includes('Standard')) bundleType = 'standard';
+    else if (packName.includes('Agency')) bundleType = 'agency';
+
+    await buyBundle(bundleType);
     setIsBuying(null);
     onOpenChange(false);
   };
@@ -59,6 +64,9 @@ export function InsufficientTokensDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-4 flex-grow overflow-y-auto theme-scrollbar">
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2 text-center">
+            <p className="text-sm font-semibold text-yellow-600 dark:text-yellow-500">🎉 Limited Time Offer!</p>
+          </div>
           <p className="font-semibold">One-time token packs:</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {packs.map((pack, index) => (
@@ -75,7 +83,10 @@ export function InsufficientTokensDialog({
                   <>
                     <span className="text-lg font-bold">{pack.amount}</span>
                     <span className="font-semibold">{pack.name}</span>
-                    <span className="text-sm text-muted-foreground">{pack.price}</span>
+                    <div className="flex items-center gap-2 justify-center">
+                      <span className="text-sm text-muted-foreground line-through">{pack.originalPrice}</span>
+                      <span className="text-lg font-bold text-green-600 dark:text-green-500">{pack.price}</span>
+                    </div>
                     <span className="text-xs text-muted-foreground mt-1">1 token per action</span>
                   </>
                 )}
