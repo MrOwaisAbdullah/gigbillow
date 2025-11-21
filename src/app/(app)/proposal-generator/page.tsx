@@ -364,6 +364,15 @@ export default function ProposalGeneratorPage() {
                   type="submit"
                   disabled={isGenerating || authLoading}
                   className="w-full"
+                  onClick={(e) => {
+                    // If user is not logged in, redirect immediately without validation
+                    if (!user && !authLoading) {
+                      e.preventDefault();
+                      sessionStorage.setItem('redirectAfterLogin', '/proposal-generator');
+                      router.push('/login');
+                    }
+                    // Otherwise, let form validation proceed normally
+                  }}
                 >
                   {isGenerating ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

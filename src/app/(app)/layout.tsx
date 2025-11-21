@@ -7,7 +7,7 @@ import { AppHeader } from '@/components/app-header';
 import { FloatingTrackerButton } from '@/components/floating-tracker-button';
 import { AuthProvider, useAuth } from '@/components/auth/auth-provider';
 import { TokenProvider } from '@/components/token/token-provider';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Bug } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { SecurityErrorListener } from '@/components/SecurityErrorListener';
@@ -140,11 +140,20 @@ function AppContent({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen w-full flex-col bg-secondary/50 dark:bg-secondary/30">
       <SecurityErrorListener />
       <AppSidebar />
-      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+      <div className="flex flex-col min-h-screen sm:gap-4 sm:py-4 sm:pl-14">
         <AppHeader />
-        <main className="flex-1 items-start gap-4 p-4 pb-24 sm:px-6 sm:py-0 md:gap-8 md:pb-24">
+        <main className="flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           {children}
         </main>
+        <footer className="mt-auto py-3 px-4 sm:px-6 text-center mb-16 sm:mb-0">
+          <a 
+            href="/support/feedback" 
+            className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1.5 transition-colors"
+          >
+            <Bug className="h-3.5 w-3.5" />
+            Report a Bug
+          </a>
+        </footer>
       </div>
       <FloatingTrackerButton />
       <WelcomeTour open={isTourOpen} onOpenChange={setOpen} />

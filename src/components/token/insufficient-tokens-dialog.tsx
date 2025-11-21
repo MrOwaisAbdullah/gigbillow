@@ -9,9 +9,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToken } from "./token-provider";
+import { useAuth } from "@/components/auth/auth-provider";
 import { buyBundle } from "@/lib/api/stripe-client";
 import { useState } from "react";
-import { Loader2, X, AlertTriangle } from "lucide-react";
+import { Loader2, X, AlertTriangle, Gift } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type InsufficientTokensDialogProps = {
   open: boolean;
@@ -29,6 +31,8 @@ export function InsufficientTokensDialog({
   onOpenChange,
 }: InsufficientTokensDialogProps) {
   const { tokens } = useToken();
+  const { user } = useAuth();
+  const router = useRouter();
   const [isBuying, setIsBuying] = useState<number | null>(null);
 
   const handleBuy = async (amount: number, index: number) => {
@@ -44,10 +48,50 @@ export function InsufficientTokensDialog({
     onOpenChange(false);
   };
 
+  const handleLoginRedirect = () => {
+    onOpenChange(false);
+    router.push('/login');
+  };
+
   const handleClose = () => {
     onOpenChange(false);
   };
 
+  // Show different content for unauthenticated users
+  if (!user) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Gift className="h-5 w-5 text-primary" /> Get Free Tokens
+            </DialogTitle>
+            <DialogDescription>
+              Login to get free 10 tokens every month
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-center">
+              <p className="text-lg font-semibold mb-2">🎉 Free Monthly Tokens!</p>
+              <p className="text-sm text-muted-foreground">
+                Create a free account and receive 10 tokens every month to use features like:
+              </p>
+              <ul className="text-sm text-muted-foreground mt-2 space-y-1 text-left">
+                <li>• Generate PDF Invoices</li>
+                <li>• Create AI-Powered Proposals</li>
+                <li>• Export Detailed Reports</li>
+              </ul>
+            </div>
+            <Button onClick={handleLoginRedirect} size="lg" className="w-full">
+              Login to Get Free Tokens
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Show purchase options for authenticated users
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md md:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">

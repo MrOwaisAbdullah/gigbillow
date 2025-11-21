@@ -116,7 +116,23 @@ export function AppHeader() {
       </div>
        <Button variant="outline" size="sm" onClick={openDialog}>
             <Zap className="mr-2 h-4 w-4 text-yellow-500" />
-            {tokensLoading ? '...' : `${tokens}/${(tokenData as any)?.rollover_limit ?? 0}`} Tokens
+            {user 
+              ? (tokensLoading ? '...' : `${tokens}/${(tokenData as any)?.rollover_limit ?? 0} Tokens`)
+              : 'Get Free Tokens'
+            }
+       </Button>
+       <Button 
+         variant="outline" 
+         size="icon" 
+         onClick={toggleTheme}
+         className="hidden md:flex"
+       >
+         {theme === 'dark' ? (
+           <Sun className="h-4 w-4" />
+         ) : (
+           <Moon className="h-4 w-4" />
+         )}
+         <span className="sr-only">Toggle theme</span>
        </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
