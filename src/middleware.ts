@@ -2,11 +2,19 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  
+  // This should appear in terminal if middleware is running
+  console.log('🚀 MIDDLEWARE RUNNING FOR:', pathname);
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
+
+  // Add a header to verify middleware is running
+  response.headers.set('x-middleware-executed', 'true');
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -57,8 +65,6 @@ export async function middleware(request: NextRequest) {
   // Refresh session if expired - required for Server Components
   const { data: { session } } = await supabase.auth.getSession();
 
-  const { pathname } = request.nextUrl;
-
   // Define public routes that don't require authentication
   const publicRoutes = [
     '/',
@@ -74,8 +80,19 @@ export async function middleware(request: NextRequest) {
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isProtectedRoute = !isPublicRoute;
 
+  // Debug logging
+  console.log('🔒 Middleware Check:', {
+    pathname,
+    hasSession: !!session,
+    userId: session?.user?.id,
+    isPublicRoute,
+    isProtectedRoute,
+    willRedirect: !session && isProtectedRoute
+  });
+
   // If user is authenticated and trying to access auth pages, redirect to dashboard
   if (session && isAuthPage) {
+    console.log('✅ Authenticated user on auth page, redirecting to dashboard');
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/dashboard';
     return NextResponse.redirect(redirectUrl);
@@ -83,6 +100,7 @@ export async function middleware(request: NextRequest) {
 
   // If user is not authenticated and trying to access protected routes, redirect to login
   if (!session && isProtectedRoute) {
+    console.log('🚫 REDIRECTING TO LOGIN - No session for protected route:', pathname);
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/login';
     
@@ -94,6 +112,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  console.log('✅ Allowing access to:', pathname);
   return response;
 }
 
