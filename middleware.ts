@@ -54,9 +54,46 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Don't call getUser() here as it can hang with session mismatches
-  // Just let the middleware pass through and refresh cookies
-  
+  // Refresh session if expired - required for Server Components
+  const { data: { session } } = await supabase.auth.getSession();
+
+  const { pathname } = request.nextUrl;
+
+  // Define public routes that don't require authentication
+  const publicRoutes = [
+    '/',
+    '/login',
+    '/register',
+    '/pricing',
+    '/terms-of-service',
+    '/privacy-policy',
+    '/proposal-generator',
+  ];
+
+  const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/share');
+  const isAuthPage = pathname === '/login' || pathname === '/register';
+  const isProtectedRoute = !isPublicRoute;
+
+  // If user is authenticated and trying to access auth pages, redirect to dashboard
+  if (session && isAuthPage) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/dashboard';
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // If user is not authenticated and trying to access protected routes, redirect to login
+  if (!session && isProtectedRoute) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/login';
+    
+    // Preserve the original URL as a redirect parameter
+    if (pathname !== '/login' && pathname !== '/register') {
+      redirectUrl.searchParams.set('redirect', pathname);
+    }
+    
+    return NextResponse.redirect(redirectUrl);
+  }
+
   return response;
 }
 
@@ -67,7 +104,9 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - api (API routes)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
+

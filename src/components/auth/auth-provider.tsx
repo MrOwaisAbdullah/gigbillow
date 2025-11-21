@@ -4,7 +4,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { type User } from '@supabase/supabase-js';
-import { usePathname, useRouter } from 'next/navigation';
 import { seedSampleData } from '@/lib/seed';
 import { getClients } from '@/lib/api/clients';
 import { ensureUserExists } from '@/lib/api/users';
@@ -41,8 +40,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isNewUser, setIsNewUser] = useState(false);
-  const router = useRouter();
-  const pathname = usePathname();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -57,40 +54,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const currentUser = session?.user;
       setUser(currentUser || null);
 
-      const isAuthPage = pathname === '/login' || pathname === '/register';
-      const isPublicPage = pathname === '/' || pathname.startsWith('/share') || pathname === '/proposal-generator' || isAuthPage;
-
       if (currentUser) {
+        // Ensure user exists in our database
         await ensureUserExists(currentUser);
+        
+        // Check and refill tokens
         const { isNewUser: newUser, wasRefilled } = await checkAndRefillTokens();
-
         setIsNewUser(newUser);
 
+        // Show welcome toast for new users
         if (newUser) {
-          toast({ title: '🎉 Welcome to our Beta!', description: "You've received 50 bonus tokens for free. Enjoy, and please share your feedback!" });
-        } else if (wasRefilled) {
-          // Toast is handled in checkAndRefillTokens for refills
+          toast({ 
+            title: '🎉 Welcome to our Beta!', 
+            description: "You've received 50 bonus tokens for free. Enjoy, and please share your feedback!" 
+          });
         }
+        
+        // Seed sample data for the sample account
         await checkAndSeedData(currentUser.id, currentUser.email || '');
-
-        if (isAuthPage) {
-          const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
-          sessionStorage.removeItem('redirectAfterLogin');
-          router.push(redirectPath);
-        }
       } else {
         setIsNewUser(false);
-        if (!isPublicPage) {
-          sessionStorage.setItem('redirectAfterLogin', pathname);
-          router.push('/login');
-        }
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [router, pathname, toast]);
+  }, [toast]);
 
   return (
     <AuthContext.Provider value={{ user, loading, isNewUser }}>
